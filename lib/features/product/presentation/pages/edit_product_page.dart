@@ -21,12 +21,21 @@ class _EditProductPageState extends State<EditProductPage> {
   final _formKey = GlobalKey<FormState>();
   late String _name;
   late double _price;
+  late int _stock;
+  late String _category;
+  late int _minStockAlert;
+  late List<String> _variants;
+  final TextEditingController _variantController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _name = widget.product.name;
     _price = widget.product.price;
+    _stock = widget.product.stock;
+    _category = widget.product.category;
+    _minStockAlert = widget.product.minStockAlert;
+    _variants = List.from(widget.product.variants);
   }
 
   void _submit() {
@@ -38,6 +47,10 @@ class _EditProductPageState extends State<EditProductPage> {
         name: _name,
         barcode: widget.product.barcode,
         price: _price,
+        stock: _stock,
+        category: _category,
+        minStockAlert: _minStockAlert,
+        variants: _variants,
       );
 
       context.read<ProductBloc>().add(UpdateProduct(updatedProduct));
@@ -120,7 +133,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
-                      prefixText: '₹ ',
+                      prefixText: 'XAF ',
                       prefixStyle: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -128,6 +141,86 @@ class _EditProductPageState extends State<EditProductPage> {
                     ),
                     validator: AppValidators.price,
                     onSaved: (value) => _price = double.parse(value!),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const InputLabel(text: 'Stock Quantity'),
+                            TextFormField(
+                              initialValue: _stock.toString(),
+                              keyboardType: TextInputType.number,
+                              onSaved: (value) =>
+                                  _stock = int.tryParse(value!) ?? 0,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const InputLabel(text: 'Alert Threshold'),
+                            TextFormField(
+                              initialValue: _minStockAlert.toString(),
+                              keyboardType: TextInputType.number,
+                              onSaved: (value) =>
+                                  _minStockAlert = int.tryParse(value!) ?? 5,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const InputLabel(text: 'Category'),
+                  DropdownButtonFormField<String>(
+                    value: _category,
+                    items: ['General', 'Food', 'Drinks', 'Electronics', 'Others']
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (value) => setState(() => _category = value!),
+                  ),
+                  const SizedBox(height: 24),
+                  const InputLabel(text: 'Variants'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _variantController,
+                          decoration: const InputDecoration(
+                            hintText: 'Add new variant',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton.filled(
+                        onPressed: () {
+                          if (_variantController.text.isNotEmpty) {
+                            setState(() {
+                              _variants.add(_variantController.text.trim());
+                              _variantController.clear();
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: _variants
+                        .map((v) => Chip(
+                              label: Text(v),
+                              onDeleted: () =>
+                                  setState(() => _variants.remove(v)),
+                            ))
+                        .toList(),
                   ),
                 ],
               ),

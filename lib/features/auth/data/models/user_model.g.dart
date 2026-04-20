@@ -1,53 +1,41 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'product_model.dart';
+part of 'user_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class ProductModelAdapter extends TypeAdapter<ProductModel> {
+class UserModelAdapter extends TypeAdapter<UserModel> {
   @override
-  final int typeId = 0;
+  final int typeId = 4;
 
   @override
-  ProductModel read(BinaryReader reader) {
+  UserModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return ProductModel(
+    return UserModel(
       id: fields[0] as String,
       name: fields[1] as String,
-      barcode: fields[2] as String,
-      price: fields[3] as double,
-      stock: fields[4] as int,
-      category: fields[5] == null ? 'Général' : fields[5] as String,
-      minStockAlert: fields[6] == null ? 5 : fields[6] as int,
-      variants: fields[7] == null ? [] : (fields[7] as List).cast<String>(),
+      pinCode: fields[2] as String,
+      role: fields[3] as Role,
     );
   }
 
   @override
-  void write(BinaryWriter writer, ProductModel obj) {
+  void write(BinaryWriter writer, UserModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.barcode)
+      ..write(obj.pinCode)
       ..writeByte(3)
-      ..write(obj.price)
-      ..writeByte(4)
-      ..write(obj.stock)
-      ..writeByte(5)
-      ..write(obj.category)
-      ..writeByte(6)
-      ..write(obj.minStockAlert)
-      ..writeByte(7)
-      ..write(obj.variants);
+      ..write(obj.role);
   }
 
   @override
@@ -56,7 +44,7 @@ class ProductModelAdapter extends TypeAdapter<ProductModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is ProductModelAdapter &&
+      other is UserModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

@@ -5,6 +5,9 @@ import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_validators.dart';
+import '../../../../core/widgets/app_drawer.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/domain/entities/user.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -50,20 +53,18 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     final borderColor = Colors.grey[100]!;
+    final authState = context.watch<AuthBloc>().state;
+    final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.admin;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left,
-              size: 28, color: Theme.of(context).primaryColor),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text('Product Management',
+        title: const Text('Inventaire & Stock',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
       ),
+      drawer: const AppDrawer(),
       body: Column(
         children: [
           // Search Bar
@@ -98,7 +99,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.qr_code_scanner,
+                          icon: Icon(Icons.qr_code_scanner,
                               color: AppTheme.primaryColor),
                           onPressed: () => _scanQR(state.products),
                           padding: const EdgeInsets.all(15),
@@ -171,11 +172,11 @@ class _ProductListPageState extends State<ProductListPage> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: borderColor),
-                        boxShadow: const [
+                        boxShadow: [
                           BoxShadow(
-                              color: Colors.black12,
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 4,
-                              offset: Offset(0, 2))
+                              offset: const Offset(0, 2))
                         ],
                       ),
                       padding: const EdgeInsets.all(16),
@@ -194,7 +195,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '₹${product.price.toStringAsFixed(2)}',
+                                  'XAF${product.price.toStringAsFixed(2)}',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w500,
                                       color: Colors.grey[600]),
@@ -202,6 +203,7 @@ class _ProductListPageState extends State<ProductListPage> {
                               ],
                             ),
                           ),
+                        if (isAdmin)
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -212,7 +214,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.edit_rounded,
+                                  icon: Icon(Icons.edit_rounded,
                                       color: AppTheme.primaryColor, size: 20),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(8),
@@ -249,13 +251,13 @@ class _ProductListPageState extends State<ProductListPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: isAdmin ? FloatingActionButton(
         onPressed: () => context.push('/products/add'),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
         child: const Icon(Icons.add, size: 32),
-      ),
+      ) : null,
     );
   }
 

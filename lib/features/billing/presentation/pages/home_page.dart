@@ -8,6 +8,7 @@ import '../../../billing/presentation/bloc/billing_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../domain/entities/cart_item.dart';
+import '../../../../core/widgets/app_drawer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -69,6 +70,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       body: BlocListener<BillingBloc, BillingState>(
         listenWhen: (previous, current) =>
             previous.error != current.error && current.error != null,
@@ -107,16 +109,47 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomSheet:
           BlocBuilder<BillingBloc, BillingState>(builder: (context, state) {
-        return PrimaryButton(
-          onPressed: state.cartItems.isEmpty
-              ? null
-              : () async {
-                  _scannerController.stop();
-                  await context.push('/checkout');
-                  if (_isCameraOn && mounted) _scannerController.start();
-                },
-          icon: Icons.payment,
-          label: 'Review Order',
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0, left: 16.0, right: 16.0),
+          child: Row(
+            children: [
+              if (state.cartItems.isNotEmpty) ...[
+                Expanded(
+                  flex: 1,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      context.read<BillingBloc>().add(HoldCartEvent());
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      side: const BorderSide(color: Colors.orange),
+                      foregroundColor: Colors.orange,
+                    ),
+                    child: const Icon(Icons.pause),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                flex: 3,
+                child: PrimaryButton(
+                  onPressed: state.cartItems.isEmpty
+                      ? null
+                      : () async {
+                          _scannerController.stop();
+                          await context.push('/checkout');
+                          if (_isCameraOn && mounted) {
+                            _scannerController.start();
+                          }
+                        },
+                  icon: Icons.payment,
+                  label: 'Review Order',
+                ),
+              ),
+            ],
+          ),
         );
       }),
     );
@@ -134,7 +167,43 @@ class _HomePageState extends State<HomePage> {
           ),
           if (!_isCameraOn) _buildCameraOffState(),
 
-          // Overlay Actions (Top Right)
+          // Overlay Actions — Top Left (Dashboard, Products)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            child: Column(
+              children: [
+                Builder(
+                  builder: (context) => _buildOverlayButton(
+                    icon: Icons.menu_rounded,
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildOverlayButton(
+                  icon: Icons.bar_chart_rounded,
+                  onPressed: () async {
+                    _scannerController.stop();
+                    await context.push('/dashboard');
+                    if (_isCameraOn && mounted) _scannerController.start();
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildOverlayButton(
+                  icon: Icons.inventory_2_outlined,
+                  onPressed: () async {
+                    _scannerController.stop();
+                    await context.push('/products');
+                    if (_isCameraOn && mounted) _scannerController.start();
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          // Overlay Actions — Top Right (Settings, Flash, Camera)
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             right: 16,
@@ -151,8 +220,9 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 16),
                 if (_isCameraOn)
                   _buildOverlayButton(
-                    icon:
-                        _isFlashOn ? Icons.flashlight_off : Icons.flashlight_on,
+                    icon: _isFlashOn
+                        ? Icons.flashlight_off
+                        : Icons.flashlight_on,
                     onPressed: () {
                       setState(() => _isFlashOn = !_isFlashOn);
                       _scannerController.toggleTorch();
@@ -161,7 +231,6 @@ class _HomePageState extends State<HomePage> {
                 if (_isCameraOn) const SizedBox(height: 16),
                 _buildOverlayButton(
                   icon: _isCameraOn ? Icons.videocam : Icons.videocam_off,
-                  // color:  Colors.white24 ,
                   onPressed: () {
                     setState(() {
                       _isCameraOn = !_isCameraOn;
@@ -328,6 +397,42 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
+          // Held Orders Banner
+          BlocBuilder<BillingBloc, BillingState>(
+            builder: (context, state) {
+              if (state.heldOrders.isEmpty) return const SizedBox.shrink();
+              return Container(
+                height: 50,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: state.heldOrders.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final order = state.heldOrders[index];
+                    final total = order.items.fold<double>(
+                        0, (sum, i) => sum + (i.product.price * i.quantity));
+                    return ActionChip(
+                      backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                      side: BorderSide(color: Colors.orange.withValues(alpha: 0.5)),
+                      label: Text(
+                        'Panier en attente (XAF${total.toStringAsFixed(0)})',
+                        style: const TextStyle(color: Colors.orange, fontSize: 12),
+                      ),
+                      avatar: const Icon(Icons.restore, size: 16, color: Colors.orange),
+                      onPressed: () {
+                        context
+                            .read<BillingBloc>()
+                            .add(RestoreHeldOrderEvent(order.id));
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+
+
           // Header
           BlocBuilder<BillingBloc, BillingState>(
             builder: (context, state) {
@@ -360,7 +465,7 @@ class _HomePageState extends State<HomePage> {
                                 color: Colors.grey,
                                 letterSpacing: 1.2)),
                         Text(
-                          '₹${state.totalAmount.toStringAsFixed(2)}',
+                          'XAF${state.totalAmount.toStringAsFixed(2)}',
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
@@ -468,7 +573,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '₹${item.product.price.toStringAsFixed(2)}',
+                  'XAF${item.product.price.toStringAsFixed(2)}',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,

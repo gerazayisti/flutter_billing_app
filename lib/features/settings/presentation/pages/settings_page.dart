@@ -3,11 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
 
+import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_drawer.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/domain/entities/user.dart';
 import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/printer_bloc.dart';
 import '../bloc/printer_event.dart';
 import '../bloc/printer_state.dart';
+import '../../../../core/utils/backup_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,19 +31,18 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.admin;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings',
+        title: const Text('Paramètres',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left,
-              size: 28, color: Theme.of(context).primaryColor),
-          onPressed: () => context.pop(),
-        ),
       ),
+      drawer: const AppDrawer(),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -98,20 +102,29 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // Management Section
-            _buildSectionHeader('Management'),
+            _buildSectionHeader('Gestion & Organisation'),
             _buildListGroup(
               children: [
                 _buildListItem(
                   icon: Icons.qr_code_scanner,
-                  title: 'Products',
-                  subtitle: 'Manage stock and barcodes',
+                  title: 'Gestion du Stock',
+                  subtitle: 'Consulter l\'inventaire et les codes-barres',
                   onTap: () => context.push('/products'),
                 ),
+                if (isAdmin) ...[
+                  _buildDivider(),
+                  _buildListItem(
+                    icon: Icons.people_outline_rounded,
+                    title: 'Gestion des Utilisateurs',
+                    subtitle: 'Gérer les codes PIN et les caissiers',
+                    onTap: () => context.push('/users'),
+                  ),
+                ],
                 _buildDivider(),
                 _buildListItem(
                   icon: Icons.storefront,
-                  title: 'Shop Details',
-                  subtitle: 'Edit business info & address',
+                  title: 'Boutique & Reçus',
+                  subtitle: 'Informations de facturation et adresse',
                   onTap: () => context.push('/shop'),
                 ),
               ],
@@ -205,12 +218,66 @@ class _SettingsPageState extends State<SettingsPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Text(
-                "To connect a new device, tap on the Settings gear to pair in phone's Bluetooth settings, then return and hit Refresh.",
+                "Pour connecter une nouvelle imprimante, appairez-la d'abord dans les réglages Bluetooth de votre téléphone.",
                 style: TextStyle(
                     fontSize: 11,
                     fontStyle: FontStyle.italic,
                     color: Colors.grey[500]),
               ),
+            ),
+
+            if (isAdmin) ...[
+              const SizedBox(height: 24),
+              // Data & Backup Section
+              _buildSectionHeader('Données & Sauvegarde (Backup)'),
+              _buildListGroup(
+                children: [
+                  _buildListItem(
+                    icon: Icons.upload_file,
+                    title: 'Exporter les Données (JSON)',
+                    subtitle: 'Sauvegarder l\'inventaire, la boutique et l\'historique',
+                    trailingIcon: Icons.share,
+                    onTap: () {
+                      BackupService.exportData(context);
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildListItem(
+                    icon: Icons.download_rounded,
+                    title: 'Restaurer la Base (Import)',
+                    subtitle: 'Attention: cela remplacera vos données actuelles !',
+                    trailingIcon: Icons.warning_amber_rounded,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (c) => AlertDialog(
+                          title: const Text('Restauration critique'),
+                          content: const Text('Êtes-vous sûr de vouloir remplacer votre base de données locale par un ancien fichier JSON ? Cette action est irréversible.'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(c), child: const Text('Annuler')),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                              onPressed: () {
+                                Navigator.pop(c);
+                                BackupService.importData(context);
+                              }, 
+                              child: const Text('Restaurer')
+                            ),
+                          ],
+                        )
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            // ── Apparence Section ────────────────────────────────────────────
+            _buildSectionHeader('Apparence'),
+            _ColorPickerSection(
+              onColorChanged: () => setState(() {}),
             ),
 
             const SizedBox(height: 48),
@@ -305,6 +372,105 @@ class _SettingsPageState extends State<SettingsPage> {
               Icon(trailingIcon, color: Colors.grey[300]),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Color Picker Section ─────────────────────────────────────────────────────
+class _ColorPickerSection extends StatefulWidget {
+  final VoidCallback onColorChanged;
+  const _ColorPickerSection({required this.onColorChanged});
+
+  @override
+  State<_ColorPickerSection> createState() => _ColorPickerSectionState();
+}
+
+class _ColorPickerSectionState extends State<_ColorPickerSection> {
+  Color _selected = AppColorConfig.accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[100]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _selected.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.palette_outlined,
+                    color: _selected, size: 20),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Couleur du tableau de bord',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    SizedBox(height: 2),
+                    Text('Choisir la couleur principale',
+                        style:
+                            TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: AppColorConfig.palette.map((color) {
+              final isSelected = _selected.toARGB32() == color.toARGB32();
+              return GestureDetector(
+                onTap: () async {
+                  await AppColorConfig.setAccentColor(color);
+                  setState(() => _selected = color);
+                  widget.onColorChanged();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? Colors.white : Colors.transparent,
+                      width: 2.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: isSelected ? 0.5 : 0.2),
+                        blurRadius: isSelected ? 8 : 4,
+                        spreadRadius: isSelected ? 2 : 0,
+                      ),
+                    ],
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check,
+                          color: Colors.white, size: 18)
+                      : null,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }

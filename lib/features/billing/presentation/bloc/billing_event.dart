@@ -37,6 +37,24 @@ class UpdateQuantityEvent extends BillingEvent {
 
 class ClearCartEvent extends BillingEvent {}
 
+class LoadHeldOrdersEvent extends BillingEvent {}
+
+class HoldCartEvent extends BillingEvent {}
+
+class RestoreHeldOrderEvent extends BillingEvent {
+  final String holdId;
+  const RestoreHeldOrderEvent(this.holdId);
+  @override
+  List<Object> get props => [holdId];
+}
+
+class SetPaymentMethodEvent extends BillingEvent {
+  final PaymentMethod method;
+  const SetPaymentMethodEvent(this.method);
+  @override
+  List<Object> get props => [method];
+}
+
 class PrintReceiptEvent extends BillingEvent {
   final String shopName;
   final String address1;
@@ -54,4 +72,16 @@ class PrintReceiptEvent extends BillingEvent {
 
   @override
   List<Object> get props => [shopName, address1, address2, phone, footer];
+}
+
+class SelectVariantEvent extends BillingEvent {
+  final String productId;
+  final String variant;
+  const SelectVariantEvent(this.productId, this.variant);
+  @override
+  List<Object> get props => [productId, variant];
+}
+
+class SaveOrderWithoutPrintEvent extends BillingEvent {
+  const SaveOrderWithoutPrintEvent();
 }

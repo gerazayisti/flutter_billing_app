@@ -1,25 +1,44 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:uuid/uuid.dart';
 import '../../domain/entities/cart_item.dart';
 import 'package:billing_app/features/product/domain/entities/product.dart';
 import 'package:billing_app/features/product/domain/usecases/product_usecases.dart';
 import '../../../../core/utils/printer_helper.dart';
 import '../../../../core/data/hive_database.dart';
+import '../../data/models/order_model.dart';
+import '../../data/models/order_item_model.dart';
+import '../../domain/usecases/save_order_usecase.dart';
+import '../../domain/entities/payment_method.dart';
+import '../../data/models/held_order_model.dart';
+import '../../data/repositories/held_order_repository.dart';
+import 'package:billing_app/features/product/data/models/product_model.dart';
 
 part 'billing_event.dart';
 part 'billing_state.dart';
 
 class BillingBloc extends Bloc<BillingEvent, BillingState> {
   final GetProductByBarcodeUseCase getProductByBarcodeUseCase;
+  final SaveOrderUseCase saveOrderUseCase;
+  final HeldOrderRepository heldOrderRepository;
 
-  BillingBloc({required this.getProductByBarcodeUseCase})
-      : super(const BillingState()) {
+  BillingBloc({
+    required this.getProductByBarcodeUseCase,
+    required this.saveOrderUseCase,
+    required this.heldOrderRepository,
+  }) : super(const BillingState()) {
     on<ScanBarcodeEvent>(_onScanBarcode);
     on<AddProductToCartEvent>(_onAddProductToCart);
+    on<LoadHeldOrdersEvent>(_onLoadHeldOrders);
+    on<HoldCartEvent>(_onHoldCart);
+    on<RestoreHeldOrderEvent>(_onRestoreHeldOrder);
     on<RemoveProductFromCartEvent>(_onRemoveProductFromCart);
     on<UpdateQuantityEvent>(_onUpdateQuantity);
     on<ClearCartEvent>(_onClearCart);
+    on<SetPaymentMethodEvent>(_onSetPaymentMethod);
     on<PrintReceiptEvent>(_onPrintReceipt);
+    on<SaveOrderWithoutPrintEvent>(_onSaveOrderWithoutPrint);
+    on<SelectVariantEvent>(_onSelectVariant);
   }
 
   Future<void> _onScanBarcode(
@@ -79,7 +98,69 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
   }
 
   void _onClearCart(ClearCartEvent event, Emitter<BillingState> emit) {
-    emit(const BillingState());
+    emit(BillingState(heldOrders: heldOrderRepository.getAllHeldOrders()));
+  }
+
+  void _onLoadHeldOrders(
+      LoadHeldOrdersEvent event, Emitter<BillingState> emit) {
+    emit(state.copyWith(heldOrders: heldOrderRepository.getAllHeldOrders()));
+  }
+
+  Future<void> _onHoldCart(HoldCartEvent event, Emitter<BillingState> emit) async {
+    if (state.cartItems.isEmpty) return;
+    
+    // Max 5 carts
+    if (heldOrderRepository.getAllHeldOrders().length >= 5) {
+      emit(state.copyWith(error: 'Maximum 5 paniers en attente', clearError: false));
+      emit(state.copyWith(clearError: true));
+      return;
+    }
+
+    final heldOrder = HeldOrderModel(
+      id: const Uuid().v4(),
+      savedAt: DateTime.now(),
+      items: state.cartItems
+          .map((item) => HeldCartItemModel(
+                product: ProductModel.fromEntity(item.product),
+                quantity: item.quantity,
+                selectedVariant: item.selectedVariant,
+              ))
+          .toList(),
+    );
+
+    await heldOrderRepository.saveHeldOrder(heldOrder);
+    
+    emit(BillingState(heldOrders: heldOrderRepository.getAllHeldOrders()));
+  }
+
+  Future<void> _onRestoreHeldOrder(
+      RestoreHeldOrderEvent event, Emitter<BillingState> emit) async {
+    final heldOrders = heldOrderRepository.getAllHeldOrders();
+    final index = heldOrders.indexWhere((o) => o.id == event.holdId);
+    if (index == -1) return;
+
+    final order = heldOrders[index];
+
+    // Delete it from held orders
+    await heldOrderRepository.deleteHeldOrder(order.id);
+
+    final restoredItems = order.items.map((heldItem) {
+      return CartItem(
+        product: heldItem.product.toEntity(),
+        quantity: heldItem.quantity,
+        selectedVariant: heldItem.selectedVariant,
+      );
+    }).toList();
+
+    emit(BillingState(
+      cartItems: restoredItems,
+      heldOrders: heldOrderRepository.getAllHeldOrders()
+    ));
+  }
+
+  void _onSetPaymentMethod(
+      SetPaymentMethodEvent event, Emitter<BillingState> emit) {
+    emit(state.copyWith(paymentMethod: event.method));
   }
 
   Future<void> _onPrintReceipt(
@@ -127,12 +208,105 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
           total: state.totalAmount,
           footer: event.footer);
 
+      // ✅ Save the order to local history after successful print
+      final order = OrderModel(
+        id: const Uuid().v4(),
+        date: DateTime.now(),
+        totalAmount: state.totalAmount,
+        paymentMethod: state.paymentMethod.stringValue,
+        items: state.cartItems
+            .map((item) => OrderItemModel(
+                  productId: item.product.id,
+                  productName: item.product.name,
+                  price: item.product.price,
+                  quantity: item.quantity,
+                  selectedVariant: item.selectedVariant,
+                ))
+            .toList(),
+      );
+      await saveOrderUseCase(order);
+
+      // ✅ Decrement Stock
+      for (var item in state.cartItems) {
+        final productBox = HiveDatabase.productBox;
+        final productModel = productBox.get(item.product.id);
+        if (productModel != null) {
+          final newStock = productModel.stock - item.quantity;
+          await productBox.put(
+            item.product.id,
+            ProductModel(
+              id: productModel.id,
+              name: productModel.name,
+              barcode: productModel.barcode,
+              price: productModel.price,
+              stock: newStock >= 0 ? newStock : 0,
+              category: productModel.category,
+              minStockAlert: productModel.minStockAlert,
+              variants: productModel.variants,
+            ),
+          );
+        }
+      }
+
       emit(state.copyWith(isPrinting: false, printSuccess: true));
     } catch (e) {
       emit(state.copyWith(
           isPrinting: false, error: 'Print failed: $e', clearError: false));
       // Reset error instantly avoids sticky error
       emit(state.copyWith(clearError: true));
+    }
+  }
+
+  Future<void> _onSaveOrderWithoutPrint(
+      SaveOrderWithoutPrintEvent event, Emitter<BillingState> emit) async {
+    final order = OrderModel(
+      id: const Uuid().v4(),
+      date: DateTime.now(),
+      totalAmount: state.totalAmount,
+      paymentMethod: state.paymentMethod.stringValue,
+      items: state.cartItems
+          .map((item) => OrderItemModel(
+                productId: item.product.id,
+                productName: item.product.name,
+                price: item.product.price,
+                quantity: item.quantity,
+                selectedVariant: item.selectedVariant,
+              ))
+          .toList(),
+    );
+    await saveOrderUseCase(order);
+
+    // ✅ Decrement Stock
+    for (var item in state.cartItems) {
+      final productBox = HiveDatabase.productBox;
+      final productModel = productBox.get(item.product.id);
+      if (productModel != null) {
+        final newStock = productModel.stock - item.quantity;
+        await productBox.put(
+          item.product.id,
+          ProductModel(
+            id: productModel.id,
+            name: productModel.name,
+            barcode: productModel.barcode,
+            price: productModel.price,
+            stock: newStock >= 0 ? newStock : 0,
+            category: productModel.category,
+            minStockAlert: productModel.minStockAlert,
+            variants: productModel.variants,
+          ),
+        );
+      }
+    }
+
+    emit(state.copyWith(printSuccess: true));
+  }
+
+  void _onSelectVariant(SelectVariantEvent event, Emitter<BillingState> emit) {
+    final index = state.cartItems.indexWhere((i) => i.product.id == event.productId);
+    if (index >= 0) {
+      final items = List<CartItem>.from(state.cartItems);
+      items[index] = items[index].copyWith(selectedVariant: event.variant);
+      emit(state.copyWith(cartItems: items));
     }
   }
 }

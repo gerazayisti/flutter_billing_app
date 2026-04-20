@@ -1,3 +1,5 @@
+import 'package:billing_app/core/utils/receipt_share_service.dart';
+import 'package:billing_app/features/billing/domain/entities/payment_method.dart';
 import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +26,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         onPopInvokedWithResult: (bool didPop, dynamic result) {
           if (didPop) return;
           context.read<BillingBloc>().add(ClearCartEvent());
-          context.go('/');
+          context.go('/home');
         },
         child: Scaffold(
           appBar: AppBar(
@@ -38,7 +40,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   size: 28, color: Theme.of(context).primaryColor),
               onPressed: () {
                 context.read<BillingBloc>().add(ClearCartEvent());
-                context.go('/');
+                context.go('/home');
               },
             ),
           ),
@@ -46,7 +48,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             listener: (context, state) {
               if (state.printSuccess) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Printed successfully'),
+                    content: Text('Commande validée et sauvegardée avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
                     backgroundColor: Colors.green));
                 // context.read<BillingBloc>().add(ClearCartEvent());
                 // context.go('/');
@@ -115,16 +117,66 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     ...billingState.cartItems.map((item) {
                                       return TableRow(
                                         children: [
-                                          _buildDataCell(
-                                            '${item.quantity} x ${item.product.name}',
-                                            TextAlign.left,
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8, horizontal: 12),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${item.quantity} x ${item.product.name}',
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      fontSize: 14),
+                                                ),
+                                                if (item.product.variants
+                                                    .isNotEmpty) ...[
+                                                  const SizedBox(height: 4),
+                                                  DropdownButtonHideUnderline(
+                                                    child: DropdownButton<String>(
+                                                      isDense: true,
+                                                      value:
+                                                          item.selectedVariant,
+                                                      hint: const Text(
+                                                        'Select variant',
+                                                        style: TextStyle(
+                                                            fontSize: 12),
+                                                      ),
+                                                      style: const TextStyle(
+                                                          fontSize: 12,
+                                                          color: Colors.blue),
+                                                      items: item
+                                                          .product.variants
+                                                          .map((v) =>
+                                                              DropdownMenuItem(
+                                                                value: v,
+                                                                child: Text(v),
+                                                              ))
+                                                          .toList(),
+                                                      onChanged: (value) {
+                                                        context
+                                                            .read<BillingBloc>()
+                                                            .add(
+                                                              SelectVariantEvent(
+                                                                  item.product
+                                                                      .id,
+                                                                  value!),
+                                                            );
+                                                      },
+                                                    ),
+                                                  ),
+                                                ]
+                                              ],
+                                            ),
                                           ),
                                           _buildDataCell(
-                                              '₹${item.product.price.toStringAsFixed(2)}',
+                                              'XAF${item.product.price.toStringAsFixed(2)}',
                                               TextAlign.right,
                                               isSubtitle: true),
                                           _buildDataCell(
-                                              '₹${item.total.toStringAsFixed(2)}',
+                                              'XAF${item.total.toStringAsFixed(2)}',
                                               TextAlign.right,
                                               isBold: true),
                                         ],
@@ -195,6 +247,40 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       )
                                     : const SizedBox.shrink(),
                                 const SizedBox(height: 15),
+                                
+                                // Payment Method Selector
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 15),
+                                  child: SegmentedButton<PaymentMethod>(
+                                    segments: const [
+                                      ButtonSegment(
+                                        value: PaymentMethod.cash,
+                                        icon: Icon(Icons.money, size: 18),
+                                        label: Text('Cash'),
+                                      ),
+                                      ButtonSegment(
+                                        value: PaymentMethod.card,
+                                        icon: Icon(Icons.credit_card, size: 18),
+                                        label: Text('Card'),
+                                      ),
+                                      ButtonSegment(
+                                        value: PaymentMethod.mobileMoney,
+                                        icon: Icon(Icons.phone_android, size: 18),
+                                        label: Text('Mobile'),
+                                      ),
+                                    ],
+                                    selected: {billingState.paymentMethod},
+                                    onSelectionChanged: (Set<PaymentMethod> newSelection) {
+                                      context.read<BillingBloc>().add(
+                                        SetPaymentMethodEvent(newSelection.first)
+                                      );
+                                    },
+                                    style: ButtonStyle(
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ),
+
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -209,7 +295,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       ),
                                     ),
                                     Text(
-                                      '₹${billingState.totalAmount.toStringAsFixed(2)}',
+                                      'XAF${billingState.totalAmount.toStringAsFixed(2)}',
                                       style: const TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -222,27 +308,126 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               ],
                             ),
                           ),
-                          PrimaryButton(
-                            onPressed: () {
-                              if (shopState is ShopLoaded) {
-                                context.read<BillingBloc>().add(
-                                    PrintReceiptEvent(
-                                        shopName: shopState.shop.name,
-                                        address1: shopState.shop.addressLine1,
-                                        address2: shopState.shop.addressLine2,
-                                        phone: shopState.shop.phoneNumber,
-                                        footer: shopState.shop.footerText));
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Shop details not loaded'),
-                                        backgroundColor: Colors.red));
-                              }
-                            },
-                            label: 'Print Receipt',
-                            icon: Icons.print,
-                            isLoading: billingState.isPrinting,
+                          // ── Share Row ─────────────────────────────────────
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      if (shopState is ShopLoaded) {
+                                        ReceiptShareService.shareAsText(
+                                          shopName: shopState.shop.name,
+                                          address:
+                                              '${shopState.shop.addressLine1} ${shopState.shop.addressLine2}'
+                                                  .trim(),
+                                          phone: shopState.shop.phoneNumber,
+                                          items: billingState.cartItems,
+                                          total: billingState.totalAmount,
+                                          footer: shopState.shop.footerText,
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.chat_bubble_outline,
+                                        size: 18),
+                                    label: const Text('WhatsApp / SMS'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor:
+                                          Theme.of(context).primaryColor,
+                                      side: BorderSide(
+                                          color: Theme.of(context).primaryColor),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      if (shopState is ShopLoaded) {
+                                        ReceiptShareService.shareAsPdf(
+                                          shopName: shopState.shop.name,
+                                          address:
+                                              '${shopState.shop.addressLine1} ${shopState.shop.addressLine2}'
+                                                  .trim(),
+                                          phone: shopState.shop.phoneNumber,
+                                          items: billingState.cartItems,
+                                          total: billingState.totalAmount,
+                                          footer: shopState.shop.footerText,
+                                          context: context,
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(
+                                        Icons.picture_as_pdf_outlined,
+                                        size: 18),
+                                    label: const Text('PDF'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.redAccent,
+                                      side: const BorderSide(
+                                          color: Colors.redAccent),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // ── Action Buttons ────────────────────────────────────
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    context.read<BillingBloc>().add(const SaveOrderWithoutPrintEvent());
+                                  },
+                                  icon: const Icon(Icons.save, size: 20),
+                                  label: const Text('Save Only'),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: PrimaryButton(
+                                  onPressed: () {
+                                    if (shopState is ShopLoaded) {
+                                      context.read<BillingBloc>().add(
+                                          PrintReceiptEvent(
+                                              shopName: shopState.shop.name,
+                                              address1: shopState.shop.addressLine1,
+                                              address2: shopState.shop.addressLine2,
+                                              phone: shopState.shop.phoneNumber,
+                                              footer: shopState.shop.footerText));
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                              content:
+                                                  Text('Shop details not loaded'),
+                                              backgroundColor: Colors.red));
+                                    }
+                                  },
+                                  label: 'Print Receipt',
+                                  icon: Icons.print,
+                                  isLoading: billingState.isPrinting,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

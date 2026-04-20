@@ -22,6 +22,11 @@ class _AddProductPageState extends State<AddProductPage> {
   String _name = '';
   String _barcode = '';
   double _price = 0.0;
+  int _stock = 0;
+  String _category = 'General';
+  int _minStockAlert = 5;
+  final List<String> _variants = [];
+  final TextEditingController _variantController = TextEditingController();
 
   void _scanBarcode() async {
     final result = await context.push<String>('/scanner');
@@ -55,6 +60,10 @@ class _AddProductPageState extends State<AddProductPage> {
         name: _name,
         barcode: _barcode,
         price: _price,
+        stock: _stock,
+        category: _category,
+        minStockAlert: _minStockAlert,
+        variants: _variants,
       );
 
       context.read<ProductBloc>().add(AddProduct(product));
@@ -135,7 +144,7 @@ class _AddProductPageState extends State<AddProductPage> {
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: const InputDecoration(
                       hintText: '0.00',
-                      prefixText: '₹ ',
+                      prefixText: 'XAF ',
                       prefixStyle: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
@@ -143,6 +152,89 @@ class _AddProductPageState extends State<AddProductPage> {
                     ),
                     validator: AppValidators.price,
                     onSaved: (value) => _price = double.parse(value!),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const InputLabel(text: 'Initial Stock'),
+                            TextFormField(
+                              initialValue: '0',
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(hintText: '0'),
+                              onSaved: (value) =>
+                                  _stock = int.tryParse(value!) ?? 0,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const InputLabel(text: 'Alert Threshold'),
+                            TextFormField(
+                              initialValue: '5',
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(hintText: '5'),
+                              onSaved: (value) =>
+                                  _minStockAlert = int.tryParse(value!) ?? 5,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const InputLabel(text: 'Category'),
+                  DropdownButtonFormField<String>(
+                    value: _category,
+                    decoration: const InputDecoration(),
+                    items: ['General', 'Food', 'Drinks', 'Electronics', 'Others']
+                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .toList(),
+                    onChanged: (value) => setState(() => _category = value!),
+                  ),
+                  const SizedBox(height: 24),
+                  const InputLabel(text: 'Variants (Size, Color, etc.)'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _variantController,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter variant name',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton.filled(
+                        onPressed: () {
+                          if (_variantController.text.isNotEmpty) {
+                            setState(() {
+                              _variants.add(_variantController.text.trim());
+                              _variantController.clear();
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: _variants
+                        .map((v) => Chip(
+                              label: Text(v),
+                              onDeleted: () =>
+                                  setState(() => _variants.remove(v)),
+                            ))
+                        .toList(),
                   ),
                 ],
               ),
