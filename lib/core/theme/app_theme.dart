@@ -23,7 +23,7 @@ class AppTheme {
       primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundColor,
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
       ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
@@ -38,7 +38,7 @@ class AppTheme {
       ),
       
       appBarTheme: AppBarTheme(
-       backgroundColor: Colors.transparent,
+       backgroundColor: surfaceColor,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: textTheme.titleLarge?.copyWith(

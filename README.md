@@ -2,12 +2,12 @@
 
 A feature-rich, high-performance offline-first billing and Point of Sale (POS) application built with Flutter. Designed for seamless retail checkout operations featuring barcode scanning, thermal Bluetooth printing, and robust local data persistence.
 
-## Screenshot
+## 🌟 New Features (v1.1)
 
-
-https://github.com/user-attachments/assets/f2d16454-5408-43b3-b207-cd843bbc2c9e
-
-
+- **🔐 Role-Based Access Control (RBAC)**: Secure system with Admin and Cashier roles. Admins have full control, while Cashiers are limited to selling and viewing their history.
+- **📄 Professional PDF Reports**: Generate detailed financial reports (Daily, Weekly, Monthly) directly from the app. Includes transaction details and category summaries.
+- **👥 User Management**: Admins can manage staff accounts, set PIN codes, and assign roles.
+- **💾 Automated Backups**: Export and import your entire database as a JSON file for safety or device migration.
 
 ## 🎯 Project Scope
 
@@ -29,8 +29,7 @@ Built leveraging industry-standard architectural principles (Clean Architecture 
 - **Dependency Injection**: `get_it`
 - **Routing**: `go_router`
 - **Local Database**: `hive` & `hive_flutter`
-- **Data Modeling**: `json_serializable`, `equatable`
-- **Functional Programming**: `fpdart`
+- **Reporting**: `pdf` & `printing`
 - **Hardware Integrations**: `mobile_scanner` (barcodes), `print_bluetooth_thermal`
 
 ## 📁 File Structure
@@ -40,62 +39,44 @@ The codebase is organized using a **Feature-First Clean Architecture** utilizing
 ```text
 lib/
 ├── core/                       # Core application utilities and shared components
-│   ├── data/                   # Global data sources (e.g., Hive initialization)
-│   ├── error/                  # Standardized Failure/Exception models (fpdart compatible)
 │   ├── theme/                  # UI aesthetics, typography, styling
-│   ├── usecase/                # Base UseCase contracts
-│   ├── utils/                  # Helpers (e.g., PrinterHelper, formatters)
-│   ├── widgets/                # Reusable global UI widgets (AppBars, generic buttons)
+│   ├── utils/                  # Helpers (ReportService, BackupService, PrinterHelper)
+│   ├── widgets/                # Reusable global UI widgets (AppDrawer, Buttons)
 │   └── service_locator.dart    # get_it dependency injection setup
 │
 └── features/                   # Independent feature modules
-    ├── billing/                # Core POS operations: Cart, Checkout, Invoice Generation
-    ├── product/                # Inventory management: Adding, Listing, Scanning products
-    ├── settings/               # App configuration: Printer connections, App settings
+    ├── auth/                   # RBAC, Login, User Management
+    ├── billing/                # Core POS operations: Cart, Checkout, Order History
+    ├── dashboard/              # Financial Analytics & Reporting UI
+    ├── product/                # Inventory management
+    ├── settings/               # App configuration & Printer connections
     └── shop/                   # Shop details configuration
 ```
-
-*Note: Each feature is further subdivided internally into Clean Architecture layers: `data`, `domain`, and `presentation`.*
-
-## 💡 Use Cases
-
-- **Rapid Billing Entry**: A cashier launches the app, navigates to the checkout page, and uses the device camera to instantly scan product barcodes. The products are added to the cart, the total is calculated including taxes, and a receipt is finalized.
-- **Physical Receipt Generation**: After checkout confirmation, the app triggers a connected external Bluetooth thermal POS printer to instantly print an itemized paper receipt with the shop’s header.
-- **Inventory Sideloading**: A manager opens the Product feature to add new stock to the local database, taking a picture of the barcode to bind the SKU for future lightning-fast checkouts.
-- **No-Connection Operation**: The business operates a stall at an exhibition with poor networking. The app functions entirely via its embedded Hive local database and Bluetooth, completely undisturbed by network drops.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Flutter SDK `^3.1.0` or higher
-- Android Studio / Xcode for emulators and building.
-- *Optional*: A physical Android/iOS device and a Bluetooth Thermal Printer for testing hardware integrations natively.
+- Android Studio / Xcode for building.
 
 ### Installation
 
-1. Clone the repository and navigate to the project directory:
-   ```bash
-   git clone <repository_url>
-   cd billing_app
-   ```
-
-2. Fetch dependencies:
+1. Clone and install:
    ```bash
    flutter pub get
    ```
 
-3. Run code generation (required for Hive adapters and JSON serialization):
+2. Run code generation:
    ```bash
    dart run build_runner build --delete-conflicting-outputs
    ```
 
-4. Run the project:
+3. Run the project:
    ```bash
    flutter run
    ```
 
 ## 🤝 Contributing Guidelines
-As a senior-focused project, please adhere to:
-1. **Clean Architecture Rules**: Maintain strict boundaries between `domain`, `data`, and `presentation` layers.
-2. **Immutable States**: Emit only immutable states from BLoCs utilizing `equatable`.
-3. **No Direct Exceptions in Domain**: Utilize `fpdart`'s `Either<Failure, Type>` pattern to handle control flow for exceptions.
+1. **Clean Architecture Rules**: Maintain strict boundaries between layers.
+2. **Immutable States**: Emit only immutable states from BLoCs.
+3. **No Direct Exceptions**: Utilize `fpdart`'s `Either` pattern for error handling.
