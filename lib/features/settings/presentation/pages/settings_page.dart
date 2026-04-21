@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -12,6 +13,7 @@ import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/printer_bloc.dart';
 import '../bloc/printer_event.dart';
 import '../bloc/printer_state.dart';
+import '../bloc/locale_bloc.dart';
 import '../../../../core/utils/backup_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -25,21 +27,21 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    // Re-initialize printer state whenever settings page opens
     context.read<PrinterBloc>().add(InitPrinterEvent());
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = context.watch<AuthBloc>().state;
     final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.admin;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Paramètres',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.settings,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
         elevation: 0,
       ),
       drawer: const AppDrawer(),
@@ -102,29 +104,29 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // Management Section
-            _buildSectionHeader('Gestion & Organisation'),
+            _buildSectionHeader(l10n.userManagement),
             _buildListGroup(
               children: [
                 _buildListItem(
                   icon: Icons.qr_code_scanner,
-                  title: 'Gestion du Stock',
-                  subtitle: 'Consulter l\'inventaire et les codes-barres',
+                  title: l10n.inventory,
+                  subtitle: l10n.tapToOpenScanner,
                   onTap: () => context.push('/products'),
                 ),
                 if (isAdmin) ...[
                   _buildDivider(),
                   _buildListItem(
                     icon: Icons.people_outline_rounded,
-                    title: 'Gestion des Utilisateurs',
-                    subtitle: 'Gérer les codes PIN et les caissiers',
+                    title: l10n.userManagement,
+                    subtitle: l10n.newUser,
                     onTap: () => context.push('/users'),
                   ),
                 ],
                 _buildDivider(),
                 _buildListItem(
                   icon: Icons.storefront,
-                  title: 'Boutique & Reçus',
-                  subtitle: 'Informations de facturation et adresse',
+                  title: l10n.shopInfo,
+                  subtitle: '',
                   onTap: () => context.push('/shop'),
                 ),
               ],
@@ -133,7 +135,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // Hardware Section
-            _buildSectionHeader('Hardware'),
+            _buildSectionHeader(l10n.hardware),
             BlocConsumer<PrinterBloc, PrinterState>(
               listener: (context, state) {
                 if (state.errorMessage != null) {
@@ -141,8 +143,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       content: Text(state.errorMessage!),
                       backgroundColor: Colors.red));
                 } else if (state.status == PrinterStatus.connected) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Connected to printer'),
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(l10n.connected),
                       backgroundColor: Colors.green));
                 }
               },
@@ -151,13 +153,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     _buildListItem(
                       icon: Icons.print,
-                      title: 'Print Device',
+                      title: l10n.printer,
                       subtitleWidget: Row(
                         children: [
                           Text(
                             state.connectedMac != null
-                                ? (state.connectedName ?? 'Printer connected')
-                                : 'No printer connected',
+                                ? (state.connectedName ?? l10n.connected)
+                                : l10n.disconnected,
                             style: TextStyle(
                                 fontSize: 12, color: Colors.grey[500]),
                           ),
@@ -171,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(color: Colors.teal[200]!)),
                               child: Text(
-                                'CONNECTED',
+                                l10n.connected.toUpperCase(),
                                 style: TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
@@ -215,27 +217,50 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Text(
-                "Pour connecter une nouvelle imprimante, appairez-la d'abord dans les réglages Bluetooth de votre téléphone.",
-                style: TextStyle(
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey[500]),
-              ),
+            const SizedBox(height: 24),
+
+            // Language Section
+            _buildSectionHeader(l10n.language),
+            BlocBuilder<LocaleBloc, LocaleState>(
+              builder: (context, state) {
+                return _buildListGroup(
+                  children: [
+                    _buildListItem(
+                      icon: Icons.language,
+                      title: l10n.language,
+                      subtitle: state.locale.languageCode == 'fr' ? l10n.french : l10n.english,
+                      trailingWidget: PopupMenuButton<Locale>(
+                        icon: const Icon(Icons.chevron_right, color: Colors.grey),
+                        onSelected: (Locale locale) {
+                          context.read<LocaleBloc>().add(ChangeLocaleEvent(locale));
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: const Locale('fr'),
+                            child: Text(l10n.french),
+                          ),
+                          PopupMenuItem(
+                            value: const Locale('en'),
+                            child: Text(l10n.english),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
 
             if (isAdmin) ...[
               const SizedBox(height: 24),
               // Data & Backup Section
-              _buildSectionHeader('Données & Sauvegarde (Backup)'),
+              _buildSectionHeader(l10n.backup),
               _buildListGroup(
                 children: [
                   _buildListItem(
                     icon: Icons.upload_file,
-                    title: 'Exporter les Données (JSON)',
-                    subtitle: 'Sauvegarder l\'inventaire, la boutique et l\'historique',
+                    title: l10n.exportJson,
+                    subtitle: '',
                     trailingIcon: Icons.share,
                     onTap: () {
                       BackupService.exportData(context);
@@ -244,24 +269,24 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildDivider(),
                   _buildListItem(
                     icon: Icons.download_rounded,
-                    title: 'Restaurer la Base (Import)',
-                    subtitle: 'Attention: cela remplacera vos données actuelles !',
+                    title: l10n.importJson,
+                    subtitle: '',
                     trailingIcon: Icons.warning_amber_rounded,
                     onTap: () {
                       showDialog(
                         context: context,
                         builder: (c) => AlertDialog(
-                          title: const Text('Restauration critique'),
-                          content: const Text('Êtes-vous sûr de vouloir remplacer votre base de données locale par un ancien fichier JSON ? Cette action est irréversible.'),
+                          title: Text(l10n.warning),
+                          content: Text(l10n.overwriteWarning),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(c), child: const Text('Annuler')),
+                            TextButton(onPressed: () => Navigator.pop(c), child: Text(l10n.cancel)),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
                               onPressed: () {
                                 Navigator.pop(c);
                                 BackupService.importData(context);
                               }, 
-                              child: const Text('Restaurer')
+                              child: Text(l10n.confirm)
                             ),
                           ],
                         )
@@ -275,7 +300,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 24),
 
             // ── Apparence Section ────────────────────────────────────────────
-            _buildSectionHeader('Apparence'),
+            _buildSectionHeader(l10n.appearance),
             _ColorPickerSection(
               onColorChanged: () => setState(() {}),
             ),
@@ -332,8 +357,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: Padding(padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
@@ -377,7 +401,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-// ─── Color Picker Section ─────────────────────────────────────────────────────
 class _ColorPickerSection extends StatefulWidget {
   final VoidCallback onColorChanged;
   const _ColorPickerSection({required this.onColorChanged});
@@ -391,6 +414,7 @@ class _ColorPickerSectionState extends State<_ColorPickerSection> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
@@ -415,17 +439,17 @@ class _ColorPickerSectionState extends State<_ColorPickerSection> {
                     color: _selected, size: 20),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Couleur du tableau de bord',
-                        style: TextStyle(
+                    Text(l10n.themeColor,
+                        style: const TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 14)),
-                    SizedBox(height: 2),
-                    Text('Choisir la couleur principale',
+                    const SizedBox(height: 2),
+                    Text(l10n.selectAccentColor,
                         style:
-                            TextStyle(fontSize: 12, color: Colors.grey)),
+                            const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
               ),

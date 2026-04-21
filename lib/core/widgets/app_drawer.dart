@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:billing_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final userState = context.watch<AuthBloc>().state;
     User? user;
     if (userState is AuthAuthenticated) {
@@ -29,33 +31,33 @@ class AppDrawer extends StatelessWidget {
                 _buildNavItem(
                   context,
                   icon: Icons.point_of_sale_rounded,
-                  label: 'Caisse / Ventes',
+                  label: l10n.pos,
                   route: '/home',
                 ),
                 _buildNavItem(
                   context,
                   icon: Icons.history_rounded,
-                  label: 'Historique des Ventes',
+                  label: l10n.history,
                   route: '/orders',
                 ),
                 _buildNavItem(
                   context,
                   icon: Icons.inventory_2_outlined,
-                  label: 'Inventaire & Stock',
+                  label: l10n.inventory,
                   route: '/products',
                 ),
                 if (isAdmin)
                   _buildNavItem(
                     context,
                     icon: Icons.bar_chart_rounded,
-                    label: 'Tableau de Bord',
+                    label: l10n.dashboard,
                     route: '/dashboard',
                   ),
                 const Divider(),
                 _buildNavItem(
                   context,
                   icon: Icons.settings_outlined,
-                  label: 'Paramètres',
+                  label: l10n.settings,
                   route: '/settings',
                 ),
               ],
@@ -68,6 +70,7 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, User? user) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
@@ -89,11 +92,11 @@ class AppDrawer extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            user?.name ?? 'Utilisateur',
+            user?.name ?? l10n.user,
             style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
-            user?.role == Role.admin ? 'Administrateur' : 'Caissier',
+            user?.role == Role.admin ? l10n.admin : l10n.cashier,
             style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
@@ -125,6 +128,7 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: OutlinedButton.icon(
@@ -133,7 +137,7 @@ class AppDrawer extends StatelessWidget {
           context.go('/');
         },
         icon: const Icon(Icons.logout_rounded),
-        label: const Text('Déconnexion'),
+        label: Text(l10n.logout),
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(double.infinity, 48),
           foregroundColor: Colors.red,

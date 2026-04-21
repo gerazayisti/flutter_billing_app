@@ -3,6 +3,7 @@ import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
@@ -60,6 +61,7 @@ class _EditProductPageState extends State<EditProductPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
         appBar: AppBar(
           elevation: 0,
@@ -68,8 +70,8 @@ class _EditProductPageState extends State<EditProductPage> {
                 size: 32, color: Theme.of(context).primaryColor),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Edit Product',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          title: Text(l10n.editProduct,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           centerTitle: true,
         ),
         body: SafeArea(
@@ -80,7 +82,6 @@ class _EditProductPageState extends State<EditProductPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Display Barcode details (immutable block)
                   Container(
                     padding: const EdgeInsets.all(16),
                     margin: const EdgeInsets.only(bottom: 24),
@@ -98,7 +99,7 @@ class _EditProductPageState extends State<EditProductPage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('BARCODE',
+                            Text(l10n.barcode.toUpperCase(),
                                 style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -116,17 +117,17 @@ class _EditProductPageState extends State<EditProductPage> {
                     ),
                   ),
 
-                  const InputLabel(text: 'Product Name'),
+                  InputLabel(text: l10n.productName),
 
                   TextFormField(
                     initialValue: _name,
                     textCapitalization: TextCapitalization.words,
-                    validator: AppValidators.required('Please enter a name'),
+                    validator: (v) => AppValidators.required(l10n.enterName)(v),
                     onSaved: (value) => _name = value!,
                   ),
                   const SizedBox(height: 24),
 
-                  const InputLabel(text: 'Price'),
+                  InputLabel(text: l10n.price),
 
                   TextFormField(
                     initialValue: _price.toStringAsFixed(2),
@@ -139,7 +140,7 @@ class _EditProductPageState extends State<EditProductPage> {
                           fontWeight: FontWeight.w500,
                           color: Colors.black),
                     ),
-                    validator: AppValidators.price,
+                    validator: (v) => AppValidators.price(v, l10n),
                     onSaved: (value) => _price = double.parse(value!),
                   ),
                   const SizedBox(height: 24),
@@ -149,7 +150,7 @@ class _EditProductPageState extends State<EditProductPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const InputLabel(text: 'Stock Quantity'),
+                            InputLabel(text: l10n.stockQuantity),
                             TextFormField(
                               initialValue: _stock.toString(),
                               keyboardType: TextInputType.number,
@@ -164,7 +165,7 @@ class _EditProductPageState extends State<EditProductPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const InputLabel(text: 'Alert Threshold'),
+                            InputLabel(text: l10n.alertThreshold),
                             TextFormField(
                               initialValue: _minStockAlert.toString(),
                               keyboardType: TextInputType.number,
@@ -177,7 +178,7 @@ class _EditProductPageState extends State<EditProductPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const InputLabel(text: 'Category'),
+                  InputLabel(text: l10n.category),
                   DropdownButtonFormField<String>(
                     value: _category,
                     items: ['General', 'Food', 'Drinks', 'Electronics', 'Others']
@@ -186,14 +187,14 @@ class _EditProductPageState extends State<EditProductPage> {
                     onChanged: (value) => setState(() => _category = value!),
                   ),
                   const SizedBox(height: 24),
-                  const InputLabel(text: 'Variants'),
+                  InputLabel(text: l10n.variants),
                   Row(
                     children: [
                       Expanded(
                         child: TextFormField(
                           controller: _variantController,
-                          decoration: const InputDecoration(
-                            hintText: 'Add new variant',
+                          decoration: InputDecoration(
+                            hintText: l10n.addVariant,
                           ),
                         ),
                       ),
@@ -227,10 +228,13 @@ class _EditProductPageState extends State<EditProductPage> {
             ),
           ),
         ),
-        bottomNavigationBar: PrimaryButton(
-          onPressed: _submit,
-          icon: Icons.save,
-          label: 'Save Changes',
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: PrimaryButton(
+            onPressed: _submit,
+            icon: Icons.save,
+            label: l10n.saveChanges,
+          ),
         ));
   }
 }

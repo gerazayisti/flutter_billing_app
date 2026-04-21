@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:billing_app/features/billing/domain/entities/cart_item.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 /// Service for generating and sharing digital receipts as text or PDF.
 class ReceiptShareService {
@@ -18,6 +19,7 @@ class ReceiptShareService {
     required List<CartItem> items,
     required double total,
     required String footer,
+    required AppLocalizations l10n,
   }) async {
     final buffer = StringBuffer();
     final now = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
@@ -26,7 +28,7 @@ class ReceiptShareService {
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━');
     buffer.writeln(' $shopName');
     if (address.isNotEmpty) buffer.writeln(' $address');
-    if (phone.isNotEmpty) buffer.writeln(' $phone');
+    if (phone.isNotEmpty) buffer.writeln(' ${l10n.telLabel}: $phone');
     buffer.writeln('  $now');
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━');
 
@@ -37,14 +39,14 @@ class ReceiptShareService {
     }
 
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━');
-    buffer.writeln('TOTAL : ${currency.format(total).trim()}');
+    buffer.writeln('${l10n.totalHeader.toUpperCase()} : ${currency.format(total).trim()}');
     buffer.writeln('━━━━━━━━━━━━━━━━━━━━━━');
     if (footer.isNotEmpty) buffer.writeln(footer);
-    buffer.writeln('Merci pour votre achat ! ');
+    buffer.writeln('${l10n.receiptFooterGratitude} ');
 
     await Share.share(
       buffer.toString(),
-      subject: 'Reçu — $shopName',
+      subject: '${l10n.receiptSubject} — $shopName',
     );
   }
 
@@ -57,6 +59,7 @@ class ReceiptShareService {
     required double total,
     required String footer,
     required BuildContext context,
+    required AppLocalizations l10n,
   }) async {
     final pdf = pw.Document();
     // Use a monospaced font available in pdf/google_fonts
@@ -83,7 +86,7 @@ class ReceiptShareService {
                         style: pw.TextStyle(font: font, fontSize: 9))),
               if (phone.isNotEmpty)
                 pw.Center(
-                    child: pw.Text('Tél: $phone',
+                    child: pw.Text('${l10n.telLabel}: $phone',
                         style: pw.TextStyle(font: font, fontSize: 9))),
               pw.Center(
                   child: pw.Text(now,
@@ -111,7 +114,7 @@ class ReceiptShareService {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text('TOTAL',
+                  pw.Text(l10n.totalHeader.toUpperCase(),
                       style: pw.TextStyle(font: fontBold, fontSize: 13)),
                   pw.Text(currency.format(total).trim(),
                       style: pw.TextStyle(font: fontBold, fontSize: 13)),
@@ -126,7 +129,7 @@ class ReceiptShareService {
                     child: pw.Text(footer,
                         style: pw.TextStyle(font: font, fontSize: 9))),
               pw.Center(
-                child: pw.Text('Merci pour votre achat !',
+                child: pw.Text(l10n.receiptFooterGratitude,
                     style: pw.TextStyle(
                         font: fontBold,
                         fontSize: 10,
@@ -147,7 +150,7 @@ class ReceiptShareService {
 
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'application/pdf')],
-      subject: 'Reçu — $shopName',
+      subject: '${l10n.receiptSubject} — $shopName',
     );
   }
 }

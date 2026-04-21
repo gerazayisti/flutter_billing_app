@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/billing_bloc.dart';
@@ -19,6 +20,7 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     const borderColor = Color(0xFFE5E5EA);
 
     return PopScope(
@@ -30,8 +32,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Checkout',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            title: Text(l10n.checkout,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             centerTitle: true,
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -47,11 +49,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
           body: BlocConsumer<BillingBloc, BillingState>(
             listener: (context, state) {
               if (state.printSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Commande validée et sauvegardée avec succès !', style: TextStyle(fontWeight: FontWeight.bold)),
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(l10n.successOrder, style: const TextStyle(fontWeight: FontWeight.bold)),
                     backgroundColor: Colors.green));
-                // context.read<BillingBloc>().add(ClearCartEvent());
-                // context.go('/');
               }
             },
             builder: (context, billingState) {
@@ -106,11 +106,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       ),
                                       children: [
                                         _buildHeaderCell(
-                                            'Product Name', TextAlign.left),
+                                            l10n.productName, TextAlign.left),
                                         _buildHeaderCell(
-                                            'Price', TextAlign.right),
+                                            l10n.price, TextAlign.right),
                                         _buildHeaderCell(
-                                            'Total', TextAlign.right),
+                                            l10n.total, TextAlign.right),
                                       ],
                                     ),
                                     // Items rows
@@ -139,9 +139,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                       isDense: true,
                                                       value:
                                                           item.selectedVariant,
-                                                      hint: const Text(
-                                                        'Select variant',
-                                                        style: TextStyle(
+                                                      hint: Text(
+                                                        l10n.selectVariant,
+                                                        style: const TextStyle(
                                                             fontSize: 12),
                                                       ),
                                                       style: const TextStyle(
@@ -225,9 +225,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 upiId.isNotEmpty
                                     ? Column(
                                         children: [
-                                          const Text(
-                                            'Scan to Pay',
-                                            style: TextStyle(
+                                          Text(
+                                            l10n.scanToPay,
+                                            style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black87,
@@ -252,21 +252,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 15),
                                   child: SegmentedButton<PaymentMethod>(
-                                    segments: const [
+                                    segments: [
                                       ButtonSegment(
                                         value: PaymentMethod.cash,
-                                        icon: Icon(Icons.money, size: 18),
-                                        label: Text('Cash'),
+                                        icon: const Icon(Icons.money, size: 18),
+                                        label: Text(l10n.cash),
                                       ),
                                       ButtonSegment(
                                         value: PaymentMethod.card,
-                                        icon: Icon(Icons.credit_card, size: 18),
-                                        label: Text('Card'),
+                                        icon: const Icon(Icons.credit_card, size: 18),
+                                        label: Text(l10n.card),
                                       ),
                                       ButtonSegment(
                                         value: PaymentMethod.mobileMoney,
-                                        icon: Icon(Icons.phone_android, size: 18),
-                                        label: Text('Mobile'),
+                                        icon: const Icon(Icons.phone_android, size: 18),
+                                        label: Text(l10n.mobileMoney),
                                       ),
                                     ],
                                     selected: {billingState.paymentMethod},
@@ -275,7 +275,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                         SetPaymentMethodEvent(newSelection.first)
                                       );
                                     },
-                                    style: ButtonStyle(
+                                    style: const ButtonStyle(
                                       visualDensity: VisualDensity.compact,
                                     ),
                                   ),
@@ -286,7 +286,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'GRAND TOTAL',
+                                      l10n.grandTotal,
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
@@ -326,6 +326,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           items: billingState.cartItems,
                                           total: billingState.totalAmount,
                                           footer: shopState.shop.footerText,
+                                          l10n: l10n,
                                         );
                                       }
                                     },
@@ -360,6 +361,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           total: billingState.totalAmount,
                                           footer: shopState.shop.footerText,
                                           context: context,
+                                          l10n: l10n,
                                         );
                                       }
                                     },
@@ -392,7 +394,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                     context.read<BillingBloc>().add(const SaveOrderWithoutPrintEvent());
                                   },
                                   icon: const Icon(Icons.save, size: 20),
-                                  label: const Text('Save Only'),
+                                  label: Text(l10n.saveOnly),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(vertical: 16),
                                     shape: RoundedRectangleBorder(
@@ -413,7 +415,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                               address1: shopState.shop.addressLine1,
                                               address2: shopState.shop.addressLine2,
                                               phone: shopState.shop.phoneNumber,
-                                              footer: shopState.shop.footerText));
+                                              footer: shopState.shop.footerText,
+                                              l10n: l10n,
+                                          ));
                                     } else {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(
@@ -422,7 +426,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                               backgroundColor: Colors.red));
                                     }
                                   },
-                                  label: 'Print Receipt',
+                                  label: l10n.printReceipt,
                                   icon: Icons.print,
                                   isLoading: billingState.isPrinting,
                                 ),

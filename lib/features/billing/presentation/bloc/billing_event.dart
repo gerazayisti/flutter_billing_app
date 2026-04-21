@@ -1,3 +1,4 @@
+import 'package:billing_app/l10n/app_localizations.dart';
 part of 'billing_bloc.dart';
 
 abstract class BillingEvent extends Equatable {
@@ -61,6 +62,7 @@ class PrintReceiptEvent extends BillingEvent {
   final String address2;
   final String phone;
   final String footer;
+  final AppLocalizations l10n;
 
   const PrintReceiptEvent({
     required this.shopName,
@@ -68,10 +70,11 @@ class PrintReceiptEvent extends BillingEvent {
     required this.address2,
     required this.phone,
     required this.footer,
+    required this.l10n,
   });
 
   @override
-  List<Object> get props => [shopName, address1, address2, phone, footer];
+  List<Object> get props => [shopName, address1, address2, phone, footer, l10n];
 }
 
 class SelectVariantEvent extends BillingEvent {

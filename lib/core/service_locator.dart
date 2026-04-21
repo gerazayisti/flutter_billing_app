@@ -16,8 +16,9 @@ import '../../features/billing/domain/usecases/save_order_usecase.dart';
 import '../../features/billing/presentation/bloc/billing_bloc.dart';
 import '../../features/dashboard/domain/usecases/dashboard_usecases.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/user_management_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/settings/presentation/bloc/locale_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -82,4 +83,5 @@ Future<void> init() async {
   // ── Features - Auth ───────────────────────────────────────────────────────
   sl.registerFactory(() => AuthBloc());
   sl.registerFactory(() => UserManagementBloc());
+  sl.registerFactory(() => LocaleBloc());
 }

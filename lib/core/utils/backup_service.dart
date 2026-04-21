@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 import 'package:billing_app/core/data/hive_database.dart';
 import 'package:billing_app/features/product/data/models/product_model.dart';
@@ -13,6 +14,7 @@ import 'package:billing_app/features/billing/data/models/order_item_model.dart';
 
 class BackupService {
   static Future<void> exportData(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final Map<String, dynamic> data = {
         'products': HiveDatabase.productBox.values.map((p) => {
@@ -21,6 +23,9 @@ class BackupService {
           'barcode': p.barcode,
           'price': p.price,
           'stock': p.stock,
+          'category': p.category,
+          'minStockAlert': p.minStockAlert,
+          'variants': p.variants,
         }).toList(),
         
         'orders': HiveDatabase.orderBox.values.map((o) => {
@@ -33,6 +38,7 @@ class BackupService {
             'productName': i.productName,
             'price': i.price,
             'quantity': i.quantity,
+            'selectedVariant': i.selectedVariant,
           }).toList(),
         }).toList(),
       };
@@ -55,15 +61,16 @@ class BackupService {
       await file.writeAsString(jsonStr);
 
       final xFile = XFile(file.path);
-      await Share.shareXFiles([xFile], text: 'Backup POS Database');
+      await Share.shareXFiles([xFile], text: l10n.backupSubject);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.exportFailed}: $e')));
       }
     }
   }
 
   static Future<void> importData(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.any,
@@ -122,12 +129,12 @@ class BackupService {
         }
 
         if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Import successful! Base Restored.'), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.importSuccess), backgroundColor: Colors.green));
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import failed: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.importFailed}: $e'), backgroundColor: Colors.red));
       }
     }
   }

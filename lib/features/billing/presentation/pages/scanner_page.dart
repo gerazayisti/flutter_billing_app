@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vibration/vibration.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 class ScannerPage extends StatefulWidget {
   const ScannerPage({super.key});
@@ -46,6 +47,7 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
           leading: IconButton(
@@ -53,61 +55,53 @@ class _ScannerPageState extends State<ScannerPage> {
                 size: 28, color: Theme.of(context).primaryColor),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Scan Barcode',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
+          title: Text(l10n.scanBarcode,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
       body: Stack(
         children: [
           MobileScanner(
             controller: controller,
             onDetect: _onDetect,
-            // Removed overlay property
           ),
-          // Simple border overlay manually
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.transparent, width: 0),
-            ),
-            child: Center(
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.green, width: 2),
-                  // borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _corner(0),
-                          _corner(1),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _corner(3),
-                          _corner(2),
-                        ],
-                      ),
-                    ],
-                  ),
+          Center(
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.green, width: 2),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _corner(0),
+                        _corner(1),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _corner(3),
+                        _corner(2),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             bottom: 40,
             left: 0,
             right: 0,
             child: Text(
-              'Align barcode within frame',
+              l10n.alignBarcode,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
           ),
         ],

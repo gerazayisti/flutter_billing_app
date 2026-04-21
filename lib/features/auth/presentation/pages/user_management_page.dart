@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/features/auth/presentation/bloc/user_management_bloc.dart';
 import 'package:billing_app/features/auth/data/models/user_model.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart';
@@ -13,13 +14,14 @@ class UserManagementPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion des Utilisateurs', 
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.userManagement, 
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.white,
       ),
       body: BlocBuilder<UserManagementBloc, UserManagementState>(
         builder: (context, state) {
@@ -46,27 +48,29 @@ class UserManagementPage extends StatelessWidget {
         onPressed: () => _showUserForm(context),
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
-        label: const Text('Nouveau Caissier', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: Text(l10n.newUser, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.people_outline_rounded, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          const Text('Aucun utilisateur trouvé', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(l10n.noUsersFound, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('Ajoutez votre premier caissier pour commencer.', style: TextStyle(color: Colors.grey)),
+          Text(l10n.addUserHint, style: const TextStyle(color: Colors.grey)),
         ],
       ),
     );
   }
 
   Widget _buildUserCard(BuildContext context, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
     final isAdmin = user.role == Role.admin;
     
     return Container(
@@ -92,10 +96,10 @@ class UserManagementPage extends StatelessWidget {
           ),
         ),
         title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(isAdmin ? 'Administrateur' : 'Caissier', 
+        subtitle: Text(isAdmin ? l10n.admin : l10n.cashier, 
           style: TextStyle(color: isAdmin ? Colors.amber[800] : Colors.blue[800], fontSize: 12)),
         trailing: isAdmin 
-          ? null // Prevent deleting admin from this UI for safety
+          ? null 
           : IconButton(
               icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
               onPressed: () => _confirmDelete(context, user),
@@ -105,6 +109,7 @@ class UserManagementPage extends StatelessWidget {
   }
 
   void _showUserForm(BuildContext context, [UserModel? user]) {
+    final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<UserManagementBloc>();
     final nameController = TextEditingController(text: user?.name);
     final pinController = TextEditingController(text: user?.pinCode);
@@ -131,16 +136,16 @@ class UserManagementPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Nouveau Caissier', 
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(l10n.newUser, 
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
-                const InputLabel(text: 'Nom Complet'),
+                InputLabel(text: l10n.fullName),
                 TextField(
                   controller: nameController,
                   decoration: const InputDecoration(hintText: 'Ex: Jean Dupont'),
                 ),
                 const SizedBox(height: 16),
-                const InputLabel(text: 'Code PIN (4 chiffres)'),
+                InputLabel(text: l10n.pinCode),
                 TextField(
                   controller: pinController,
                   keyboardType: TextInputType.number,
@@ -148,12 +153,12 @@ class UserManagementPage extends StatelessWidget {
                   decoration: const InputDecoration(hintText: '0000'),
                 ),
                 const SizedBox(height: 16),
-                const InputLabel(text: 'Rôle'),
+                InputLabel(text: l10n.role),
                 DropdownButtonFormField<Role>(
                   value: selectedRole,
-                  items: const [
-                    DropdownMenuItem(value: Role.admin, child: Text('Administrateur')),
-                    DropdownMenuItem(value: Role.cashier, child: Text('Caissier')),
+                  items: [
+                    DropdownMenuItem(value: Role.admin, child: Text(l10n.admin)),
+                    DropdownMenuItem(value: Role.cashier, child: Text(l10n.cashier)),
                   ],
                   onChanged: (val) {
                     if (val != null) setState(() => selectedRole = val);
@@ -174,7 +179,7 @@ class UserManagementPage extends StatelessWidget {
                       Navigator.pop(context);
                     }
                   },
-                  label: user == null ? 'Créer le compte' : 'Mettre à jour',
+                  label: user == null ? l10n.createAccount : l10n.updateAccount,
                 ),
               ],
             ),
@@ -185,20 +190,21 @@ class UserManagementPage extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context, UserModel user) {
+    final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<UserManagementBloc>();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Supprimer l\'utilisateur'),
-        content: Text('Voulez-vous vraiment supprimer ${user.name} ?'),
+        title: Text(l10n.deleteUser),
+        content: Text('${l10n.deleteConfirm} ${user.name} ?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
           TextButton(
             onPressed: () {
               bloc.add(DeleteUserEvent(user.id));
               Navigator.pop(context);
             },
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

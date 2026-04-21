@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/data/hive_database.dart';
 import 'package:billing_app/features/billing/data/models/order_model.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
@@ -19,12 +19,13 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    // We listen to the orderBox directly for simplicity here or use a Bloc
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Historique des Ventes', 
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.orderHistory, 
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded, color: AppTheme.primaryColor),
@@ -43,6 +44,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   Widget _buildDatePicker() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.grey[50],
@@ -53,7 +55,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             style: const TextStyle(fontWeight: FontWeight.w600)),
           TextButton.icon(
             icon: const Icon(Icons.calendar_month),
-            label: const Text('Modifier'),
+            label: Text(l10n.edit),
             onPressed: () async {
               final picked = await showDatePicker(
                 context: context,
@@ -70,6 +72,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   Widget _buildOrderList() {
+    final l10n = AppLocalizations.of(context)!;
     final orders = HiveDatabase.orderBox.values.where((order) {
       return order.date.year == _selectedDate.year &&
              order.date.month == _selectedDate.month &&
@@ -83,7 +86,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           children: [
             Icon(Icons.history_edu_rounded, size: 64, color: Colors.grey[300]),
             const SizedBox(height: 16),
-            const Text('Aucune vente enregistrée ce jour.'),
+            Text(l10n.noSalesRecorded),
           ],
         ),
       );
@@ -101,6 +104,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   Widget _buildOrderCard(OrderModel order) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -129,7 +133,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Mode de paiement:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('${l10n.paymentMode}:', style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(order.paymentMethod.toUpperCase()),
             ],
           )
@@ -139,6 +143,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
   }
 
   void _showExportOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
@@ -152,30 +157,30 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Exporter le Rapport CA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.exportCAReport, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.today, color: Colors.blue),
-              title: const Text('Rapport du Jour (Détaillé)'),
+              title: Text(l10n.dailyReport),
               onTap: () {
                 Navigator.pop(context);
-                ReportService.generateDailyReport(_selectedDate);
+                ReportService.generateDailyReport(_selectedDate, l10n);
               },
             ),
             ListTile(
               leading: const Icon(Icons.view_week, color: Colors.green),
-              title: const Text('Rapport de la Semaine'),
+              title: Text(l10n.weeklyReport),
               onTap: () {
                 Navigator.pop(context);
-                ReportService.generateWeeklyReport(_selectedDate);
+                ReportService.generateWeeklyReport(_selectedDate, l10n);
               },
             ),
             ListTile(
               leading: const Icon(Icons.calendar_month, color: Colors.orange),
-              title: const Text('Rapport Mensuel'),
+              title: Text(l10n.monthlyReport),
               onTap: () {
                 Navigator.pop(context);
-                ReportService.generateMonthlyReport(_selectedDate);
+                ReportService.generateMonthlyReport(_selectedDate, l10n);
               },
             ),
           ],

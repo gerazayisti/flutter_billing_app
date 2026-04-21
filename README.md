@@ -8,6 +8,7 @@ A feature-rich, high-performance offline-first billing and Point of Sale (POS) a
 - **📄 Professional PDF Reports**: Generate detailed financial reports (Daily, Weekly, Monthly) directly from the app. Includes transaction details and category summaries.
 - **👥 User Management**: Admins can manage staff accounts, set PIN codes, and assign roles.
 - **💾 Automated Backups**: Export and import your entire database as a JSON file for safety or device migration.
+- **🌍 Bilingual Support**: Complete localization in **English** and **French**. Toggle languages instantly from the settings menu.
 
 ## 🎯 Project Scope
 

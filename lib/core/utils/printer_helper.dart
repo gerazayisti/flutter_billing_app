@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:print_bluetooth_thermal/print_bluetooth_thermal.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 class EscPos {
   static const List<int> init = [0x1B, 0x40];
@@ -24,10 +25,6 @@ class PrinterHelper {
   bool get isConnected => _isConnected;
 
   Future<bool> checkPermission() async {
-    // Request Bluetooth and Location permissions
-    // Android 12+ needs BLUETOOTH_SCAN, BLUETOOTH_CONNECT
-    // Older Android needs BLUETOOTH, BLUETOOTH_ADMIN, ACCESS_FINE_LOCATION
-
     Map<Permission, PermissionStatus> statuses = await [
       Permission.bluetooth,
       Permission.bluetoothScan,
@@ -63,43 +60,10 @@ class PrinterHelper {
   Future<bool> disconnect() async {
     try {
       final bool result = await PrintBluetoothThermal.disconnect;
-      _isConnected =
-          !result; // If disconnected successfully, isConnected is false
+      _isConnected = !result;
       return result;
     } catch (e) {
       return false;
-    }
-  }
-
-  Future<void> printText(String text) async {
-    if (!_isConnected) return;
-
-    // Simple text printing
-    // We can use bytes for advanced formatting
-    // But plugin supports basic text or bytes
-
-    // Checking battery or connection status
-    final bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
-    if (connectionStatus) {
-      // Plugin allows sending bytes. We need ESC/POS commands for text.
-      // However, the plugin might have helper.
-      // Looking at doc, `writeBytes` or `writeString`?
-      // The plugin `print_bluetooth_thermal` mainly exposes `writeBytes`.
-      // We need a generator. `esc_pos_utils` is common but not requested.
-      // But wait, `print_bluetooth_thermal` example often uses `capability_profile` and `generator`.
-      // I don't have `esc_pos_utils` or similar in my pubspec.
-      // The user requested `print_bluetooth_thermal`.
-      // Let's assume we can send raw string bytes or use a simple helper.
-      // Actually without `esc_pos_utils`, formatting is hard.
-      // I will try to use `esc_pos_utils_plus` or similar if I can add it, but user gave specific packages.
-      // Wait, user allowed "use required plugins".
-      // "suggest barcode scanner ... and use required plugins".
-      // So I can add `esc_pos_utils_plus`.
-
-      // For now, I'll assume simple text printing by converting string to bytes.
-      // ASCII bytes.
-      List<int> bytes = text.codeUnits;
-      await PrintBluetoothThermal.writeBytes(bytes);
     }
   }
 
@@ -108,26 +72,29 @@ class PrinterHelper {
     required String address1,
     required String address2,
     required String phone,
-    required List<Map<String, dynamic>> items, // Name, Qty, Price, Total
+    required List<Map<String, dynamic>> items,
     required double total,
     required String footer,
+    required AppLocalizations l10n,
   }) async {
     if (!_isConnected) return;
 
-    // Construct ESC/POS bytes manually or using helper
+    final bool connectionStatus = await PrintBluetoothThermal.connectionStatus;
+    if (!connectionStatus) return;
+
     List<int> bytes = [];
 
     // Init
     bytes += EscPos.init;
 
-    // Shop Name (Center, Bold, Large)
+    // Shop Name
     bytes += EscPos.alignCenter;
     bytes += EscPos.boldOn;
     bytes += EscPos.textLarge;
     bytes += _textToBytes(shopName);
     bytes += EscPos.lineFeed;
 
-    // Address & Phone (Normal, Center)
+    // Details
     bytes += EscPos.textNormal;
     bytes += EscPos.boldOff;
     if (address1.isNotEmpty) {
@@ -138,21 +105,21 @@ class PrinterHelper {
       bytes += _textToBytes(address2);
       bytes += EscPos.lineFeed;
     }
-    bytes += _textToBytes(phone);
+    bytes += _textToBytes('${l10n.telLabel}: $phone');
     bytes += EscPos.lineFeed;
 
-    // Date and Time
-    String formattedDate =
-        DateFormat('dd-MM-yyyy hh:mm a').format(DateTime.now());
+    String formattedDate = DateFormat('dd-MM-yyyy HH:mm').format(DateTime.now());
     bytes += _textToBytes(formattedDate);
     bytes += EscPos.lineFeed;
 
     bytes += _textToBytes('--------------------------------');
     bytes += EscPos.lineFeed;
 
-    // Header (Align Left)
+    // Header
     bytes += EscPos.alignLeft;
-    bytes += _textToBytes('Item            Price   Total');
+    String headerLine = '${l10n.itemsHeader.padRight(16)}${l10n.priceHeader.padRight(8)}${l10n.totalHeader}';
+    if (headerLine.length > 32) headerLine = headerLine.substring(0, 32);
+    bytes += _textToBytes(headerLine);
     bytes += EscPos.lineFeed;
     bytes += _textToBytes('--------------------------------');
     bytes += EscPos.lineFeed;
@@ -175,27 +142,37 @@ class PrinterHelper {
     bytes += _textToBytes('--------------------------------');
     bytes += EscPos.lineFeed;
 
-    // Total (Align Right)
+    // Total
     bytes += EscPos.alignRight;
     bytes += EscPos.boldOn;
-    bytes += _textToBytes('TOTAL: $total');
+    bytes += _textToBytes('${l10n.totalHeader.toUpperCase()}: $total');
     bytes += EscPos.lineFeed;
     bytes += EscPos.boldOff;
     bytes += EscPos.lineFeed;
 
-    // Footer (Center)
+    // Footer
     bytes += EscPos.alignCenter;
-    bytes += _textToBytes(footer);
+    if (footer.isNotEmpty) {
+      bytes += _textToBytes(footer);
+      bytes += EscPos.lineFeed;
+    }
+    bytes += _textToBytes(l10n.receiptFooterGratitude);
     bytes += EscPos.lineFeed;
-    bytes += EscPos.lineFeed; // One line space after footer
     bytes += EscPos.lineFeed;
-    bytes += EscPos.lineFeed; // Additional Feed
+    bytes += EscPos.lineFeed;
 
     await PrintBluetoothThermal.writeBytes(bytes);
   }
 
+  Future<void> printText(String text) async {
+    if (!_isConnected) return;
+    List<int> bytes = [];
+    bytes += EscPos.init;
+    bytes += _textToBytes(text);
+    await PrintBluetoothThermal.writeBytes(bytes);
+  }
+
   List<int> _textToBytes(String text) {
-    // Should verify encoding, but Latin-1 usually works for basic printers
     return List.from(text.codeUnits);
   }
 }

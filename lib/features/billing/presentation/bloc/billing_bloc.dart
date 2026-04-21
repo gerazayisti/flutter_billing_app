@@ -206,7 +206,9 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
           phone: event.phone,
           items: items,
           total: state.totalAmount,
-          footer: event.footer);
+          footer: event.footer,
+          l10n: event.l10n,
+      );
 
       // ✅ Save the order to local history after successful print
       final order = OrderModel(

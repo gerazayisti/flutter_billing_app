@@ -1,3 +1,5 @@
+import 'package:billing_app/l10n/app_localizations.dart';
+
 class AppValidators {
   static String? Function(String?) required(String message) {
     return (String? value) {
@@ -8,15 +10,15 @@ class AppValidators {
     };
   }
 
-  static String? price(String? value) {
+  static String? price(String? value, AppLocalizations l10n) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter a price';
+      return l10n.priceRequired;
     }
     if (double.tryParse(value) == null) {
-      return 'Please enter a valid number';
+      return l10n.validNumberRequired;
     }
     if (double.parse(value) < 0) {
-      return 'Price cannot be negative';
+      return l10n.positivePriceRequired;
     }
     return null;
   }

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
+
 import '../../../../core/theme/app_color_config.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
@@ -28,6 +28,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final accent = AppColorConfig.accentColor;
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
@@ -47,7 +48,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 8),
                     if (state.lowStockProducts.isNotEmpty) ...[
-                      _SectionTitle(title: 'Alertes de Stock ⚠️'),
+                      _SectionTitle(title: '${l10n.stockAlerts} ⚠️'),
                       const SizedBox(height: 12),
                       _StockAlertsCard(
                           products: state.lowStockProducts, accent: Colors.red),
@@ -59,11 +60,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       accent: accent,
                     ),
                     const SizedBox(height: 24),
-                    _SectionTitle(title: 'Récapitulatif Chiffre d\'Affaires'),
+                    _SectionTitle(title: l10n.revenueRecap),
                     const SizedBox(height: 12),
                     _CaRecapCard(state: state, accent: accent),
                     const SizedBox(height: 24),
-                    _SectionTitle(title: 'Historique récent'),
+                    _SectionTitle(title: l10n.recentHistory),
                     const SizedBox(height: 12),
                     _RecentOrdersCard(orders: state.recentOrders, accent: accent),
                   ]),
@@ -77,14 +78,15 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   SliverAppBar _buildAppBar(BuildContext context, Color accent) {
+    final l10n = AppLocalizations.of(context)!;
     return SliverAppBar(
       expandedHeight: 120,
       collapsedHeight: 60,
       pinned: true,
       backgroundColor: accent,
-      title: const Text(
-        'Tableau de bord',
-        style: TextStyle(
+      title: Text(
+        l10n.dashboard,
+        style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
@@ -117,6 +119,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   void _showExportOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
@@ -130,33 +133,33 @@ class _DashboardPageState extends State<DashboardPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Générer Rapport Financier', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.generateReport, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             _ReportTile(
               icon: Icons.today,
               color: Colors.blue,
-              title: 'Rapport Journalier (CA)',
+              title: l10n.dailyReport,
               onTap: () {
                 Navigator.pop(context);
-                ReportService.generateDailyReport(DateTime.now());
+                ReportService.generateDailyReport(DateTime.now(), l10n);
               },
             ),
             _ReportTile(
               icon: Icons.view_week,
               color: Colors.green,
-              title: 'Rapport Hebdomadaire (CA)',
+              title: l10n.weeklyReport,
               onTap: () {
                 Navigator.pop(context);
-                ReportService.generateWeeklyReport(DateTime.now());
+                ReportService.generateWeeklyReport(DateTime.now(), l10n);
               },
             ),
             _ReportTile(
               icon: Icons.calendar_month,
               color: Colors.orange,
-              title: 'Rapport Mensuel (CA)',
+              title: l10n.monthlyReport,
               onTap: () {
                 Navigator.pop(context);
-                ReportService.generateMonthlyReport(DateTime.now());
+                ReportService.generateMonthlyReport(DateTime.now(), l10n);
               },
             ),
           ],
@@ -185,7 +188,6 @@ class _ReportTile extends StatelessWidget {
   }
 }
 
-// ─── KPI Row ──────────────────────────────────────────────────────────────────
 class _KpiRow extends StatelessWidget {
   final double dailyRevenue;
   final int totalOrders;
@@ -199,12 +201,13 @@ class _KpiRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final currency = NumberFormat.currency(symbol: '', decimalDigits: 0);
     return Row(
       children: [
         Expanded(
           child: _KpiCard(
-            label: "CA du jour",
+            label: l10n.dailyRevenue,
             value: currency.format(dailyRevenue),
             icon: Icons.trending_up_rounded,
             accent: accent,
@@ -213,7 +216,7 @@ class _KpiRow extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _KpiCard(
-            label: "Ventes récentes",
+            label: l10n.recentSales,
             value: "$totalOrders",
             icon: Icons.receipt_long_rounded,
             accent: Color.lerp(accent, Colors.teal, 0.5)!,
@@ -283,7 +286,6 @@ class _KpiCard extends StatelessWidget {
   }
 }
 
-// ─── Section Title ─────────────────────────────────────────────────────────────
 class _SectionTitle extends StatelessWidget {
   final String title;
   const _SectionTitle({required this.title});
@@ -301,214 +303,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-// ─── Weekly Chart ──────────────────────────────────────────────────────────────
-class _WeeklyChartCard extends StatelessWidget {
-  final Map<DateTime, double> weeklySales;
-  final Color accent;
-
-  const _WeeklyChartCard({required this.weeklySales, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    final entries = weeklySales.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-    final maxY = entries.isEmpty
-        ? 100.0
-        : (entries.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.3)
-            .clamp(100.0, double.infinity);
-
-    final lighter = Color.lerp(accent, Colors.white, 0.4)!;
-
-    final bars = entries.asMap().entries.map((e) {
-      return BarChartGroupData(
-        x: e.key,
-        barRods: [
-          BarChartRodData(
-            toY: e.value.value,
-            gradient: LinearGradient(
-              colors: [accent, lighter],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-            ),
-            width: 18,
-            borderRadius: BorderRadius.circular(6),
-            backDrawRodData: BackgroundBarChartRodData(
-              show: true,
-              toY: maxY,
-              color: accent.withValues(alpha: 0.08),
-            ),
-          ),
-        ],
-      );
-    }).toList();
-
-    return Container(
-      height: 200,
-      padding: const EdgeInsets.fromLTRB(16, 20, 20, 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: entries.isEmpty
-          ? const Center(
-              child: Text(
-                'Pas encore de données',
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
-          : BarChart(
-              BarChartData(
-                maxY: maxY,
-                barGroups: bars,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: maxY / 4,
-                  getDrawingHorizontalLine: (_) => FlLine(
-                    color: Colors.grey.withValues(alpha: 0.15),
-                    strokeWidth: 1,
-                  ),
-                ),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 42,
-                      getTitlesWidget: (val, _) => Text(
-                        val.toInt().toString(),
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 10),
-                      ),
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false)),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 24,
-                      getTitlesWidget: (val, _) {
-                        final idx = val.toInt();
-                        if (idx < 0 || idx >= entries.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            // Use simple 'E' format without locale for safety
-                            DateFormat('E').format(entries[idx].key),
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 11),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-    );
-  }
-}
-
-// ─── Top Products ──────────────────────────────────────────────────────────────
-class _TopProductsCard extends StatelessWidget {
-  final List<MapEntry<String, int>> topProducts;
-  final Color accent;
-
-  const _TopProductsCard({required this.topProducts, required this.accent});
-
-  @override
-  Widget build(BuildContext context) {
-    if (topProducts.isEmpty) {
-      return const _EmptyCard(text: 'Aucun produit vendu pour le moment');
-    }
-
-    final maxQty = topProducts.first.value;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: topProducts.asMap().entries.map((entry) {
-          final rank = entry.key + 1;
-          final name = entry.value.key;
-          final qty = entry.value.value;
-          final ratio = maxQty > 0 ? qty / maxQty : 0.0;
-          final medal = rank == 1
-              ? '🥇'
-              : rank == 2
-                  ? '🥈'
-                  : rank == 3
-                      ? '🥉'
-                      : '  $rank.';
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              children: [
-                SizedBox(
-                    width: 32,
-                    child: Text(medal,
-                        style: const TextStyle(fontSize: 18))),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 13),
-                          overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: ratio.toDouble(),
-                          minHeight: 6,
-                          backgroundColor: accent.withValues(alpha: 0.1),
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(accent),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text('$qty vendu${qty > 1 ? 's' : ''}',
-                    style: TextStyle(
-                        color: accent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12)),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-// ─── Recent Orders ─────────────────────────────────────────────────────────────
 class _RecentOrdersCard extends StatelessWidget {
   final List orders;
   final Color accent;
@@ -517,8 +311,9 @@ class _RecentOrdersCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (orders.isEmpty) {
-      return const _EmptyCard(text: 'Aucune vente enregistrée');
+      return _EmptyCard(text: l10n.recentHistory);
     }
 
     final currency = NumberFormat.currency(symbol: '', decimalDigits: 0);
@@ -565,7 +360,7 @@ class _RecentOrdersCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${order.items.length} article${order.items.length > 1 ? 's' : ''}',
+                        '${order.items.length} ${l10n.itemsLabel}',
                         style: const TextStyle(
                             fontWeight: FontWeight.w600, fontSize: 13),
                       ),
@@ -594,7 +389,6 @@ class _RecentOrdersCard extends StatelessWidget {
   }
 }
 
-// ─── Stock Alerts ──────────────────────────────────────────────────────────────
 class _StockAlertsCard extends StatelessWidget {
   final List<Product> products;
   final Color accent;
@@ -603,6 +397,7 @@ class _StockAlertsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -625,9 +420,9 @@ class _StockAlertsCard extends StatelessWidget {
             title: Text(p.name,
                 style:
                     const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-            subtitle: Text('Stock: ${p.stock} (Min: ${p.minStockAlert})',
+            subtitle: Text('${l10n.inventory}: ${p.stock} (Min: ${p.minStockAlert})',
                 style: const TextStyle(fontSize: 11)),
-            trailing: Text('REAPPRO.',
+            trailing: Text(l10n.restockLabel,
                 style: TextStyle(
                     color: accent, fontWeight: FontWeight.bold, fontSize: 10)),
           );
@@ -645,12 +440,9 @@ class _CaRecapCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final cur = NumberFormat.currency(symbol: 'XAF ', decimalDigits: 0);
-    // Weekly CA
     final weeklyCA = state.weeklySales.values.fold<double>(0, (sum, val) => sum + val);
-    // Monthly CA (Mock/Approx from weekly sales for now, or we'd need a separate usecase)
-    // Actually, in a real app, the DashboardBloc would provide separate day/week/month totals.
-    // For now, let's treat the 7-day total as "Week" and we'll assume Monthly CA is tracked in Hive.
     
     return Container(
       padding: const EdgeInsets.all(20),
@@ -660,11 +452,11 @@ class _CaRecapCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _CaItem(label: 'Aujourd\'hui', value: cur.format(state.dailyRevenue), color: Colors.blue),
+          _CaItem(label: l10n.today, value: cur.format(state.dailyRevenue), color: Colors.blue),
           const Divider(height: 24),
-          _CaItem(label: 'Cette Semaine', value: cur.format(weeklyCA), color: Colors.green),
+          _CaItem(label: l10n.thisWeek, value: cur.format(weeklyCA), color: Colors.green),
           const Divider(height: 24),
-          _CaItem(label: 'Ce Mois (Est.)', value: cur.format(weeklyCA * 4), color: Colors.orange), // Simplified estimation
+          _CaItem(label: l10n.thisMonth, value: cur.format(weeklyCA * 4), color: Colors.orange),
         ],
       ),
     );

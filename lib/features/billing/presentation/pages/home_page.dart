@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vibration/vibration.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../billing/presentation/bloc/billing_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -26,7 +27,6 @@ class _HomePageState extends State<HomePage> {
   bool _isCameraOn = true;
   bool _isFlashOn = false;
 
-  // Cooldown mapping to prevent rapid firing of the same barcode
   final Map<String, DateTime> _lastScanTimes = {};
 
   @override
@@ -43,7 +43,6 @@ class _HomePageState extends State<HomePage> {
       if (barcode.rawValue != null) {
         final rawValue = barcode.rawValue!;
 
-        // Cooldown logic: 2 seconds per identical barcode
         if (_lastScanTimes.containsKey(rawValue)) {
           final lastScan = _lastScanTimes[rawValue]!;
           if (now.difference(lastScan).inSeconds < 2) {
@@ -53,7 +52,6 @@ class _HomePageState extends State<HomePage> {
 
         _lastScanTimes[rawValue] = now;
 
-        // Vibrate
         final hasVibrator = await Vibration.hasVibrator();
         if (hasVibrator == true) {
           Vibration.vibrate();
@@ -62,13 +60,14 @@ class _HomePageState extends State<HomePage> {
         if (mounted) {
           context.read<BillingBloc>().add(ScanBarcodeEvent(rawValue));
         }
-        break; // Process one barcode at a time per frame
+        break; 
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       drawer: const AppDrawer(),
       body: BlocListener<BillingBloc, BillingState>(
@@ -87,7 +86,6 @@ class _HomePageState extends State<HomePage> {
         },
         child: Stack(
           children: [
-            // SCANNER VIEW (TOP 50%)
             Positioned(
               top: 0,
               left: 0,
@@ -96,9 +94,8 @@ class _HomePageState extends State<HomePage> {
               child: _buildScannerSection(),
             ),
 
-            // BOTTOM PANEL (BOTTOM 50% + OVERLAP)
             Positioned(
-              top: (MediaQuery.of(context).size.height * 0.4) - 24, // overlap
+              top: (MediaQuery.of(context).size.height * 0.4) - 24, 
               left: 0,
               right: 0,
               bottom: 0,
@@ -145,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                           }
                         },
                   icon: Icons.payment,
-                  label: 'Review Order',
+                  label: l10n.reviewOrder,
                 ),
               ),
             ],
@@ -167,7 +164,6 @@ class _HomePageState extends State<HomePage> {
           ),
           if (!_isCameraOn) _buildCameraOffState(),
 
-          // Overlay Actions — Top Left (Dashboard, Products)
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -203,7 +199,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Overlay Actions — Top Right (Settings, Flash, Camera)
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             right: 16,
@@ -246,7 +241,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Central Overlay Bounding Box
           if (_isCameraOn)
             Center(
               child: Container(
@@ -258,7 +252,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 child: Stack(
                   children: [
-                    // Corners
                     _buildCorner(Alignment.topLeft),
                     _buildCorner(Alignment.topRight),
                     _buildCorner(Alignment.bottomLeft),
@@ -273,8 +266,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCameraOffState() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
-      color: const Color(0xFF1E293B), // slate-800
+      color: const Color(0xFF1E293B),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -282,7 +276,7 @@ class _HomePageState extends State<HomePage> {
             width: 64,
             height: 64,
             decoration: const BoxDecoration(
-              color: Color(0xFF334155), // slate-700
+              color: Color(0xFF334155),
               shape: BoxShape.circle,
             ),
             alignment: Alignment.center,
@@ -290,18 +284,18 @@ class _HomePageState extends State<HomePage> {
                 const Icon(Icons.videocam_off, color: Colors.white, size: 32),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Camera is turned off',
-            style: TextStyle(
+          Text(
+            l10n.cameraOff,
+            style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Turn on your camera to start scanning barcodes and items automatically.',
+              l10n.cameraOffInstruction,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white70, fontSize: 12),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
           const SizedBox(height: 24),
@@ -314,8 +308,8 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             icon: const Icon(Icons.videocam),
-            label: const Text('Turn on Camera',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            label: Text(l10n.turnOnCamera,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             onPressed: () {
               setState(() => _isCameraOn = true);
               _scannerController.start();
@@ -375,6 +369,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomPanel() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
@@ -386,7 +381,6 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Column(
         children: [
-          // Drag handle indicator
           Container(
             width: 48,
             height: 4,
@@ -397,7 +391,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Held Orders Banner
           BlocBuilder<BillingBloc, BillingState>(
             builder: (context, state) {
               if (state.heldOrders.isEmpty) return const SizedBox.shrink();
@@ -416,7 +409,7 @@ class _HomePageState extends State<HomePage> {
                       backgroundColor: Colors.orange.withValues(alpha: 0.1),
                       side: BorderSide(color: Colors.orange.withValues(alpha: 0.5)),
                       label: Text(
-                        'Panier en attente (XAF${total.toStringAsFixed(0)})',
+                        '${l10n.onHoldCart} (XAF${total.toStringAsFixed(0)})',
                         style: const TextStyle(color: Colors.orange, fontSize: 12),
                       ),
                       avatar: const Icon(Icons.restore, size: 16, color: Colors.orange),
@@ -433,7 +426,6 @@ class _HomePageState extends State<HomePage> {
           ),
 
 
-          // Header
           BlocBuilder<BillingBloc, BillingState>(
             builder: (context, state) {
               final totalItems =
@@ -447,10 +439,10 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Scanned Items',
-                            style: TextStyle(
+                        Text(l10n.scannedItems,
+                            style: const TextStyle(
                                 fontSize: 18, fontWeight: FontWeight.w600)),
-                        Text('$totalItems items total',
+                        Text('$totalItems ${l10n.itemsTotal}',
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.grey)),
                       ],
@@ -458,8 +450,8 @@ class _HomePageState extends State<HomePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text('TOTAL PRICE',
-                            style: TextStyle(
+                        Text(l10n.totalPrice,
+                            style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey,
@@ -480,7 +472,6 @@ class _HomePageState extends State<HomePage> {
           ),
           const Divider(height: 1),
 
-          // List View
           Expanded(
             child: Stack(children: [
               BlocBuilder<BillingBloc, BillingState>(
@@ -510,6 +501,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildEmptyCart() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -526,15 +518,15 @@ class _HomePageState extends State<HomePage> {
                 Icon(Icons.shopping_basket, size: 40, color: Colors.grey[300]),
           ),
           const SizedBox(height: 16),
-          const Text('List is empty',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(l10n.emptyList,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Scanned items will appear here as you scan them with the camera above.',
+              l10n.scanInstruction,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ),
         ],
@@ -636,7 +628,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-  // A floating Details/Checkout Button at the very bottom
-  // Added a Stack wrapper below to overlay this button
 }
