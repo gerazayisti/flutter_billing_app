@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<LocaleBloc, LocaleState>(
         builder: (context, state) {
           return MaterialApp.router(
-            title: 'Billing App',
+            title: 'Gestock+',
             locale: state.locale,
             localizationsDelegates: const [
               AppLocalizations.delegate,

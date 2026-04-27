@@ -1,6 +1,6 @@
 {
-    "name": "billing_app",
-    "short_name": "billing_app",
+    "name": "Gestock+",
+    "short_name": "Gestock+",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
