@@ -161,5 +161,39 @@
   "themeColor": "Theme Color",
   "selectAccentColor": "Select primary accent color",
   "warning": "Warning",
-  "overwriteWarning": "Are you sure? This will overwrite your data."
+  "overwriteWarning": "Are you sure? This will overwrite your data.",
+
+  "owner": "Owner",
+  "stockManager": "Stock Manager",
+  "newUserBtn": "New user",
+
+  "city": "City",
+  "district": "District / Neighbourhood",
+  "shopTypeLabel": "Shop type",
+  "orangeMoneyCode": "Orange Money Merchant Code",
+  "mtnMomoCode": "MTN MoMo Merchant Code",
+  "taxId": "Tax ID (Optional)",
+  "mobilePaymentSection": "Mobile Money Payments",
+  "momoCodeHint": "e.g. CM-237-XXXXXX",
+
+  "shopTypeEpicerie": "Grocery Store",
+  "shopTypeSupermarche": "Supermarket",
+  "shopTypePharmacie": "Pharmacy",
+  "shopTypeBoulangerie": "Bakery / Pastry",
+  "shopTypeQuincaillerie": "Hardware Store",
+  "shopTypeRestaurant": "Restaurant / Fast-food",
+  "shopTypeVetements": "Clothing / Textiles",
+  "shopTypeInformatique": "Electronics / IT",
+  "shopTypeAutre": "Other",
+
+  "orangeMoney": "Orange Money",
+  "mtnMomo": "MTN MoMo",
+  "cashReceived": "Amount received",
+  "changeGiven": "Change to give",
+  "momoMerchantCode": "Merchant code",
+  "momoPayInstruction": "Ask the customer to dial this code on their phone",
+  "insufficientCash": "Insufficient amount",
+
+  "pinLocked": "Locked after 3 attempts. Try again in 30 seconds.",
+  "attemptsLeft": "attempt(s) remaining"
 }

@@ -6,6 +6,7 @@ import '../../features/billing/data/models/order_item_model.dart';
 import '../../features/billing/data/models/held_order_model.dart';
 import '../../features/auth/data/models/user_model.dart';
 import '../../features/auth/domain/entities/user.dart';
+import '../utils/pin_hasher.dart';
 
 class HiveDatabase {
   static const String productBoxName = 'products';
@@ -25,7 +26,7 @@ class HiveDatabase {
   static Future<void> init() async {
     await Hive.initFlutter();
 
-    // Register Adapters
+    // Register adapters
     Hive.registerAdapter(ProductModelAdapter());
     Hive.registerAdapter(ShopModelAdapter());
     Hive.registerAdapter(OrderModelAdapter());
@@ -35,21 +36,21 @@ class HiveDatabase {
     Hive.registerAdapter(UserModelAdapter());
     Hive.registerAdapter(RoleAdapter());
 
-    // Open Boxes
+    // Open boxes
     productBox = await Hive.openBox<ProductModel>(productBoxName);
     shopBox = await Hive.openBox<ShopModel>(shopBoxName);
     settingsBox = await Hive.openBox(settingsBoxName);
     orderBox = await Hive.openBox<OrderModel>(orderBoxName);
     heldOrderBox = await Hive.openBox<HeldOrderModel>(heldOrderBoxName);
     usersBox = await Hive.openBox<UserModel>(usersBoxName);
-    
-    // Seed default admin user if none exists
+
+    // Seed default owner if no users exist
     if (usersBox.isEmpty) {
-      await usersBox.put('admin', const UserModel(
-        id: 'admin',
-        name: 'Admin',
-        pinCode: '0000',
-        role: Role.admin,
+      await usersBox.put('owner', UserModel(
+        id: 'owner',
+        name: 'Propriétaire',
+        pinCode: PinHasher.hash('0000'),
+        role: Role.owner,
       ));
     }
   }

@@ -161,5 +161,39 @@
   "themeColor": "Couleur du thême",
   "selectAccentColor": "Choisir la couleur d'accentuation",
   "warning": "Attention",
-  "overwriteWarning": "Êtes-vous sûr ? Cela écrasera vos données actuelles."
+  "overwriteWarning": "Êtes-vous sûr ? Cela écrasera vos données actuelles.",
+
+  "owner": "Propriétaire",
+  "stockManager": "Gestionnaire de Stock",
+  "newUserBtn": "Nouvel utilisateur",
+
+  "city": "Ville",
+  "district": "Quartier / Arrondissement",
+  "shopTypeLabel": "Type de boutique",
+  "orangeMoneyCode": "Code Marchand Orange Money",
+  "mtnMomoCode": "Code Marchand MTN MoMo",
+  "taxId": "N° Contribuable (Optionnel)",
+  "mobilePaymentSection": "Paiements Mobile Money",
+  "momoCodeHint": "Ex: CM-237-XXXXXX",
+
+  "shopTypeEpicerie": "Épicerie",
+  "shopTypeSupermarche": "Supermarché",
+  "shopTypePharmacie": "Pharmacie",
+  "shopTypeBoulangerie": "Boulangerie / Pâtisserie",
+  "shopTypeQuincaillerie": "Quincaillerie",
+  "shopTypeRestaurant": "Restaurant / Fast-food",
+  "shopTypeVetements": "Vêtements / Textiles",
+  "shopTypeInformatique": "Informatique / Électronique",
+  "shopTypeAutre": "Autre",
+
+  "orangeMoney": "Orange Money",
+  "mtnMomo": "MTN MoMo",
+  "cashReceived": "Montant reçu",
+  "changeGiven": "Monnaie à rendre",
+  "momoMerchantCode": "Code marchand",
+  "momoPayInstruction": "Demandez au client de composer ce code sur son téléphone",
+  "insufficientCash": "Montant insuffisant",
+
+  "pinLocked": "Accès bloqué après 3 tentatives. Réessayez dans 30 secondes.",
+  "attemptsLeft": "tentative(s) restante(s)"
 }

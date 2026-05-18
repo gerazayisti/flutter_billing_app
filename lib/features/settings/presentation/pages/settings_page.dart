@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
@@ -34,7 +34,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final authState = context.watch<AuthBloc>().state;
-    final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.admin;
+    final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.owner;
 
     return Scaffold(
       appBar: AppBar(
@@ -299,7 +299,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 24),
 
-            // ── Apparence Section ────────────────────────────────────────────
+            // â”€â”€ Apparence Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             _buildSectionHeader(l10n.appearance),
             _ColorPickerSection(
               onColorChanged: () => setState(() {}),

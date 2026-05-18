@@ -1,7 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart';
+import 'package:billing_app/features/auth/data/models/user_model.dart';
 import 'package:billing_app/core/data/hive_database.dart';
+import 'package:billing_app/core/utils/pin_hasher.dart';
 
 // Events
 abstract class AuthEvent extends Equatable {
@@ -37,40 +39,91 @@ class AuthAuthenticated extends AuthState {
 
 class AuthError extends AuthState {
   final String message;
-  const AuthError(this.message);
+  final int? attemptsLeft;
+  const AuthError(this.message, {this.attemptsLeft});
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, attemptsLeft];
+}
+
+class AuthLocked extends AuthState {
+  final DateTime lockoutUntil;
+  const AuthLocked(this.lockoutUntil);
+  @override
+  List<Object?> get props => [lockoutUntil];
 }
 
 // Bloc
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   User? currentUser;
 
+  static const int _maxAttempts = 3;
+  static const Duration _lockoutDuration = Duration(seconds: 30);
+
+  int _failedAttempts = 0;
+  DateTime? _lockoutUntil;
+
   AuthBloc() : super(AuthInitial()) {
     on<LoginWithPinEvent>(_onLoginWithPin);
     on<LogoutEvent>(_onLogout);
   }
 
-  void _onLoginWithPin(LoginWithPinEvent event, Emitter<AuthState> emit) {
+  Future<void> _onLoginWithPin(
+      LoginWithPinEvent event, Emitter<AuthState> emit) async {
+    // Check lockout
+    if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+      emit(AuthLocked(_lockoutUntil!));
+      return;
+    }
+    _lockoutUntil = null;
+
     try {
       final users = HiveDatabase.usersBox.values.toList();
-      
-      // Attempt to find a user matching the PIN
-      final user = users.firstWhere(
-        (u) => u.pinCode == event.pinCode,
-        orElse: () => throw Exception('Incorrect PIN'),
-      );
-      
-      currentUser = user;
-      emit(AuthAuthenticated(user));
+
+      UserModel? matchedUser;
+      for (final u in users) {
+        if (PinHasher.verify(event.pinCode, u.pinCode)) {
+          matchedUser = u;
+          // Migrate legacy plain-text PIN to hashed on first match
+          if (!PinHasher.isHashed(u.pinCode)) {
+            final upgraded = UserModel(
+              id: u.id,
+              name: u.name,
+              pinCode: PinHasher.hash(event.pinCode),
+              role: u.role,
+            );
+            await HiveDatabase.usersBox.put(u.id, upgraded);
+          }
+          break;
+        }
+      }
+
+      if (matchedUser == null) {
+        _failedAttempts++;
+        final remaining = _maxAttempts - _failedAttempts;
+
+        if (_failedAttempts >= _maxAttempts) {
+          _lockoutUntil = DateTime.now().add(_lockoutDuration);
+          _failedAttempts = 0;
+          emit(AuthLocked(_lockoutUntil!));
+        } else {
+          emit(AuthError('Code PIN incorrect', attemptsLeft: remaining));
+          emit(AuthInitial());
+        }
+        return;
+      }
+
+      _failedAttempts = 0;
+      currentUser = matchedUser;
+      emit(AuthAuthenticated(matchedUser));
     } catch (e) {
-      emit(const AuthError('Code PIN incorrect'));
-      emit(AuthInitial()); // Reset after error
+      emit(const AuthError('Erreur interne. Réessayez.'));
+      emit(AuthInitial());
     }
   }
 
   void _onLogout(LogoutEvent event, Emitter<AuthState> emit) {
     currentUser = null;
+    _failedAttempts = 0;
     emit(AuthInitial());
   }
 }

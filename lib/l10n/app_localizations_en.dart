@@ -469,4 +469,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get overwriteWarning => 'Are you sure? This will overwrite your data.';
+
+  @override
+  String get owner => 'Owner';
+
+  @override
+  String get stockManager => 'Stock Manager';
+
+  @override
+  String get newUserBtn => 'New user';
+
+  @override
+  String get city => 'City';
+
+  @override
+  String get district => 'District / Neighbourhood';
+
+  @override
+  String get shopTypeLabel => 'Shop type';
+
+  @override
+  String get orangeMoneyCode => 'Orange Money Merchant Code';
+
+  @override
+  String get mtnMomoCode => 'MTN MoMo Merchant Code';
+
+  @override
+  String get taxId => 'Tax ID (Optional)';
+
+  @override
+  String get mobilePaymentSection => 'Mobile Money Payments';
+
+  @override
+  String get momoCodeHint => 'e.g. CM-237-XXXXXX';
+
+  @override
+  String get shopTypeEpicerie => 'Grocery Store';
+
+  @override
+  String get shopTypeSupermarche => 'Supermarket';
+
+  @override
+  String get shopTypePharmacie => 'Pharmacy';
+
+  @override
+  String get shopTypeBoulangerie => 'Bakery / Pastry';
+
+  @override
+  String get shopTypeQuincaillerie => 'Hardware Store';
+
+  @override
+  String get shopTypeRestaurant => 'Restaurant / Fast-food';
+
+  @override
+  String get shopTypeVetements => 'Clothing / Textiles';
+
+  @override
+  String get shopTypeInformatique => 'Electronics / IT';
+
+  @override
+  String get shopTypeAutre => 'Other';
+
+  @override
+  String get orangeMoney => 'Orange Money';
+
+  @override
+  String get mtnMomo => 'MTN MoMo';
+
+  @override
+  String get cashReceived => 'Amount received';
+
+  @override
+  String get changeGiven => 'Change to give';
+
+  @override
+  String get momoMerchantCode => 'Merchant code';
+
+  @override
+  String get momoPayInstruction =>
+      'Ask the customer to dial this code on their phone';
+
+  @override
+  String get insufficientCash => 'Insufficient amount';
+
+  @override
+  String get pinLocked => 'Locked after 3 attempts. Try again in 30 seconds.';
+
+  @override
+  String get attemptsLeft => 'attempt(s) remaining';
 }

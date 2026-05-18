@@ -470,4 +470,93 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get overwriteWarning =>
       'Êtes-vous sûr ? Cela écrasera vos données actuelles.';
+
+  @override
+  String get owner => 'Propriétaire';
+
+  @override
+  String get stockManager => 'Gestionnaire de Stock';
+
+  @override
+  String get newUserBtn => 'Nouvel utilisateur';
+
+  @override
+  String get city => 'Ville';
+
+  @override
+  String get district => 'Quartier / Arrondissement';
+
+  @override
+  String get shopTypeLabel => 'Type de boutique';
+
+  @override
+  String get orangeMoneyCode => 'Code Marchand Orange Money';
+
+  @override
+  String get mtnMomoCode => 'Code Marchand MTN MoMo';
+
+  @override
+  String get taxId => 'N° Contribuable (Optionnel)';
+
+  @override
+  String get mobilePaymentSection => 'Paiements Mobile Money';
+
+  @override
+  String get momoCodeHint => 'Ex: CM-237-XXXXXX';
+
+  @override
+  String get shopTypeEpicerie => 'Épicerie';
+
+  @override
+  String get shopTypeSupermarche => 'Supermarché';
+
+  @override
+  String get shopTypePharmacie => 'Pharmacie';
+
+  @override
+  String get shopTypeBoulangerie => 'Boulangerie / Pâtisserie';
+
+  @override
+  String get shopTypeQuincaillerie => 'Quincaillerie';
+
+  @override
+  String get shopTypeRestaurant => 'Restaurant / Fast-food';
+
+  @override
+  String get shopTypeVetements => 'Vêtements / Textiles';
+
+  @override
+  String get shopTypeInformatique => 'Informatique / Électronique';
+
+  @override
+  String get shopTypeAutre => 'Autre';
+
+  @override
+  String get orangeMoney => 'Orange Money';
+
+  @override
+  String get mtnMomo => 'MTN MoMo';
+
+  @override
+  String get cashReceived => 'Montant reçu';
+
+  @override
+  String get changeGiven => 'Monnaie à rendre';
+
+  @override
+  String get momoMerchantCode => 'Code marchand';
+
+  @override
+  String get momoPayInstruction =>
+      'Demandez au client de composer ce code sur son téléphone';
+
+  @override
+  String get insufficientCash => 'Montant insuffisant';
+
+  @override
+  String get pinLocked =>
+      'Accès bloqué après 3 tentatives. Réessayez dans 30 secondes.';
+
+  @override
+  String get attemptsLeft => 'tentative(s) restante(s)';
 }

@@ -17,19 +17,25 @@ class ShopModelAdapter extends TypeAdapter<ShopModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ShopModel(
-      name: fields[0] as String,
-      addressLine1: fields[1] as String,
-      addressLine2: fields[2] as String,
-      phoneNumber: fields[3] as String,
-      upiId: fields[4] as String,
-      footerText: fields[5] as String,
+      name: fields[0] as String? ?? '',
+      addressLine1: fields[1] as String? ?? '',
+      addressLine2: fields[2] as String? ?? '',
+      phoneNumber: fields[3] as String? ?? '',
+      upiId: fields[4] as String? ?? '',
+      footerText: fields[5] as String? ?? '',
+      orangeMoneyMerchant: fields[6] as String? ?? '',
+      mtnMomoMerchant: fields[7] as String? ?? '',
+      city: fields[8] as String? ?? '',
+      district: fields[9] as String? ?? '',
+      shopType: fields[10] as String? ?? '',
+      taxId: fields[11] as String? ?? '',
     );
   }
 
   @override
   void write(BinaryWriter writer, ShopModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -41,7 +47,19 @@ class ShopModelAdapter extends TypeAdapter<ShopModel> {
       ..writeByte(4)
       ..write(obj.upiId)
       ..writeByte(5)
-      ..write(obj.footerText);
+      ..write(obj.footerText)
+      ..writeByte(6)
+      ..write(obj.orangeMoneyMerchant)
+      ..writeByte(7)
+      ..write(obj.mtnMomoMerchant)
+      ..writeByte(8)
+      ..write(obj.city)
+      ..writeByte(9)
+      ..write(obj.district)
+      ..writeByte(10)
+      ..write(obj.shopType)
+      ..writeByte(11)
+      ..write(obj.taxId);
   }
 
   @override

@@ -13,6 +13,7 @@ import '../../domain/entities/payment_method.dart';
 import '../../data/models/held_order_model.dart';
 import '../../data/repositories/held_order_repository.dart';
 import 'package:billing_app/features/product/data/models/product_model.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 part 'billing_event.dart';
 part 'billing_state.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
@@ -56,7 +56,7 @@ class _ProductListPageState extends State<ProductListPage> {
     final l10n = AppLocalizations.of(context)!;
     final borderColor = Colors.grey[100]!;
     final authState = context.watch<AuthBloc>().state;
-    final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.admin;
+    final isAdmin = authState is AuthAuthenticated && authState.user.role == Role.owner;
 
     return Scaffold(
       appBar: AppBar(

@@ -8,6 +8,7 @@ import 'package:billing_app/features/auth/domain/entities/user.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
 import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:billing_app/core/widgets/input_label.dart';
+import 'package:billing_app/core/utils/pin_hasher.dart';
 
 class UserManagementPage extends StatelessWidget {
   const UserManagementPage({super.key});
@@ -17,8 +18,8 @@ class UserManagementPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.userManagement, 
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.userManagement,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
@@ -28,19 +29,15 @@ class UserManagementPage extends StatelessWidget {
           if (state.status == UserManagementStatus.loading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (state.users.isEmpty) {
             return _buildEmptyState(context);
           }
-
           return ListView.separated(
             padding: const EdgeInsets.all(20),
             itemCount: state.users.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final user = state.users[index];
-              return _buildUserCard(context, user);
-            },
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) =>
+                _buildUserCard(context, state.users[index]),
           );
         },
       ),
@@ -48,7 +45,8 @@ class UserManagementPage extends StatelessWidget {
         onPressed: () => _showUserForm(context),
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
-        label: Text(l10n.newUser, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: Text(l10n.newUserBtn,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -61,7 +59,8 @@ class UserManagementPage extends StatelessWidget {
         children: [
           Icon(Icons.people_outline_rounded, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          Text(l10n.noUsersFound, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(l10n.noUsersFound,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(l10n.addUserHint, style: const TextStyle(color: Colors.grey)),
         ],
@@ -71,8 +70,14 @@ class UserManagementPage extends StatelessWidget {
 
   Widget _buildUserCard(BuildContext context, UserModel user) {
     final l10n = AppLocalizations.of(context)!;
-    final isAdmin = user.role == Role.admin;
-    
+    final isOwner = user.role == Role.owner;
+
+    final (color, icon, label) = switch (user.role) {
+      Role.owner => (Colors.amber, Icons.admin_panel_settings_rounded, l10n.owner),
+      Role.stockManager => (Colors.green, Icons.inventory_2_rounded, l10n.stockManager),
+      Role.cashier => (Colors.blue, Icons.point_of_sale_rounded, l10n.cashier),
+    };
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -80,30 +85,26 @@ class UserManagementPage extends StatelessWidget {
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: isAdmin ? Colors.amber[50] : Colors.blue[50],
-          child: Icon(
-            isAdmin ? Icons.admin_panel_settings_rounded : Icons.person_rounded,
-            color: isAdmin ? Colors.amber[700] : Colors.blue[700],
-          ),
+          backgroundColor: color.withOpacity(0.1),
+          child: Icon(icon, color: color),
         ),
         title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(isAdmin ? l10n.admin : l10n.cashier, 
-          style: TextStyle(color: isAdmin ? Colors.amber[800] : Colors.blue[800], fontSize: 12)),
-        trailing: isAdmin 
-          ? null 
-          : IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-              onPressed: () => _confirmDelete(context, user),
-            ),
+        subtitle: Text(label,
+            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
+        trailing: isOwner
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                onPressed: () => _confirmDelete(context, user),
+              ),
       ),
     );
   }
@@ -112,7 +113,7 @@ class UserManagementPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<UserManagementBloc>();
     final nameController = TextEditingController(text: user?.name);
-    final pinController = TextEditingController(text: user?.pinCode);
+    final pinController = TextEditingController();
     Role selectedRole = user?.role ?? Role.cashier;
 
     showModalBottomSheet(
@@ -136,48 +137,85 @@ class UserManagementPage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(l10n.newUser, 
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                // Header
+                Row(
+                  children: [
+                    const Icon(Icons.person_add_alt_1_rounded),
+                    const SizedBox(width: 8),
+                    Text(
+                      user == null ? l10n.newUserBtn : l10n.edit,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
+
                 InputLabel(text: l10n.fullName),
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(hintText: 'Ex: Jean Dupont'),
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(hintText: 'Ex: Jean Kamga'),
                 ),
                 const SizedBox(height: 16),
+
                 InputLabel(text: l10n.pinCode),
                 TextField(
                   controller: pinController,
                   keyboardType: TextInputType.number,
                   maxLength: 4,
-                  decoration: const InputDecoration(hintText: '0000'),
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: user == null ? '4 chiffres' : 'Laisser vide pour ne pas changer',
+                    counterText: '',
+                  ),
                 ),
                 const SizedBox(height: 16),
+
                 InputLabel(text: l10n.role),
                 DropdownButtonFormField<Role>(
                   value: selectedRole,
                   items: [
-                    DropdownMenuItem(value: Role.admin, child: Text(l10n.admin)),
-                    DropdownMenuItem(value: Role.cashier, child: Text(l10n.cashier)),
+                    DropdownMenuItem(
+                        value: Role.cashier,
+                        child: _roleDropdownItem(Icons.point_of_sale_rounded,
+                            l10n.cashier, Colors.blue)),
+                    DropdownMenuItem(
+                        value: Role.stockManager,
+                        child: _roleDropdownItem(Icons.inventory_2_rounded,
+                            l10n.stockManager, Colors.green)),
                   ],
                   onChanged: (val) {
                     if (val != null) setState(() => selectedRole = val);
                   },
                   decoration: const InputDecoration(),
                 ),
+
+                // Role permissions hint
+                const SizedBox(height: 12),
+                _buildPermissionsHint(context, selectedRole),
+
                 const SizedBox(height: 32),
                 PrimaryButton(
                   onPressed: () {
-                    if (nameController.text.isNotEmpty && pinController.text.length == 4) {
-                      final newUser = UserModel(
-                        id: user?.id ?? const Uuid().v4(),
-                        name: nameController.text,
-                        pinCode: pinController.text,
-                        role: selectedRole,
-                      );
-                      bloc.add(AddUserEvent(newUser));
-                      Navigator.pop(context);
-                    }
+                    final name = nameController.text.trim();
+                    final pin = pinController.text.trim();
+
+                    if (name.isEmpty) return;
+                    if (user == null && pin.length != 4) return;
+                    if (pin.isNotEmpty && pin.length != 4) return;
+
+                    final newPin = pin.isNotEmpty
+                        ? PinHasher.hash(pin)
+                        : (user?.pinCode ?? PinHasher.hash('0000'));
+
+                    final newUser = UserModel(
+                      id: user?.id ?? const Uuid().v4(),
+                      name: name,
+                      pinCode: newPin,
+                      role: selectedRole,
+                    );
+                    bloc.add(AddUserEvent(newUser));
+                    Navigator.pop(context);
                   },
                   label: user == null ? l10n.createAccount : l10n.updateAccount,
                 ),
@@ -185,6 +223,49 @@ class UserManagementPage extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _roleDropdownItem(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(width: 8),
+        Text(label),
+      ],
+    );
+  }
+
+  Widget _buildPermissionsHint(BuildContext context, Role role) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = switch (role) {
+      Role.cashier => ['POS / Ventes', l10n.history],
+      Role.stockManager => [l10n.inventory, 'Réceptions stock'],
+      Role.owner => ['Tout'],
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Accès autorisés :',
+              style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          ...items.map((item) => Row(
+                children: [
+                  const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                  const SizedBox(width: 6),
+                  Text(item, style: const TextStyle(fontSize: 12)),
+                ],
+              )),
+        ],
       ),
     );
   }

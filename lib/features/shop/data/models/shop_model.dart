@@ -24,6 +24,26 @@ class ShopModel extends Shop {
   @HiveField(5)
   final String footerText;
 
+  // Cameroon-specific fields — indices 6–11
+  @override
+  @HiveField(6)
+  final String orangeMoneyMerchant;
+  @override
+  @HiveField(7)
+  final String mtnMomoMerchant;
+  @override
+  @HiveField(8)
+  final String city;
+  @override
+  @HiveField(9)
+  final String district;
+  @override
+  @HiveField(10)
+  final String shopType;
+  @override
+  @HiveField(11)
+  final String taxId;
+
   const ShopModel({
     required this.name,
     required this.addressLine1,
@@ -31,6 +51,12 @@ class ShopModel extends Shop {
     required this.phoneNumber,
     required this.upiId,
     required this.footerText,
+    this.orangeMoneyMerchant = '',
+    this.mtnMomoMerchant = '',
+    this.city = '',
+    this.district = '',
+    this.shopType = '',
+    this.taxId = '',
   }) : super(
           name: name,
           addressLine1: addressLine1,
@@ -38,6 +64,12 @@ class ShopModel extends Shop {
           phoneNumber: phoneNumber,
           upiId: upiId,
           footerText: footerText,
+          orangeMoneyMerchant: orangeMoneyMerchant,
+          mtnMomoMerchant: mtnMomoMerchant,
+          city: city,
+          district: district,
+          shopType: shopType,
+          taxId: taxId,
         );
 
   factory ShopModel.fromEntity(Shop shop) {
@@ -48,6 +80,12 @@ class ShopModel extends Shop {
       phoneNumber: shop.phoneNumber,
       upiId: shop.upiId,
       footerText: shop.footerText,
+      orangeMoneyMerchant: shop.orangeMoneyMerchant,
+      mtnMomoMerchant: shop.mtnMomoMerchant,
+      city: shop.city,
+      district: shop.district,
+      shopType: shop.shopType,
+      taxId: shop.taxId,
     );
   }
 

@@ -1,9 +1,9 @@
-import 'package:billing_app/core/widgets/input_label.dart';
-import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
+import 'package:billing_app/core/widgets/input_label.dart';
+import 'package:billing_app/core/widgets/primary_button.dart';
 import '../../domain/entities/shop.dart';
 import '../bloc/shop_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -18,12 +18,25 @@ class ShopDetailsPage extends StatefulWidget {
 
 class _ShopDetailsPageState extends State<ShopDetailsPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _address1Controller;
-  late TextEditingController _address2Controller;
-  late TextEditingController _phoneController;
-  late TextEditingController _upiController;
-  late TextEditingController _footerController;
+
+  late final TextEditingController _nameController;
+  late final TextEditingController _address1Controller;
+  late final TextEditingController _address2Controller;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _footerController;
+  late final TextEditingController _districtController;
+  late final TextEditingController _orangeController;
+  late final TextEditingController _mtnController;
+  late final TextEditingController _taxIdController;
+
+  String? _selectedCity;
+  String? _selectedShopType;
+
+  static const List<String> _cities = [
+    'Douala', 'Yaoundé', 'Bafoussam', 'Buea', 'Bamenda',
+    'Maroua', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Limbe',
+    'Kribi', 'Garoua', 'Kumba', 'Nkongsamba', 'Autre',
+  ];
 
   @override
   void initState() {
@@ -32,21 +45,12 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     _address1Controller = TextEditingController();
     _address2Controller = TextEditingController();
     _phoneController = TextEditingController();
-    _upiController = TextEditingController();
     _footerController = TextEditingController();
-
+    _districtController = TextEditingController();
+    _orangeController = TextEditingController();
+    _mtnController = TextEditingController();
+    _taxIdController = TextEditingController();
     context.read<ShopBloc>().add(LoadShopEvent());
-  }
-
-  void _updateControllers(Shop shop) {
-    if (_nameController.text.isEmpty && shop.name.isNotEmpty) {
-      _nameController.text = shop.name;
-      _address1Controller.text = shop.addressLine1;
-      _address2Controller.text = shop.addressLine2;
-      _phoneController.text = shop.phoneNumber;
-      _upiController.text = shop.upiId;
-      _footerController.text = shop.footerText;
-    }
   }
 
   @override
@@ -55,22 +59,47 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     _address1Controller.dispose();
     _address2Controller.dispose();
     _phoneController.dispose();
-    _upiController.dispose();
     _footerController.dispose();
+    _districtController.dispose();
+    _orangeController.dispose();
+    _mtnController.dispose();
+    _taxIdController.dispose();
     super.dispose();
+  }
+
+  void _updateControllers(Shop shop) {
+    if (_nameController.text.isEmpty && shop.name.isNotEmpty) {
+      _nameController.text = shop.name;
+      _address1Controller.text = shop.addressLine1;
+      _address2Controller.text = shop.addressLine2;
+      _phoneController.text = shop.phoneNumber;
+      _footerController.text = shop.footerText;
+      _districtController.text = shop.district;
+      _orangeController.text = shop.orangeMoneyMerchant;
+      _mtnController.text = shop.mtnMomoMerchant;
+      _taxIdController.text = shop.taxId;
+      setState(() {
+        _selectedCity = _cities.contains(shop.city) ? shop.city : null;
+        _selectedShopType = shop.shopType.isEmpty ? null : shop.shopType;
+      });
+    }
   }
 
   void _saveShop() {
     if (_formKey.currentState!.validate()) {
       final shop = Shop(
-        name: _nameController.text,
-        addressLine1: _address1Controller.text,
-        addressLine2: _address2Controller.text,
-        phoneNumber: _phoneController.text,
-        upiId: _upiController.text,
-        footerText: _footerController.text,
+        name: _nameController.text.trim(),
+        addressLine1: _address1Controller.text.trim(),
+        addressLine2: _address2Controller.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        footerText: _footerController.text.trim(),
+        city: _selectedCity ?? '',
+        district: _districtController.text.trim(),
+        shopType: _selectedShopType ?? '',
+        orangeMoneyMerchant: _orangeController.text.trim(),
+        mtnMomoMerchant: _mtnController.text.trim(),
+        taxId: _taxIdController.text.trim(),
       );
-
       context.read<ShopBloc>().add(UpdateShopEvent(shop));
     }
   }
@@ -78,137 +107,238 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.shopDetails),
-          backgroundColor: Colors.white,
-        ),
-        body: BlocConsumer<ShopBloc, ShopState>(
-          listener: (context, state) {
-            if (state is ShopLoaded) {
-              _updateControllers(state.shop);
-            } else if (state is ShopOperationSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(l10n.shopDetailsSaved),
-                  backgroundColor: Colors.green));
-              context.pop();
-            } else if (state is ShopError) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(state.message), backgroundColor: Colors.red));
-            }
-          },
-          buildWhen: (previous, current) =>
-              current is ShopLoading || current is ShopLoaded,
-          builder: (context, state) {
-            if (state is ShopLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    final shopTypes = [
+      ('epicerie', l10n.shopTypeEpicerie),
+      ('supermarche', l10n.shopTypeSupermarche),
+      ('pharmacie', l10n.shopTypePharmacie),
+      ('boulangerie', l10n.shopTypeBoulangerie),
+      ('quincaillerie', l10n.shopTypeQuincaillerie),
+      ('restaurant', l10n.shopTypeRestaurant),
+      ('vetements', l10n.shopTypeVetements),
+      ('informatique', l10n.shopTypeInformatique),
+      ('autre', l10n.shopTypeAutre),
+    ];
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(l10n.generalInfo,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: AppTheme.primaryColor.withValues(alpha: 0.8),
-                        )),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      l10n.shopInfoInstruction,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                    ),
-                    const SizedBox(height: 24),
-                    InputLabel(text: l10n.shopName),
-                    _buildTextField(
-                      controller: _nameController,
-                      hint: 'e.g. QuickMart Superstore',
-                      validator: AppValidators.required(l10n.required),
-                    ),
-                    const SizedBox(height: 15),
-                    InputLabel(text: l10n.addressLine1),
-                    _buildTextField(
-                      controller: _address1Controller,
-                      hint: 'Street, City',
-                      validator: AppValidators.required(l10n.required),
-                    ),
-                    const SizedBox(height: 15),
-                    InputLabel(text: l10n.addressLine2),
-                    _buildTextField(
-                      controller: _address2Controller,
-                      hint: 'District, State',
-                    ),
-                    const SizedBox(height: 15),
-                    InputLabel(text: l10n.phoneNumber),
-                    _buildTextField(
-                      controller: _phoneController,
-                      hint: '+237 6XX XXX XXX',
-                      keyboardType: TextInputType.phone,
-                      validator: AppValidators.required(l10n.required),
-                    ),
-                    const SizedBox(height: 15),
-                    InputLabel(text: l10n.upiId),
-                    _buildTextField(
-                      controller: _upiController,
-                      hint: 'ID Payment',
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InputLabel(text: l10n.receiptFooter),
-                        Text('Max 150 chars',
-                            style: TextStyle(
-                                fontSize: 11, color: Colors.grey[400])),
-                      ],
-                    ),
-                    _buildTextField(
-                      controller: _footerController,
-                      hint: 'Thank you, Visit again!!!',
-                      maxLines: 2,
-                      maxLength: 60,
-                    ),
-                  ],
-                ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.shopDetails),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: BlocConsumer<ShopBloc, ShopState>(
+        listener: (context, state) {
+          if (state is ShopLoaded) _updateControllers(state.shop);
+          if (state is ShopOperationSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(l10n.shopDetailsSaved),
+                backgroundColor: Colors.green));
+            context.pop();
+          }
+          if (state is ShopError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message), backgroundColor: Colors.red));
+          }
+        },
+        buildWhen: (p, c) => c is ShopLoading || c is ShopLoaded,
+        builder: (context, state) {
+          if (state is ShopLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _sectionHeader(l10n.generalInfo, AppTheme.primaryColor),
+                  Text(l10n.shopInfoInstruction,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                  const SizedBox(height: 20),
+
+                  InputLabel(text: l10n.shopName),
+                  _field(_nameController, 'Ex: Supermarché Chez Momo',
+                      validator: AppValidators.required(l10n.required)),
+
+                  const SizedBox(height: 12),
+                  InputLabel(text: l10n.shopTypeLabel),
+                  DropdownButtonFormField<String>(
+                    value: _selectedShopType,
+                    hint: Text(l10n.shopTypeAutre),
+                    items: shopTypes
+                        .map((t) => DropdownMenuItem(value: t.$1, child: Text(t.$2)))
+                        .toList(),
+                    onChanged: (v) => setState(() => _selectedShopType = v),
+                    decoration: const InputDecoration(),
+                  ),
+
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InputLabel(text: l10n.city),
+                            DropdownButtonFormField<String>(
+                              value: _selectedCity,
+                              hint: const Text('Ville'),
+                              items: _cities
+                                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _selectedCity = v),
+                              decoration: const InputDecoration(),
+                              validator: AppValidators.required(l10n.required),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InputLabel(text: l10n.district),
+                            _field(_districtController, 'Ex: Akwa, Bastos'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+                  InputLabel(text: l10n.addressLine1),
+                  _field(_address1Controller, 'Rue, Avenue...',
+                      validator: AppValidators.required(l10n.required)),
+
+                  const SizedBox(height: 12),
+                  InputLabel(text: l10n.addressLine2),
+                  _field(_address2Controller, l10n.addressLine2),
+
+                  const SizedBox(height: 12),
+                  InputLabel(text: l10n.phoneNumber),
+                  _field(_phoneController, '+237 6XX XXX XXX',
+                      inputType: TextInputType.phone,
+                      validator: AppValidators.required(l10n.required)),
+
+                  const SizedBox(height: 24),
+                  _sectionHeader(l10n.mobilePaymentSection, Colors.orange[700]!),
+                  Text(
+                    'Renseignez vos codes marchands pour recevoir les paiements Mobile Money.',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  ),
+                  const SizedBox(height: 16),
+
+                  _momoField(
+                    controller: _orangeController,
+                    label: l10n.orangeMoneyCode,
+                    hint: l10n.momoCodeHint,
+                    color: Colors.orange,
+                    icon: Icons.circle,
+                  ),
+                  const SizedBox(height: 12),
+                  _momoField(
+                    controller: _mtnController,
+                    label: l10n.mtnMomoCode,
+                    hint: l10n.momoCodeHint,
+                    color: Colors.yellow[800]!,
+                    icon: Icons.circle,
+                  ),
+
+                  const SizedBox(height: 24),
+                  _sectionHeader('Informations légales', Colors.grey[700]!),
+                  const SizedBox(height: 12),
+                  InputLabel(text: l10n.taxId),
+                  _field(_taxIdController, 'Ex: M123456789'),
+
+                  const SizedBox(height: 24),
+                  _sectionHeader('Reçu', AppTheme.primaryColor),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InputLabel(text: l10n.receiptFooter),
+                      Text('Max 60 chars',
+                          style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+                    ],
+                  ),
+                  _field(_footerController, 'Merci pour votre achat !',
+                      maxLines: 2, maxLength: 60),
+                ],
               ),
-            );
-          },
-        ),
-        bottomNavigationBar: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: PrimaryButton(
-            onPressed: _saveShop,
-            icon: Icons.save,
-            label: l10n.saveDetails,
-          ),
-        ));
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: PrimaryButton(onPressed: _saveShop, icon: Icons.save, label: l10n.saveDetails),
+      ),
+    );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
+  Widget _sectionHeader(String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        title.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+          color: color.withOpacity(0.8),
+        ),
+      ),
+    );
+  }
+
+  Widget _field(
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType? inputType,
     int maxLines = 1,
     int? maxLength,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
+      controller: ctrl,
+      keyboardType: inputType,
       maxLines: maxLines,
       maxLength: maxLength,
       textCapitalization: TextCapitalization.words,
       validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-      ),
+      decoration: InputDecoration(hintText: hint, counterText: maxLength != null ? null : ''),
+    );
+  }
+
+  Widget _momoField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(label,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: controller,
+          textCapitalization: TextCapitalization.characters,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(Icons.phone_android, color: color, size: 20),
+          ),
+        ),
+      ],
     );
   }
 }

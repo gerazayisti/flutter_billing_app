@@ -1015,6 +1015,180 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Êtes-vous sûr ? Cela écrasera vos données actuelles.'**
   String get overwriteWarning;
+
+  /// No description provided for @owner.
+  ///
+  /// In fr, this message translates to:
+  /// **'Propriétaire'**
+  String get owner;
+
+  /// No description provided for @stockManager.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gestionnaire de Stock'**
+  String get stockManager;
+
+  /// No description provided for @newUserBtn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvel utilisateur'**
+  String get newUserBtn;
+
+  /// No description provided for @city.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ville'**
+  String get city;
+
+  /// No description provided for @district.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quartier / Arrondissement'**
+  String get district;
+
+  /// No description provided for @shopTypeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de boutique'**
+  String get shopTypeLabel;
+
+  /// No description provided for @orangeMoneyCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code Marchand Orange Money'**
+  String get orangeMoneyCode;
+
+  /// No description provided for @mtnMomoCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code Marchand MTN MoMo'**
+  String get mtnMomoCode;
+
+  /// No description provided for @taxId.
+  ///
+  /// In fr, this message translates to:
+  /// **'N° Contribuable (Optionnel)'**
+  String get taxId;
+
+  /// No description provided for @mobilePaymentSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiements Mobile Money'**
+  String get mobilePaymentSection;
+
+  /// No description provided for @momoCodeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex: CM-237-XXXXXX'**
+  String get momoCodeHint;
+
+  /// No description provided for @shopTypeEpicerie.
+  ///
+  /// In fr, this message translates to:
+  /// **'Épicerie'**
+  String get shopTypeEpicerie;
+
+  /// No description provided for @shopTypeSupermarche.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supermarché'**
+  String get shopTypeSupermarche;
+
+  /// No description provided for @shopTypePharmacie.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pharmacie'**
+  String get shopTypePharmacie;
+
+  /// No description provided for @shopTypeBoulangerie.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boulangerie / Pâtisserie'**
+  String get shopTypeBoulangerie;
+
+  /// No description provided for @shopTypeQuincaillerie.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quincaillerie'**
+  String get shopTypeQuincaillerie;
+
+  /// No description provided for @shopTypeRestaurant.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurant / Fast-food'**
+  String get shopTypeRestaurant;
+
+  /// No description provided for @shopTypeVetements.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vêtements / Textiles'**
+  String get shopTypeVetements;
+
+  /// No description provided for @shopTypeInformatique.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informatique / Électronique'**
+  String get shopTypeInformatique;
+
+  /// No description provided for @shopTypeAutre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get shopTypeAutre;
+
+  /// No description provided for @orangeMoney.
+  ///
+  /// In fr, this message translates to:
+  /// **'Orange Money'**
+  String get orangeMoney;
+
+  /// No description provided for @mtnMomo.
+  ///
+  /// In fr, this message translates to:
+  /// **'MTN MoMo'**
+  String get mtnMomo;
+
+  /// No description provided for @cashReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant reçu'**
+  String get cashReceived;
+
+  /// No description provided for @changeGiven.
+  ///
+  /// In fr, this message translates to:
+  /// **'Monnaie à rendre'**
+  String get changeGiven;
+
+  /// No description provided for @momoMerchantCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code marchand'**
+  String get momoMerchantCode;
+
+  /// No description provided for @momoPayInstruction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandez au client de composer ce code sur son téléphone'**
+  String get momoPayInstruction;
+
+  /// No description provided for @insufficientCash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant insuffisant'**
+  String get insufficientCash;
+
+  /// No description provided for @pinLocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès bloqué après 3 tentatives. Réessayez dans 30 secondes.'**
+  String get pinLocked;
+
+  /// No description provided for @attemptsLeft.
+  ///
+  /// In fr, this message translates to:
+  /// **'tentative(s) restante(s)'**
+  String get attemptsLeft;
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,3 @@
-import 'package:billing_app/l10n/app_localizations.dart';
 part of 'billing_bloc.dart';
 
 abstract class BillingEvent extends Equatable {
