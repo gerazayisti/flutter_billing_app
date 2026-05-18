@@ -270,5 +270,44 @@
   "syncError": "Sync error",
   "cloudAuthError": "Incorrect email or password",
   "sqlSchema": "SQL schema (run in Supabase)",
-  "copied": "Copied!"
+  "copied": "Copied!",
+
+  "appSubtitle": "POS & inventory management",
+  "login": "Sign in",
+  "loginSubtitle": "Sign in to your boutique",
+  "emailAddress": "Email address",
+  "password": "Password",
+  "confirmPassword": "Confirm password",
+  "noAccount": "Don't have an account?",
+  "alreadyAccount": "Already have an account?",
+  "createBoutique": "Create my boutique",
+  "ownerInfo": "Owner information",
+  "ownerName": "Your full name",
+  "boutiqueInfo": "Boutique information",
+  "loginError": "Incorrect email or password",
+  "noShopMembership": "No boutique linked. Contact the owner.",
+  "requiredFields": "Please fill in all fields",
+  "passwordMismatch": "Passwords do not match",
+  "passwordTooShort": "Password must be at least 6 characters",
+  "employeeEmail": "Employee email",
+  "tempPassword": "Temporary password",
+  "createEmployee": "Create account",
+  "employeeCreated": "Employee account created successfully!",
+  "deleteEmployeeConfirm": "Delete this account? This action is irreversible.",
+  "addBoutique": "Add a boutique",
+
+  "outOfStock": "Out of stock",
+  "outOfStockMsg": "{name}: product out of stock",
+  "@outOfStockMsg": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "insufficientStock": "{name}: insufficient stock (max {max})",
+  "@insufficientStock": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "max": { "type": "int" }
+    }
+  }
 }

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/features/auth/presentation/bloc/user_management_bloc.dart';
-import 'package:billing_app/features/auth/data/models/user_model.dart';
+import 'package:billing_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
+import 'package:billing_app/core/theme/app_color_config.dart';
+
 import 'package:billing_app/core/widgets/primary_button.dart';
 import 'package:billing_app/core/widgets/input_label.dart';
-import 'package:billing_app/core/utils/pin_hasher.dart';
 
 class UserManagementPage extends StatelessWidget {
   const UserManagementPage({super.key});
@@ -26,27 +26,29 @@ class UserManagementPage extends StatelessWidget {
       ),
       body: BlocBuilder<UserManagementBloc, UserManagementState>(
         builder: (context, state) {
-          if (state.status == UserManagementStatus.loading) {
+          if (state.status == UserMgmtStatus.loading &&
+              state.members.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state.users.isEmpty) {
+          if (state.members.isEmpty) {
             return _buildEmptyState(context);
           }
           return ListView.separated(
             padding: const EdgeInsets.all(20),
-            itemCount: state.users.length,
+            itemCount: state.members.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) =>
-                _buildUserCard(context, state.users[index]),
+                _buildMemberCard(context, state.members[index]),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showUserForm(context),
+        onPressed: () => _showAddForm(context),
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.person_add_alt_1_rounded, color: Colors.white),
         label: Text(l10n.newUserBtn,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -60,7 +62,8 @@ class UserManagementPage extends StatelessWidget {
           Icon(Icons.people_outline_rounded, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(l10n.noUsersFound,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(l10n.addUserHint, style: const TextStyle(color: Colors.grey)),
         ],
@@ -68,69 +71,94 @@ class UserManagementPage extends StatelessWidget {
     );
   }
 
-  Widget _buildUserCard(BuildContext context, UserModel user) {
+  Widget _buildMemberCard(
+      BuildContext context, Map<String, dynamic> member) {
     final l10n = AppLocalizations.of(context)!;
-    final isOwner = user.role == Role.owner;
+    final role = Role.fromString(member['role'] as String? ?? 'cashier');
+    final isOwner = role == Role.owner;
+    final name = member['name'] as String? ?? '';
+    final email = member['email'] as String? ?? '';
+    final userId = member['user_id'] as String? ?? '';
 
-    final (color, icon, label) = switch (user.role) {
-      Role.owner => (Colors.amber, Icons.admin_panel_settings_rounded, l10n.owner),
-      Role.stockManager => (Colors.green, Icons.inventory_2_rounded, l10n.stockManager),
-      Role.cashier => (Colors.blue, Icons.point_of_sale_rounded, l10n.cashier),
+    final (color, icon, label) = switch (role) {
+      Role.owner =>
+        (AppTheme.primaryColor, Icons.admin_panel_settings_rounded, l10n.owner),
+      Role.stockManager =>
+        (AppTheme.primaryDark, Icons.inventory_2_rounded, l10n.stockManager),
+      Role.cashier =>
+        (AppTheme.textPrimary, Icons.point_of_sale_rounded, l10n.cashier),
     };
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
-        ],
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(icon, color: color),
         ),
-        title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(label,
-            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
+        title: Text(name,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500)),
+            if (email.isNotEmpty)
+              Text(email,
+                  style: TextStyle(
+                      color: Colors.grey[500], fontSize: 11)),
+          ],
+        ),
         trailing: isOwner
             ? null
             : IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-                onPressed: () => _confirmDelete(context, user),
+                icon: const Icon(Icons.delete_outline_rounded,
+                    color: AppTheme.errorColor),
+                onPressed: () =>
+                    _confirmDelete(context, userId, name),
               ),
       ),
     );
   }
 
-  void _showUserForm(BuildContext context, [UserModel? user]) {
+  void _showAddForm(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<UserManagementBloc>();
-    final nameController = TextEditingController(text: user?.name);
-    final pinController = TextEditingController();
-    Role selectedRole = user?.role ?? Role.cashier;
+    final authState = context.read<AuthBloc>().state;
+    final shopId =
+        authState is AuthAuthenticated ? authState.shopId : '';
+
+    final nameCtrl     = TextEditingController();
+    final emailCtrl    = TextEditingController();
+    final passwordCtrl = TextEditingController();
+    Role selectedRole  = Role.cashier;
+    bool obscure       = true;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (sheetCtx, setState) => Container(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
             top: 24,
             left: 24,
             right: 24,
           ),
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(32)),
           ),
           child: SingleChildScrollView(
             child: Column(
@@ -142,31 +170,44 @@ class UserManagementPage extends StatelessWidget {
                   children: [
                     const Icon(Icons.person_add_alt_1_rounded),
                     const SizedBox(width: 8),
-                    Text(
-                      user == null ? l10n.newUserBtn : l10n.edit,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
+                    Text(l10n.newUserBtn,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 24),
 
                 InputLabel(text: l10n.fullName),
                 TextField(
-                  controller: nameController,
+                  controller: nameCtrl,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(hintText: 'Ex: Jean Kamga'),
+                  decoration: const InputDecoration(
+                      hintText: 'Ex: Jean Kamga'),
                 ),
                 const SizedBox(height: 16),
 
-                InputLabel(text: l10n.pinCode),
+                InputLabel(text: l10n.employeeEmail),
                 TextField(
-                  controller: pinController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  obscureText: true,
+                  controller: emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                      hintText: 'employe@email.com'),
+                ),
+                const SizedBox(height: 16),
+
+                InputLabel(text: l10n.tempPassword),
+                TextField(
+                  controller: passwordCtrl,
+                  obscureText: obscure,
                   decoration: InputDecoration(
-                    hintText: user == null ? '4 chiffres' : 'Laisser vide pour ne pas changer',
-                    counterText: '',
+                    hintText: '••••••',
+                    suffixIcon: IconButton(
+                      icon: Icon(obscure
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => obscure = !obscure),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -177,47 +218,80 @@ class UserManagementPage extends StatelessWidget {
                   items: [
                     DropdownMenuItem(
                         value: Role.cashier,
-                        child: _roleDropdownItem(Icons.point_of_sale_rounded,
-                            l10n.cashier, Colors.blue)),
+                        child: _roleDropdownItem(
+                            Icons.point_of_sale_rounded,
+                            l10n.cashier,
+                            AppTheme.textPrimary)),
                     DropdownMenuItem(
                         value: Role.stockManager,
-                        child: _roleDropdownItem(Icons.inventory_2_rounded,
-                            l10n.stockManager, Colors.green)),
+                        child: _roleDropdownItem(
+                            Icons.inventory_2_rounded,
+                            l10n.stockManager,
+                            AppTheme.primaryDark)),
                   ],
                   onChanged: (val) {
-                    if (val != null) setState(() => selectedRole = val);
+                    if (val != null) {
+                      setState(() => selectedRole = val);
+                    }
                   },
                   decoration: const InputDecoration(),
                 ),
 
-                // Role permissions hint
                 const SizedBox(height: 12),
-                _buildPermissionsHint(context, selectedRole),
-
+                _buildPermissionsHint(sheetCtx, selectedRole),
                 const SizedBox(height: 32),
+
+                // Error from bloc
+                BlocBuilder<UserManagementBloc, UserManagementState>(
+                  bloc: bloc,
+                  builder: (_, s) {
+                    if (s.status == UserMgmtStatus.error &&
+                        s.message != null) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(10),
+                            border:
+                                Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Text(s.message!,
+                              style: const TextStyle(
+                                  color: AppTheme.errorColor, fontSize: 13)),
+                        ),
+                      );
+                    }
+                    if (s.status == UserMgmtStatus.loading) {
+                      return const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Center(
+                            child: CircularProgressIndicator()),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+
                 PrimaryButton(
                   onPressed: () {
-                    final name = nameController.text.trim();
-                    final pin = pinController.text.trim();
-
-                    if (name.isEmpty) return;
-                    if (user == null && pin.length != 4) return;
-                    if (pin.isNotEmpty && pin.length != 4) return;
-
-                    final newPin = pin.isNotEmpty
-                        ? PinHasher.hash(pin)
-                        : (user?.pinCode ?? PinHasher.hash('0000'));
-
-                    final newUser = UserModel(
-                      id: user?.id ?? const Uuid().v4(),
-                      name: name,
-                      pinCode: newPin,
-                      role: selectedRole,
-                    );
-                    bloc.add(AddUserEvent(newUser));
-                    Navigator.pop(context);
+                    final name = nameCtrl.text.trim();
+                    final email = emailCtrl.text.trim();
+                    final pw = passwordCtrl.text;
+                    if (name.isEmpty || email.isEmpty || pw.isEmpty) {
+                      return;
+                    }
+                    bloc.add(AddEmployeeEvent(
+                      shopId:   shopId,
+                      name:     name,
+                      email:    email,
+                      password: pw,
+                      role:     selectedRole.value,
+                    ));
+                    Navigator.pop(sheetCtx);
                   },
-                  label: user == null ? l10n.createAccount : l10n.updateAccount,
+                  label: l10n.createEmployee,
                 ),
               ],
             ),
@@ -240,9 +314,9 @@ class UserManagementPage extends StatelessWidget {
   Widget _buildPermissionsHint(BuildContext context, Role role) {
     final l10n = AppLocalizations.of(context)!;
     final items = switch (role) {
-      Role.cashier => ['POS / Ventes', l10n.history],
-      Role.stockManager => [l10n.inventory, 'Réceptions stock'],
-      Role.owner => ['Tout'],
+      Role.cashier      => ['POS / ${l10n.pos}', l10n.history],
+      Role.stockManager => [l10n.inventory, l10n.stockMovements],
+      Role.owner        => ['Tout'],
     };
 
     return Container(
@@ -256,11 +330,15 @@ class UserManagementPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Accès autorisés :',
-              style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.bold)),
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           ...items.map((item) => Row(
                 children: [
-                  const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                  Icon(Icons.check_circle,
+                      size: 14, color: AppColorConfig.accentColor),
                   const SizedBox(width: 6),
                   Text(item, style: const TextStyle(fontSize: 12)),
                 ],
@@ -270,22 +348,26 @@ class UserManagementPage extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, UserModel user) {
+  void _confirmDelete(
+      BuildContext context, String userId, String name) {
     final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<UserManagementBloc>();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: Text(l10n.deleteUser),
-        content: Text('${l10n.deleteConfirm} ${user.name} ?'),
+        content: Text(l10n.deleteEmployeeConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel)),
           TextButton(
             onPressed: () {
-              bloc.add(DeleteUserEvent(user.id));
-              Navigator.pop(context);
+              bloc.add(DeleteEmployeeEvent(userId));
+              Navigator.pop(ctx);
             },
-            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+            child: Text(l10n.delete,
+                style: const TextStyle(color: AppTheme.errorColor)),
           ),
         ],
       ),

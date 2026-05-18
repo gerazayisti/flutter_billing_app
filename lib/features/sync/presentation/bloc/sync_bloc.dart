@@ -126,18 +126,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
   Future<void> _onConfigure(
       ConfigureCloudEvent event, Emitter<SyncState> emit) async {
-    emit(state.copyWith(isSyncing: true, error: null));
-    try {
-      await syncService.reconfigure(event.url, event.anonKey);
-      emit(state.copyWith(
-        isSyncing: false,
-        isConfigured: syncService.isConfigured,
-        successMessage: 'configured',
-      ));
-      emit(state.copyWith(clearMessages: true));
-    } catch (e) {
-      emit(state.copyWith(isSyncing: false, error: e.toString()));
-    }
+    // Credentials are now hardcoded in app_config.dart — no runtime reconfiguration needed.
+    emit(state.copyWith(isConfigured: syncService.isConfigured));
   }
 
   Future<void> _onSignIn(

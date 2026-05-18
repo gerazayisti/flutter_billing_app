@@ -1,10 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
-import '../../../../core/data/hive_database.dart';
 import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_drawer.dart';
@@ -54,7 +53,9 @@ class _SettingsPageState extends State<SettingsPage> {
               width: double.infinity,
               color: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-              child: BlocBuilder<ShopBloc, ShopState>(
+              child: GestureDetector(
+                onTap: () => context.push('/profile'),
+                child: BlocBuilder<ShopBloc, ShopState>(
                 builder: (context, state) {
                   String shopName = 'Elite Groceries';
                   String initials = 'EG';
@@ -100,6 +101,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 },
               ),
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -123,13 +125,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () => context.push('/users'),
                   ),
                 ],
-                _buildDivider(),
-                _buildListItem(
-                  icon: Icons.storefront,
-                  title: l10n.shopInfo,
-                  subtitle: '',
-                  onTap: () => context.push('/shop'),
-                ),
+                if (isAdmin) ...[
+                  _buildDivider(),
+                  _buildListItem(
+                    icon: Icons.storefront,
+                    title: l10n.shopInfo,
+                    subtitle: '',
+                    onTap: () => context.push('/shop'),
+                  ),
+                ],
               ],
             ),
 
@@ -142,11 +146,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 if (state.errorMessage != null) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(state.errorMessage!),
-                      backgroundColor: Colors.red));
+                      backgroundColor: AppTheme.errorColor));
                 } else if (state.status == PrinterStatus.connected) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(l10n.connected),
-                      backgroundColor: Colors.green));
+                      backgroundColor: AppTheme.primaryColor));
                 }
               },
               builder: (context, state) {
@@ -170,15 +174,15 @@ class _SettingsPageState extends State<SettingsPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                  color: Colors.teal[100],
+                                  color: AppTheme.primaryLight,
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.teal[200]!)),
+                                  border: Border.all(color: AppTheme.primaryColor)),
                               child: Text(
                                 l10n.connected.toUpperCase(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 9,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.teal[700]),
+                                    color: AppTheme.primaryColor),
                               ),
                             ),
                           ]
@@ -282,7 +286,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           actions: [
                             TextButton(onPressed: () => Navigator.pop(c), child: Text(l10n.cancel)),
                             ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor, foregroundColor: Colors.white),
                               onPressed: () {
                                 Navigator.pop(c);
                                 BackupService.importData(context);
@@ -298,19 +302,15 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ],
 
-            if (isAdmin) ...[
-              const SizedBox(height: 24),
-              _buildSectionHeader(l10n.mtnApiConfig),
-              _MtnApiConfigSection(),
-            ],
-
             const SizedBox(height: 24),
 
-            // Appearance Section
-            _buildSectionHeader(l10n.appearance),
-            _ColorPickerSection(
-              onColorChanged: () => setState(() {}),
-            ),
+            if (isAdmin) ...[
+              // Appearance Section
+              _buildSectionHeader(l10n.appearance),
+              _ColorPickerSection(
+                onColorChanged: () => setState(() {}),
+              ),
+            ],
 
             const SizedBox(height: 48),
           ],
@@ -408,150 +408,6 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-class _MtnApiConfigSection extends StatefulWidget {
-  @override
-  State<_MtnApiConfigSection> createState() => _MtnApiConfigSectionState();
-}
-
-class _MtnApiConfigSectionState extends State<_MtnApiConfigSection> {
-  late TextEditingController _subKeyCtrl;
-  late TextEditingController _userIdCtrl;
-  late TextEditingController _apiKeyCtrl;
-  bool _isSandbox = true;
-
-  @override
-  void initState() {
-    super.initState();
-    final s = HiveDatabase.settingsBox;
-    _subKeyCtrl = TextEditingController(
-        text: s.get('mtn_subscription_key', defaultValue: '') as String);
-    _userIdCtrl = TextEditingController(
-        text: s.get('mtn_api_user', defaultValue: '') as String);
-    _apiKeyCtrl = TextEditingController(
-        text: s.get('mtn_api_key', defaultValue: '') as String);
-    _isSandbox =
-        (s.get('mtn_target_env', defaultValue: 'sandbox') as String) == 'sandbox';
-  }
-
-  @override
-  void dispose() {
-    _subKeyCtrl.dispose();
-    _userIdCtrl.dispose();
-    _apiKeyCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[100]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.yellow[700]!.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(Icons.api_rounded, color: Colors.yellow[800], size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(l10n.mtnApiConfig,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _subKeyCtrl,
-            decoration: InputDecoration(
-              labelText: l10n.subscriptionKeyLabel,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              isDense: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _userIdCtrl,
-            decoration: InputDecoration(
-              labelText: l10n.apiUserIdLabel,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              isDense: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _apiKeyCtrl,
-            obscureText: true,
-            decoration: InputDecoration(
-              labelText: l10n.apiKeyLabel,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              isDense: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(l10n.targetEnvironment,
-                    style: const TextStyle(fontSize: 13)),
-              ),
-              SegmentedButton<bool>(
-                segments: [
-                  ButtonSegment(value: true, label: Text(l10n.sandboxMode)),
-                  ButtonSegment(value: false, label: Text(l10n.productionMode)),
-                ],
-                selected: {_isSandbox},
-                onSelectionChanged: (v) => setState(() => _isSandbox = v.first),
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () async {
-              final s = HiveDatabase.settingsBox;
-              await s.put('mtn_subscription_key', _subKeyCtrl.text.trim());
-              await s.put('mtn_api_user', _userIdCtrl.text.trim());
-              await s.put('mtn_api_key', _apiKeyCtrl.text.trim());
-              await s.put(
-                  'mtn_target_env', _isSandbox ? 'sandbox' : 'production');
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(l10n.apiConfigSaved),
-                  backgroundColor: Colors.green,
-                ));
-              }
-            },
-            icon: const Icon(Icons.save_rounded, size: 18),
-            label: Text(l10n.save),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.yellow[800],
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ColorPickerSection extends StatefulWidget {
   final VoidCallback onColorChanged;

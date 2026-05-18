@@ -16,6 +16,8 @@ import 'package:billing_app/features/product/data/models/product_model.dart';
 import 'package:billing_app/features/stock/data/models/stock_movement_model.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/cloud/cloud_sync_service.dart';
+import 'package:billing_app/core/notifications/notification_item.dart';
+import 'package:billing_app/core/notifications/notification_service.dart';
 
 part 'billing_event.dart';
 part 'billing_state.dart';
@@ -60,13 +62,30 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
 
   void _onAddProductToCart(
       AddProductToCartEvent event, Emitter<BillingState> emit) {
-    // Clear error when adding
-    final cleanState = state.copyWith(error: null);
+    final productModel = HiveDatabase.productBox.get(event.product.id);
+    final currentStock = productModel?.stock ?? event.product.stock;
 
+    if (currentStock <= 0) {
+      emit(state.copyWith(
+          error: '${event.product.name} : produit épuisé', clearError: false));
+      emit(state.copyWith(clearError: true));
+      return;
+    }
+
+    final cleanState = state.copyWith(error: null);
     final existingIndex = cleanState.cartItems
         .indexWhere((item) => item.product.id == event.product.id);
+
     if (existingIndex >= 0) {
       final existingItem = cleanState.cartItems[existingIndex];
+      if (existingItem.quantity >= currentStock) {
+        emit(state.copyWith(
+            error:
+                '${event.product.name} : stock insuffisant (max $currentStock)',
+            clearError: false));
+        emit(state.copyWith(clearError: true));
+        return;
+      }
       final backendItems = List<CartItem>.from(cleanState.cartItems);
       backendItems[existingIndex] =
           existingItem.copyWith(quantity: existingItem.quantity + 1);
@@ -96,9 +115,23 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
     final index = state.cartItems
         .indexWhere((item) => item.product.id == event.productId);
     if (index >= 0) {
+      final productModel = HiveDatabase.productBox.get(event.productId);
+      final currentStock =
+          productModel?.stock ?? state.cartItems[index].product.stock;
+      final clampedQty =
+          event.quantity > currentStock ? currentStock : event.quantity;
       final items = List<CartItem>.from(state.cartItems);
-      items[index] = items[index].copyWith(quantity: event.quantity);
-      emit(state.copyWith(cartItems: items));
+      items[index] = items[index].copyWith(quantity: clampedQty);
+      if (clampedQty < event.quantity) {
+        emit(state.copyWith(
+            cartItems: items,
+            error:
+                '${state.cartItems[index].product.name} : stock insuffisant (max $currentStock)',
+            clearError: false));
+        emit(state.copyWith(cartItems: items, clearError: true));
+      } else {
+        emit(state.copyWith(cartItems: items));
+      }
     }
   }
 
@@ -234,6 +267,12 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
       await saveOrderUseCase(order);
       await _decrementStockAndRecord(order.id, event.cashierId);
       await _autoSyncOrder(order);
+      await NotificationService.add(NotificationItem.sale(
+        cashierId: event.cashierId,
+        amount: state.totalAmount,
+        itemCount: state.cartItems.length,
+        paymentMethod: state.paymentMethod.stringValue,
+      ));
 
       emit(state.copyWith(isPrinting: false, printSuccess: true));
     } catch (e) {
@@ -264,6 +303,12 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
     await saveOrderUseCase(order);
     await _decrementStockAndRecord(order.id, event.cashierId);
     await _autoSyncOrder(order);
+    await NotificationService.add(NotificationItem.sale(
+      cashierId: event.cashierId,
+      amount: state.totalAmount,
+      itemCount: state.cartItems.length,
+      paymentMethod: state.paymentMethod.stringValue,
+    ));
 
     emit(state.copyWith(printSuccess: true));
   }
@@ -295,6 +340,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
       final productModel = productBox.get(item.product.id);
       if (productModel != null) {
         final newStock = productModel.stock - item.quantity;
+        final clampedStock = newStock >= 0 ? newStock : 0;
         await productBox.put(
           item.product.id,
           ProductModel(
@@ -302,12 +348,19 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
             name: productModel.name,
             barcode: productModel.barcode,
             price: productModel.price,
-            stock: newStock >= 0 ? newStock : 0,
+            stock: clampedStock,
             category: productModel.category,
             minStockAlert: productModel.minStockAlert,
             variants: productModel.variants,
           ),
         );
+        if (clampedStock <= productModel.minStockAlert) {
+          await NotificationService.add(NotificationItem.stockAlert(
+            productName: productModel.name,
+            currentStock: clampedStock,
+            minStock: productModel.minStockAlert,
+          ));
+        }
       }
       // Record saleOut movement
       final movement = StockMovementModel(

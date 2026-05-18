@@ -51,7 +51,7 @@ class _AddProductPageState extends State<AddProductPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${l10n.barcodeExists} "$_barcode"'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.errorColor,
           ),
         );
         return;

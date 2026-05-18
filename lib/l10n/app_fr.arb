@@ -270,5 +270,44 @@
   "syncError": "Erreur de synchro",
   "cloudAuthError": "E-mail ou mot de passe incorrect",
   "sqlSchema": "Schéma SQL (à exécuter dans Supabase)",
-  "copied": "Copié !"
+  "copied": "Copié !",
+
+  "appSubtitle": "Gestion de caisse & stock",
+  "login": "Se connecter",
+  "loginSubtitle": "Connectez-vous à votre boutique",
+  "emailAddress": "Adresse e-mail",
+  "password": "Mot de passe",
+  "confirmPassword": "Confirmer le mot de passe",
+  "noAccount": "Pas encore de compte ?",
+  "alreadyAccount": "Déjà un compte ?",
+  "createBoutique": "Créer ma boutique",
+  "ownerInfo": "Informations propriétaire",
+  "ownerName": "Votre nom complet",
+  "boutiqueInfo": "Informations boutique",
+  "loginError": "E-mail ou mot de passe incorrect",
+  "noShopMembership": "Aucune boutique associée. Contactez le propriétaire.",
+  "requiredFields": "Veuillez remplir tous les champs",
+  "passwordMismatch": "Les mots de passe ne correspondent pas",
+  "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
+  "employeeEmail": "E-mail de l'employé",
+  "tempPassword": "Mot de passe temporaire",
+  "createEmployee": "Créer le compte",
+  "employeeCreated": "Compte employé créé avec succès !",
+  "deleteEmployeeConfirm": "Supprimer ce compte ? Cette action est irréversible.",
+  "addBoutique": "Ajouter une boutique",
+
+  "outOfStock": "Rupture de stock",
+  "outOfStockMsg": "{name} : produit épuisé",
+  "@outOfStockMsg": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "insufficientStock": "{name} : stock insuffisant (max {max})",
+  "@insufficientStock": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "max": { "type": "int" }
+    }
+  }
 }

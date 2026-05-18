@@ -7,6 +7,7 @@ import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../billing/presentation/bloc/billing_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../../../core/widgets/app_drawer.dart';
@@ -78,7 +79,7 @@ class _HomePageState extends State<HomePage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.error!),
-                backgroundColor: Colors.red,
+                backgroundColor: AppTheme.errorColor,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -121,8 +122,8 @@ class _HomePageState extends State<HomePage> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
-                      side: const BorderSide(color: Colors.orange),
-                      foregroundColor: Colors.orange,
+                      side: const BorderSide(color: AppTheme.primaryColor),
+                      foregroundColor: AppTheme.primaryColor,
                     ),
                     child: const Icon(Icons.pause),
                   ),
@@ -348,19 +349,19 @@ class _HomePageState extends State<HomePage> {
           border: Border(
             top: (alignment == Alignment.topLeft ||
                     alignment == Alignment.topRight)
-                ? const BorderSide(color: Colors.greenAccent, width: 4)
+                ? BorderSide(color: AppColorConfig.accentColor, width: 4)
                 : BorderSide.none,
             bottom: (alignment == Alignment.bottomLeft ||
                     alignment == Alignment.bottomRight)
-                ? const BorderSide(color: Colors.greenAccent, width: 4)
+                ? BorderSide(color: AppColorConfig.accentColor, width: 4)
                 : BorderSide.none,
             left: (alignment == Alignment.topLeft ||
                     alignment == Alignment.bottomLeft)
-                ? const BorderSide(color: Colors.greenAccent, width: 4)
+                ? BorderSide(color: AppColorConfig.accentColor, width: 4)
                 : BorderSide.none,
             right: (alignment == Alignment.topRight ||
                     alignment == Alignment.bottomRight)
-                ? const BorderSide(color: Colors.greenAccent, width: 4)
+                ? BorderSide(color: AppColorConfig.accentColor, width: 4)
                 : BorderSide.none,
           ),
         ),
@@ -406,13 +407,13 @@ class _HomePageState extends State<HomePage> {
                     final total = order.items.fold<double>(
                         0, (sum, i) => sum + (i.product.price * i.quantity));
                     return ActionChip(
-                      backgroundColor: Colors.orange.withValues(alpha: 0.1),
-                      side: BorderSide(color: Colors.orange.withValues(alpha: 0.5)),
+                      backgroundColor: AppTheme.primaryLight,
+                      side: const BorderSide(color: AppTheme.primaryColor),
                       label: Text(
                         '${l10n.onHoldCart} (XAF${total.toStringAsFixed(0)})',
-                        style: const TextStyle(color: Colors.orange, fontSize: 12),
+                        style: const TextStyle(color: AppTheme.primaryColor, fontSize: 12),
                       ),
-                      avatar: const Icon(Icons.restore, size: 16, color: Colors.orange),
+                      avatar: const Icon(Icons.restore, size: 16, color: AppTheme.primaryColor),
                       onPressed: () {
                         context
                             .read<BillingBloc>()
@@ -540,12 +541,9 @@ class _HomePageState extends State<HomePage> {
   ) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
-        ],
+        border: Border.all(color: AppTheme.borderColor),
       ),
       padding: const EdgeInsets.all(16),
       child: Row(

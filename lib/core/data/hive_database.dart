@@ -5,13 +5,10 @@ import '../../features/billing/data/models/order_model.dart';
 import '../../features/billing/data/models/order_item_model.dart';
 import '../../features/billing/data/models/held_order_model.dart';
 import '../../features/auth/data/models/user_model.dart';
-import '../../features/auth/domain/entities/user.dart';
 import '../../features/payment/data/models/momo_transaction_model.dart';
 import '../../features/stock/data/models/stock_movement_model.dart';
 import '../../features/stock/data/models/supplier_model.dart';
 import '../../features/stock/data/models/cash_register_closure_model.dart';
-import '../utils/pin_hasher.dart';
-
 class HiveDatabase {
   static const String productBoxName = 'products';
   static const String shopBoxName = 'shop';
@@ -63,15 +60,5 @@ class HiveDatabase {
     stockMovementsBox = await Hive.openBox<StockMovementModel>(stockMovementsBoxName);
     suppliersBox = await Hive.openBox<SupplierModel>(suppliersBoxName);
     cashClosuresBox = await Hive.openBox<CashRegisterClosureModel>(cashClosuresBoxName);
-
-    // Seed default owner if no users exist
-    if (usersBox.isEmpty) {
-      await usersBox.put('owner', UserModel(
-        id: 'owner',
-        name: 'Propriétaire',
-        pinCode: PinHasher.hash('0000'),
-        role: Role.owner,
-      ));
-    }
   }
 }

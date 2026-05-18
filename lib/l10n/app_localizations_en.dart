@@ -771,4 +771,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copied => 'Copied!';
+
+  @override
+  String get appSubtitle => 'POS & inventory management';
+
+  @override
+  String get login => 'Sign in';
+
+  @override
+  String get loginSubtitle => 'Sign in to your boutique';
+
+  @override
+  String get emailAddress => 'Email address';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get noAccount => 'Don\'t have an account?';
+
+  @override
+  String get alreadyAccount => 'Already have an account?';
+
+  @override
+  String get createBoutique => 'Create my boutique';
+
+  @override
+  String get ownerInfo => 'Owner information';
+
+  @override
+  String get ownerName => 'Your full name';
+
+  @override
+  String get boutiqueInfo => 'Boutique information';
+
+  @override
+  String get loginError => 'Incorrect email or password';
+
+  @override
+  String get noShopMembership => 'No boutique linked. Contact the owner.';
+
+  @override
+  String get requiredFields => 'Please fill in all fields';
+
+  @override
+  String get passwordMismatch => 'Passwords do not match';
+
+  @override
+  String get passwordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get employeeEmail => 'Employee email';
+
+  @override
+  String get tempPassword => 'Temporary password';
+
+  @override
+  String get createEmployee => 'Create account';
+
+  @override
+  String get employeeCreated => 'Employee account created successfully!';
+
+  @override
+  String get deleteEmployeeConfirm =>
+      'Delete this account? This action is irreversible.';
+
+  @override
+  String get addBoutique => 'Add a boutique';
+
+  @override
+  String get outOfStock => 'Out of stock';
+
+  @override
+  String outOfStockMsg(String name) {
+    return '$name: product out of stock';
+  }
+
+  @override
+  String insufficientStock(String name, int max) {
+    return '$name: insufficient stock (max $max)';
+  }
 }

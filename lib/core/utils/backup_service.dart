@@ -11,6 +11,7 @@ import 'package:billing_app/features/product/data/models/product_model.dart';
 import 'package:billing_app/features/shop/data/models/shop_model.dart';
 import 'package:billing_app/features/billing/data/models/order_model.dart';
 import 'package:billing_app/features/billing/data/models/order_item_model.dart';
+import 'package:billing_app/core/theme/app_theme.dart';
 
 class BackupService {
   static Future<void> exportData(BuildContext context) async {
@@ -129,12 +130,12 @@ class BackupService {
         }
 
         if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.importSuccess), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.importSuccess), backgroundColor: AppTheme.primaryColor));
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.importFailed}: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.importFailed}: $e'), backgroundColor: AppTheme.errorColor));
       }
     }
   }

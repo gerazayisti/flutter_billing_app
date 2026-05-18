@@ -1,95 +1,124 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:billing_app/features/auth/data/models/user_model.dart';
-import 'package:billing_app/core/data/hive_database.dart';
+import 'package:billing_app/core/cloud/supabase_auth_service.dart';
 
-// Events
+// ── Events ────────────────────────────────────────────────────
+
 abstract class UserManagementEvent extends Equatable {
   const UserManagementEvent();
   @override
   List<Object?> get props => [];
 }
 
-class LoadUsersEvent extends UserManagementEvent {}
-
-class AddUserEvent extends UserManagementEvent {
-  final UserModel user;
-  const AddUserEvent(this.user);
+class LoadUsersEvent extends UserManagementEvent {
+  final String shopId;
+  const LoadUsersEvent(this.shopId);
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [shopId];
 }
 
-class UpdateUserEvent extends UserManagementEvent {
-  final UserModel user;
-  const UpdateUserEvent(this.user);
+class AddEmployeeEvent extends UserManagementEvent {
+  final String shopId;
+  final String name;
+  final String email;
+  final String password;
+  final String role; // 'cashier' | 'stockManager'
+  const AddEmployeeEvent({
+    required this.shopId,
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.role,
+  });
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [shopId, name, email, role];
 }
 
-class DeleteUserEvent extends UserManagementEvent {
+class DeleteEmployeeEvent extends UserManagementEvent {
   final String userId;
-  const DeleteUserEvent(this.userId);
+  const DeleteEmployeeEvent(this.userId);
   @override
   List<Object?> get props => [userId];
 }
 
-// States
-enum UserManagementStatus { initial, loading, success, error }
+// ── State ─────────────────────────────────────────────────────
+
+enum UserMgmtStatus { initial, loading, success, error }
 
 class UserManagementState extends Equatable {
-  final List<UserModel> users;
-  final UserManagementStatus status;
+  final List<Map<String, dynamic>> members;
+  final UserMgmtStatus status;
   final String? message;
 
   const UserManagementState({
-    this.users = const [],
-    this.status = UserManagementStatus.initial,
+    this.members = const [],
+    this.status  = UserMgmtStatus.initial,
     this.message,
   });
 
   UserManagementState copyWith({
-    List<UserModel>? users,
-    UserManagementStatus? status,
+    List<Map<String, dynamic>>? members,
+    UserMgmtStatus? status,
     String? message,
-  }) {
-    return UserManagementState(
-      users: users ?? this.users,
-      status: status ?? this.status,
-      message: message,
-    );
-  }
+  }) =>
+      UserManagementState(
+        members: members ?? this.members,
+        status:  status  ?? this.status,
+        message: message,
+      );
 
   @override
-  List<Object?> get props => [users, status, message];
+  List<Object?> get props => [members, status, message];
 }
 
-// Bloc
-class UserManagementBloc extends Bloc<UserManagementEvent, UserManagementState> {
-  UserManagementBloc() : super(const UserManagementState()) {
-    on<LoadUsersEvent>(_onLoadUsers);
-    on<AddUserEvent>(_onAddUser);
-    on<UpdateUserEvent>(_onUpdateUser);
-    on<DeleteUserEvent>(_onDeleteUser);
+// ── Bloc ──────────────────────────────────────────────────────
+
+class UserManagementBloc
+    extends Bloc<UserManagementEvent, UserManagementState> {
+  final SupabaseAuthService authService;
+
+  UserManagementBloc({required this.authService})
+      : super(const UserManagementState()) {
+    on<LoadUsersEvent>(_onLoad);
+    on<AddEmployeeEvent>(_onAdd);
+    on<DeleteEmployeeEvent>(_onDelete);
   }
 
-  void _onLoadUsers(LoadUsersEvent event, Emitter<UserManagementState> emit) {
-    emit(state.copyWith(status: UserManagementStatus.loading));
-    final users = HiveDatabase.usersBox.values.toList();
-    emit(state.copyWith(status: UserManagementStatus.success, users: users));
+  Future<void> _onLoad(
+      LoadUsersEvent event, Emitter<UserManagementState> emit) async {
+    emit(state.copyWith(status: UserMgmtStatus.loading));
+    final members = await authService.getShopMembers(event.shopId);
+    emit(state.copyWith(status: UserMgmtStatus.success, members: members));
   }
 
-  Future<void> _onAddUser(AddUserEvent event, Emitter<UserManagementState> emit) async {
-    await HiveDatabase.usersBox.put(event.user.id, event.user);
-    add(LoadUsersEvent());
+  Future<void> _onAdd(
+      AddEmployeeEvent event, Emitter<UserManagementState> emit) async {
+    emit(state.copyWith(status: UserMgmtStatus.loading));
+    final error = await authService.createEmployee(
+      shopId:   event.shopId,
+      name:     event.name,
+      email:    event.email,
+      password: event.password,
+      role:     event.role,
+    );
+    if (error != null) {
+      emit(state.copyWith(status: UserMgmtStatus.error, message: error));
+      return;
+    }
+    add(LoadUsersEvent(event.shopId));
   }
 
-  Future<void> _onUpdateUser(UpdateUserEvent event, Emitter<UserManagementState> emit) async {
-    await HiveDatabase.usersBox.put(event.user.id, event.user);
-    add(LoadUsersEvent());
-  }
-
-  Future<void> _onDeleteUser(DeleteUserEvent event, Emitter<UserManagementState> emit) async {
-    await HiveDatabase.usersBox.delete(event.userId);
-    add(LoadUsersEvent());
+  Future<void> _onDelete(
+      DeleteEmployeeEvent event, Emitter<UserManagementState> emit) async {
+    final error = await authService.deleteEmployee(event.userId);
+    if (error != null) {
+      emit(state.copyWith(status: UserMgmtStatus.error, message: error));
+      return;
+    }
+    // Reload with same shopId — take it from current state members
+    final shopId = state.members.isNotEmpty
+        ? state.members.first['shop_id'] as String
+        : '';
+    if (shopId.isNotEmpty) add(LoadUsersEvent(shopId));
   }
 }

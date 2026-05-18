@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'config/routes/app_routes.dart';
+import 'core/config/app_config.dart';
 import 'core/data/hive_database.dart';
 import 'core/service_locator.dart' as di;
+import 'core/cloud/supabase_auth_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/billing/presentation/bloc/billing_bloc.dart';
 import 'features/product/presentation/bloc/product_bloc.dart';
@@ -15,14 +18,20 @@ import 'features/settings/presentation/bloc/printer_event.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/settings/presentation/bloc/locale_bloc.dart';
 import 'features/stock/presentation/bloc/stock_bloc.dart';
-import 'features/sync/presentation/bloc/sync_bloc.dart';
-import 'core/cloud/supabase_sync_service.dart';
+import 'features/notifications/presentation/bloc/notification_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Supabase — initialized once with credentials from app_config.dart.
+  // Handles session persistence (token refresh) automatically.
+  await Supabase.initialize(
+    url:     AppConfig.supabaseUrl,
+    anonKey: AppConfig.supabaseAnonKey,
+  );
+
   await HiveDatabase.init();
   await di.init();
-  await SupabaseSyncService().initialize();
   await initializeDateFormatting('fr', null);
   await initializeDateFormatting('en', null);
   runApp(const MyApp());
@@ -49,8 +58,12 @@ class MyApp extends StatelessWidget {
             create: (context) => di.sl<AuthBloc>()),
         BlocProvider<StockBloc>(
             create: (context) => di.sl<StockBloc>()),
-        BlocProvider<SyncBloc>(
-            create: (context) => di.sl<SyncBloc>()..add(LoadSyncStatusEvent())),
+        BlocProvider<NotificationBloc>(
+            create: (context) => di.sl<NotificationBloc>()
+              ..add(LoadNotificationsEvent())),
+        // SupabaseAuthService available globally (for SignUpPage etc.)
+        RepositoryProvider<SupabaseAuthService>(
+            create: (context) => di.sl<SupabaseAuthService>()),
       ],
       child: BlocBuilder<LocaleBloc, LocaleState>(
         builder: (context, state) {

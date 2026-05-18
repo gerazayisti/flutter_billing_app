@@ -1615,6 +1615,162 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Copié !'**
   String get copied;
+
+  /// No description provided for @appSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gestion de caisse & stock'**
+  String get appSubtitle;
+
+  /// No description provided for @login.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get login;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous à votre boutique'**
+  String get loginSubtitle;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail'**
+  String get emailAddress;
+
+  /// No description provided for @password.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get password;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
+  String get confirmPassword;
+
+  /// No description provided for @noAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de compte ?'**
+  String get noAccount;
+
+  /// No description provided for @alreadyAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déjà un compte ?'**
+  String get alreadyAccount;
+
+  /// No description provided for @createBoutique.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer ma boutique'**
+  String get createBoutique;
+
+  /// No description provided for @ownerInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations propriétaire'**
+  String get ownerInfo;
+
+  /// No description provided for @ownerName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre nom complet'**
+  String get ownerName;
+
+  /// No description provided for @boutiqueInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations boutique'**
+  String get boutiqueInfo;
+
+  /// No description provided for @loginError.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail ou mot de passe incorrect'**
+  String get loginError;
+
+  /// No description provided for @noShopMembership.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune boutique associée. Contactez le propriétaire.'**
+  String get noShopMembership;
+
+  /// No description provided for @requiredFields.
+  ///
+  /// In fr, this message translates to:
+  /// **'Veuillez remplir tous les champs'**
+  String get requiredFields;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les mots de passe ne correspondent pas'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le mot de passe doit contenir au moins 6 caractères'**
+  String get passwordTooShort;
+
+  /// No description provided for @employeeEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail de l\'employé'**
+  String get employeeEmail;
+
+  /// No description provided for @tempPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe temporaire'**
+  String get tempPassword;
+
+  /// No description provided for @createEmployee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer le compte'**
+  String get createEmployee;
+
+  /// No description provided for @employeeCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte employé créé avec succès !'**
+  String get employeeCreated;
+
+  /// No description provided for @deleteEmployeeConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer ce compte ? Cette action est irréversible.'**
+  String get deleteEmployeeConfirm;
+
+  /// No description provided for @addBoutique.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une boutique'**
+  String get addBoutique;
+
+  /// No description provided for @outOfStock.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rupture de stock'**
+  String get outOfStock;
+
+  /// No description provided for @outOfStockMsg.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} : produit épuisé'**
+  String outOfStockMsg(String name);
+
+  /// No description provided for @insufficientStock.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} : stock insuffisant (max {max})'**
+  String insufficientStock(String name, int max);
 }
 
 class _AppLocalizationsDelegate

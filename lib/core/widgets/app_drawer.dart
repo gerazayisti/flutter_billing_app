@@ -17,6 +17,7 @@ class AppDrawer extends StatelessWidget {
     if (userState is AuthAuthenticated) user = userState.user;
 
     return Drawer(
+      backgroundColor: Colors.white,
       child: Column(
         children: [
           _buildHeader(context, user, l10n),
@@ -24,52 +25,88 @@ class AppDrawer extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // POS: owner + cashier
+                // ── POS & Caisse : owner + cashier ────────────────────
                 if (user == null || user.canAccessPOS)
-                  _navItem(context, icon: Icons.point_of_sale_rounded,
-                      label: l10n.pos, route: '/home'),
+                  _navItem(context,
+                      icon: Icons.point_of_sale_rounded,
+                      label: l10n.pos,
+                      route: '/home'),
 
-                // History: owner + cashier
                 if (user == null || user.canAccessPOS)
-                  _navItem(context, icon: Icons.history_rounded,
-                      label: l10n.history, route: '/orders'),
+                  _navItem(context,
+                      icon: Icons.history_rounded,
+                      label: l10n.history,
+                      route: '/orders'),
 
-                // Inventory: owner + stockManager
+                // ── Inventaire : owner + stockManager ─────────────────
                 if (user == null || user.canAccessInventory)
-                  _navItem(context, icon: Icons.inventory_2_outlined,
-                      label: l10n.inventory, route: '/products'),
+                  _navItem(context,
+                      icon: Icons.inventory_2_outlined,
+                      label: l10n.inventory,
+                      route: '/products'),
 
-                // Stock movements: owner + stockManager
                 if (user == null || user.canAccessInventory)
-                  _navItem(context, icon: Icons.swap_vert_rounded,
-                      label: l10n.stockMovements, route: '/stock'),
+                  _navItem(context,
+                      icon: Icons.swap_vert_rounded,
+                      label: l10n.stockMovements,
+                      route: '/stock'),
 
-                // Dashboard: owner only
-                if (user == null || user.canAccessDashboard)
-                  _navItem(context, icon: Icons.bar_chart_rounded,
-                      label: l10n.dashboard, route: '/dashboard'),
+                // ── Tableau de bord : owner → vue complète ────────────
+                if (user == null || user.isOwner)
+                  _navItem(context,
+                      icon: Icons.dashboard_rounded,
+                      label: l10n.dashboard,
+                      route: '/owner-dashboard'),
 
-                // Cash closure: owner only
-                if (user == null || user.canAccessDashboard)
-                  _navItem(context, icon: Icons.lock_clock_rounded,
-                      label: l10n.cashClosure, route: '/cash-closure'),
+                // ── Tableau de bord : stockManager → vue stock ────────
+                if (user?.isStockManager == true)
+                  _navItem(context,
+                      icon: Icons.dashboard_outlined,
+                      label: l10n.dashboard,
+                      route: '/stock-manager-dashboard'),
 
-                // Cloud sync: owner only
-                if (user == null || user.canAccessDashboard)
-                  _navItem(context, icon: Icons.cloud_sync_rounded,
-                      label: l10n.cloudSync, route: '/cloud'),
+                // ── Clôture caisse : owner only ───────────────────────
+                if (user == null || user.isOwner)
+                  _navItem(context,
+                      icon: Icons.lock_clock_rounded,
+                      label: l10n.cashClosure,
+                      route: '/cash-closure'),
 
-                const Divider(),
+                const Divider(height: 1),
 
-                // Settings: owner only
+                // ── Paramètres : owner only ───────────────────────────
                 if (user == null || user.canAccessSettings)
-                  _navItem(context, icon: Icons.settings_outlined,
-                      label: l10n.settings, route: '/settings'),
+                  _navItem(context,
+                      icon: Icons.settings_outlined,
+                      label: l10n.settings,
+                      route: '/settings'),
 
-                // Users: owner only
+                // ── Gestion utilisateurs : owner only ─────────────────
                 if (user == null || user.canManageUsers)
-                  _navItem(context, icon: Icons.people_outline_rounded,
-                      label: l10n.userManagement, route: '/users'),
+                  _navItem(context,
+                      icon: Icons.people_outline_rounded,
+                      label: l10n.userManagement,
+                      route: '/users'),
+
+                // ── Boutiques : owner only ────────────────────────────
+                if (user == null || user.isOwner)
+                  _navItem(context,
+                      icon: Icons.add_business_rounded,
+                      label: 'Mes Boutiques',
+                      route: '/boutiques'),
+
+                // ── Abonnement : owner only ───────────────────────────
+                if (user == null || user.canAccessSettings)
+                  _navItem(context,
+                      icon: Icons.workspace_premium_rounded,
+                      label: 'Abonnement',
+                      route: '/subscription'),
+
+                // ── Profil : tous ─────────────────────────────────────
+                _navItem(context,
+                    icon: Icons.person_outline_rounded,
+                    label: 'Mon Profil',
+                    route: '/profile'),
               ],
             ),
           ),
@@ -81,17 +118,10 @@ class AppDrawer extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, User? user, AppLocalizations l10n) {
     final roleLabel = switch (user?.role) {
-      Role.owner => l10n.owner,
+      Role.owner        => l10n.owner,
       Role.stockManager => l10n.stockManager,
-      Role.cashier => l10n.cashier,
-      null => l10n.user,
-    };
-
-    final roleColor = switch (user?.role) {
-      Role.owner => Colors.amber,
-      Role.stockManager => Colors.green,
-      Role.cashier => Colors.blue,
-      null => Colors.grey,
+      Role.cashier      => l10n.cashier,
+      null              => l10n.user,
     };
 
     return Container(
@@ -102,50 +132,83 @@ class AppDrawer extends StatelessWidget {
         left: 24,
         right: 24,
       ),
-      decoration: const BoxDecoration(color: AppTheme.primaryColor),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primaryColor, AppTheme.primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CircleAvatar(
             radius: 32,
             backgroundColor: Colors.white24,
-            child: Icon(Icons.storefront_rounded, color: Colors.white, size: 32),
+            child: Icon(Icons.storefront_rounded,
+                color: Colors.white, size: 32),
           ),
           const SizedBox(height: 16),
           Text(
             user?.name ?? l10n.user,
             style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 4),
           Container(
-            margin: const EdgeInsets.only(top: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
             decoration: BoxDecoration(
-              color: roleColor.withValues(alpha:0.25),
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(roleLabel,
-                style: const TextStyle(color: Colors.white, fontSize: 12)),
+            child: Text(
+              roleLabel,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _navItem(BuildContext context,
-      {required IconData icon, required String label, required String route}) {
+  Widget _navItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String route,
+  }) {
     final currentRoute = GoRouterState.of(context).uri.toString();
     final isSelected = currentRoute == route;
 
     return ListTile(
-      leading: Icon(icon, color: isSelected ? AppTheme.primaryColor : Colors.grey[600]),
-      title: Text(label,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? AppTheme.primaryColor : Colors.black87,
-          )),
+      leading: Icon(icon,
+          color: isSelected
+              ? AppTheme.primaryColor
+              : AppTheme.textSecondary,
+          size: 22),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight:
+              isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected
+              ? AppTheme.primaryColor
+              : AppTheme.textPrimary,
+          fontSize: 14,
+        ),
+      ),
       selected: isSelected,
-      selectedTileColor: AppTheme.primaryColor.withValues(alpha:0.05),
+      selectedTileColor: AppTheme.primaryLight,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       onTap: () {
         Navigator.pop(context);
         context.go(route);
@@ -161,13 +224,15 @@ class AppDrawer extends StatelessWidget {
           context.read<AuthBloc>().add(LogoutEvent());
           context.go('/');
         },
-        icon: const Icon(Icons.logout_rounded),
+        icon: const Icon(Icons.logout_rounded, size: 18),
         label: Text(l10n.logout),
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(double.infinity, 48),
-          foregroundColor: Colors.red,
-          side: const BorderSide(color: Colors.red),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          foregroundColor: AppTheme.errorColor,
+          side: BorderSide(
+              color: AppTheme.errorColor.withValues(alpha: 0.5)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

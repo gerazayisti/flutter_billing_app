@@ -15,18 +15,23 @@ class UserModel extends User {
 
   @override
   @HiveField(2)
-  final String pinCode;
+  final String email;
 
   @override
   @HiveField(3)
   final Role role;
 
+  @override
+  @HiveField(4)
+  final String shopId;
+
   const UserModel({
     required this.id,
     required this.name,
-    required this.pinCode,
+    required this.email,
     required this.role,
-  }) : super(id: id, name: name, pinCode: pinCode, role: role);
+    required this.shopId,
+  }) : super(id: id, name: name, email: email, role: role, shopId: shopId);
 }
 
 class RoleAdapter extends TypeAdapter<Role> {

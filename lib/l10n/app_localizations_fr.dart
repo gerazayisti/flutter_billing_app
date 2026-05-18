@@ -775,4 +775,89 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get copied => 'Copié !';
+
+  @override
+  String get appSubtitle => 'Gestion de caisse & stock';
+
+  @override
+  String get login => 'Se connecter';
+
+  @override
+  String get loginSubtitle => 'Connectez-vous à votre boutique';
+
+  @override
+  String get emailAddress => 'Adresse e-mail';
+
+  @override
+  String get password => 'Mot de passe';
+
+  @override
+  String get confirmPassword => 'Confirmer le mot de passe';
+
+  @override
+  String get noAccount => 'Pas encore de compte ?';
+
+  @override
+  String get alreadyAccount => 'Déjà un compte ?';
+
+  @override
+  String get createBoutique => 'Créer ma boutique';
+
+  @override
+  String get ownerInfo => 'Informations propriétaire';
+
+  @override
+  String get ownerName => 'Votre nom complet';
+
+  @override
+  String get boutiqueInfo => 'Informations boutique';
+
+  @override
+  String get loginError => 'E-mail ou mot de passe incorrect';
+
+  @override
+  String get noShopMembership =>
+      'Aucune boutique associée. Contactez le propriétaire.';
+
+  @override
+  String get requiredFields => 'Veuillez remplir tous les champs';
+
+  @override
+  String get passwordMismatch => 'Les mots de passe ne correspondent pas';
+
+  @override
+  String get passwordTooShort =>
+      'Le mot de passe doit contenir au moins 6 caractères';
+
+  @override
+  String get employeeEmail => 'E-mail de l\'employé';
+
+  @override
+  String get tempPassword => 'Mot de passe temporaire';
+
+  @override
+  String get createEmployee => 'Créer le compte';
+
+  @override
+  String get employeeCreated => 'Compte employé créé avec succès !';
+
+  @override
+  String get deleteEmployeeConfirm =>
+      'Supprimer ce compte ? Cette action est irréversible.';
+
+  @override
+  String get addBoutique => 'Ajouter une boutique';
+
+  @override
+  String get outOfStock => 'Rupture de stock';
+
+  @override
+  String outOfStockMsg(String name) {
+    return '$name : produit épuisé';
+  }
+
+  @override
+  String insufficientStock(String name, int max) {
+    return '$name : stock insuffisant (max $max)';
+  }
 }

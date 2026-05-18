@@ -1,3 +1,4 @@
+import 'package:billing_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +69,7 @@ class _ScannerPageState extends State<ScannerPage> {
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.green, width: 2),
+                border: Border.all(color: AppTheme.primaryColor, width: 2),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(5.0),

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
@@ -122,14 +122,14 @@ class _ProductListPageState extends State<ProductListPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                         content: Text(state.message!),
-                        backgroundColor: Colors.green),
+                        backgroundColor: AppTheme.primaryColor),
                   );
                 } else if (state.status == ProductStatus.error &&
                     state.message != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                         content: Text(state.message!),
-                        backgroundColor: Colors.red),
+                        backgroundColor: AppTheme.errorColor),
                   );
                 }
               },
@@ -223,12 +223,12 @@ class _ProductListPageState extends State<ProductListPage> {
                               const SizedBox(width: 8),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.1),
+                                  color: AppTheme.errorColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
                                   icon: const Icon(Icons.delete_outline_rounded,
-                                      color: Colors.red, size: 20),
+                                      color: AppTheme.errorColor, size: 20),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(8),
                                   onPressed: () =>
@@ -275,7 +275,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 context.read<ProductBloc>().add(DeleteProduct(product.id));
                 Navigator.pop(innerContext);
               },
-              child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+              child: Text(l10n.delete, style: const TextStyle(color: AppTheme.errorColor)),
             ),
           ],
         );

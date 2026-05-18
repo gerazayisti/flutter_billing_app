@@ -144,7 +144,7 @@ class _MovementTile extends StatelessWidget {
 
   const _MovementTile({required this.movement, required this.l10n});
 
-  Color get _typeColor => movement.type.isIn ? Colors.green : Colors.red;
+  Color get _typeColor => movement.type.isIn ? AppTheme.primaryColor : AppTheme.textPrimary;
   IconData get _typeIcon => movement.type.isIn
       ? Icons.arrow_downward_rounded
       : Icons.arrow_upward_rounded;
@@ -163,9 +163,9 @@ class _MovementTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Row(
         children: [
@@ -436,7 +436,7 @@ class _AddMovementSheetState extends State<_AddMovementSheet> {
                 runSpacing: 8,
                 children: types.map((t) {
                   final isIn = t.isIn;
-                  final color = isIn ? Colors.green : Colors.red;
+                  final color = isIn ? AppTheme.primaryColor : AppTheme.primaryDark;
                   final isSelected = _type == t;
                   return ChoiceChip(
                     label: Text(_typeLabel(t, l10n)),
@@ -444,7 +444,7 @@ class _AddMovementSheetState extends State<_AddMovementSheet> {
                     selectedColor: color,
                     backgroundColor: Colors.grey[100],
                     labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected ? Colors.white : AppTheme.textPrimary,
                         fontSize: 12),
                     onSelected: (_) => setState(() => _type = t),
                   );

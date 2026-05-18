@@ -8,8 +8,8 @@ import 'package:billing_app/features/product/data/models/product_model.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
 class ReportService {
-  static Future<void> generateDailyReport(DateTime date, AppLocalizations l10n) async {
-    final orders = _getOrdersForDate(date);
+  static Future<void> generateDailyReport(DateTime date, AppLocalizations l10n, {List<OrderModel>? ordersList}) async {
+    final orders = ordersList ?? _getOrdersForDate(date);
     final pdf = await _buildReportPdf(
       title: '${l10n.dailyReport} - ${DateFormat('dd/MM/yyyy').format(date)}',
       orders: orders,
@@ -19,11 +19,11 @@ class ReportService {
     await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
-  static Future<void> generateWeeklyReport(DateTime date, AppLocalizations l10n) async {
+  static Future<void> generateWeeklyReport(DateTime date, AppLocalizations l10n, {List<OrderModel>? ordersList}) async {
     final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
     final endOfWeek = startOfWeek.add(const Duration(days: 6));
     
-    final orders = HiveDatabase.orderBox.values.where((o) => 
+    final orders = ordersList ?? HiveDatabase.orderBox.values.where((o) => 
       o.date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) && 
       o.date.isBefore(endOfWeek.add(const Duration(days: 1)))
     ).toList();
@@ -39,11 +39,11 @@ class ReportService {
     await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
-  static Future<void> generateMonthlyReport(DateTime date, AppLocalizations l10n) async {
+  static Future<void> generateMonthlyReport(DateTime date, AppLocalizations l10n, {List<OrderModel>? ordersList}) async {
     final startOfMonth = DateTime(date.year, date.month, 1);
     final endOfMonth = DateTime(date.year, date.month + 1, 0);
     
-    final orders = HiveDatabase.orderBox.values.where((o) => 
+    final orders = ordersList ?? HiveDatabase.orderBox.values.where((o) => 
       o.date.isAfter(startOfMonth.subtract(const Duration(seconds: 1))) && 
       o.date.isBefore(endOfMonth.add(const Duration(days: 1)))
     ).toList();

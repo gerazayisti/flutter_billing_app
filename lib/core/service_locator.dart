@@ -19,19 +19,24 @@ import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/auth/presentation/bloc/user_management_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/settings/presentation/bloc/locale_bloc.dart';
-import '../../features/payment/data/repositories/payment_repository_impl.dart';
-import '../../features/payment/domain/repositories/payment_repository.dart';
-import '../../features/payment/presentation/bloc/payment_bloc.dart';
 import '../../features/stock/data/repositories/stock_repository_impl.dart';
 import '../../features/stock/domain/repositories/stock_repository.dart';
 import '../../features/stock/presentation/bloc/stock_bloc.dart';
 import 'cloud/supabase_sync_service.dart';
 import 'cloud/cloud_sync_service.dart';
-import '../../features/sync/presentation/bloc/sync_bloc.dart';
+import 'cloud/supabase_auth_service.dart';
+import '../features/notifications/presentation/bloc/notification_bloc.dart';
+import '../features/subscription/presentation/bloc/subscription_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  sl.registerLazySingleton<SupabaseAuthService>(() => SupabaseAuthService());
+  sl.registerFactory(() => AuthBloc(authService: sl()));
+  sl.registerFactory(() => UserManagementBloc(authService: sl()));
+  sl.registerFactory(() => LocaleBloc());
+
   // ── Features - Product ─────────────────────────────────────────────────────
   sl.registerFactory(
     () => ProductBloc(
@@ -90,21 +95,17 @@ Future<void> init() async {
     ),
   );
 
-  // ── Features - Auth ───────────────────────────────────────────────────────
-  sl.registerFactory(() => AuthBloc());
-  sl.registerFactory(() => UserManagementBloc());
-  sl.registerFactory(() => LocaleBloc());
-
-  // ── Features - Payment (Mobile Money) ─────────────────────────────────────
-  sl.registerLazySingleton<PaymentRepository>(() => PaymentRepositoryImpl());
-  sl.registerFactory(() => PaymentBloc(repository: sl()));
-
   // ── Features - Stock & Reporting ──────────────────────────────────────────
   sl.registerLazySingleton<StockRepository>(() => StockRepositoryImpl());
   sl.registerFactory(() => StockBloc(repository: sl()));
 
-  // ── Cloud Sync (Supabase) ─────────────────────────────────────────────────
+  // ── Notifications ─────────────────────────────────────────────────────────
+  sl.registerLazySingleton(() => NotificationBloc());
+
+  // ── Subscription ──────────────────────────────────────────────────────────
+  sl.registerFactory(() => SubscriptionBloc());
+
+  // ── Cloud Sync ────────────────────────────────────────────────────────────
   sl.registerLazySingleton<SupabaseSyncService>(() => SupabaseSyncService());
   sl.registerLazySingleton<CloudSyncService>(() => sl<SupabaseSyncService>());
-  sl.registerFactory(() => SyncBloc(syncService: sl<SupabaseSyncService>()));
 }

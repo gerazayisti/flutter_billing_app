@@ -131,12 +131,12 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
           if (state is ShopOperationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(l10n.shopDetailsSaved),
-                backgroundColor: Colors.green));
+                backgroundColor: AppTheme.primaryColor));
             context.pop();
           }
           if (state is ShopError) {
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message), backgroundColor: Colors.red));
+                SnackBar(content: Text(state.message), backgroundColor: AppTheme.errorColor));
           }
         },
         buildWhen: (p, c) => c is ShopLoading || c is ShopLoaded,

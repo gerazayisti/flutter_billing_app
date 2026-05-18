@@ -56,22 +56,22 @@ class _CloudSetupPageState extends State<CloudSetupPage> {
           if (state.successMessage == 'synced') {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.syncSuccess),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.primaryColor,
             ));
           } else if (state.successMessage == 'configured') {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.cloudConfigSaved),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.primaryColor,
             ));
           } else if (state.successMessage == 'signed_in') {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.cloudConnected),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.primaryColor,
             ));
           } else if (state.successMessage == 'pulled') {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.syncSuccess),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.primaryColor,
             ));
           }
           if (state.error != null) {
@@ -80,7 +80,7 @@ class _CloudSetupPageState extends State<CloudSetupPage> {
                 : '${l10n.syncError}: ${state.error}';
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(msg),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.errorColor,
             ));
           }
         },
@@ -137,7 +137,7 @@ class _StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOk = state.isConfigured;
-    final color = isOk ? Colors.green : Colors.grey;
+    final color = isOk ? AppTheme.primaryColor : Colors.grey;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -231,7 +231,7 @@ class _CredentialsSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.storage_rounded, size: 18, color: Colors.teal),
+              const Icon(Icons.storage_rounded, size: 18, color: AppTheme.primaryColor),
               const SizedBox(width: 8),
               Text(l10n.setupSupabase,
                   style: const TextStyle(
@@ -282,7 +282,7 @@ class _CredentialsSection extends StatelessWidget {
                         .add(ConfigureCloudEvent(url, key));
                   },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
+              backgroundColor: AppTheme.primaryColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
@@ -320,14 +320,14 @@ class _AuthSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.green[50],
+          color: AppTheme.primaryLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green[200]!),
+          border: Border.all(color: AppTheme.primaryColor),
         ),
         child: Row(
           children: [
             const Icon(Icons.verified_user_rounded,
-                color: Colors.green, size: 20),
+                color: AppTheme.primaryColor, size: 20),
             const SizedBox(width: 10),
             Expanded(
                 child: Text(state.userEmail ?? '',
@@ -496,8 +496,10 @@ class _SqlSchemaCard extends StatelessWidget {
   synced_at   TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE gestock_sync ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "public_access" ON gestock_sync
-  FOR ALL USING (true) WITH CHECK (true);''';
+CREATE POLICY "owner_access" ON gestock_sync
+  FOR ALL
+  USING  (auth.uid() IS NOT NULL)
+  WITH CHECK (auth.uid() IS NOT NULL);''';
 
   @override
   Widget build(BuildContext context) {

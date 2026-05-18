@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_color_config.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -135,7 +136,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(height: 20),
             _ReportTile(
               icon: Icons.today,
-              color: Colors.blue,
+              color: AppTheme.primaryColor,
               title: l10n.dailyReport,
               onTap: () {
                 Navigator.pop(context);
@@ -144,7 +145,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             _ReportTile(
               icon: Icons.view_week,
-              color: Colors.green,
+              color: AppTheme.primaryDark,
               title: l10n.weeklyReport,
               onTap: () {
                 Navigator.pop(context);
@@ -153,7 +154,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             _ReportTile(
               icon: Icons.calendar_month,
-              color: Colors.orange,
+              color: AppTheme.primaryColor,
               title: l10n.monthlyReport,
               onTap: () {
                 Navigator.pop(context);
@@ -217,7 +218,7 @@ class _KpiRow extends StatelessWidget {
             label: l10n.recentSales,
             value: "$totalOrders",
             icon: Icons.receipt_long_rounded,
-            accent: Color.lerp(accent, Colors.teal, 0.5)!,
+            accent: AppTheme.primaryDark,
           ),
         ),
       ],
@@ -318,15 +319,9 @@ class _RecentOrdersCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: orders.asMap().entries.map((entry) {
@@ -398,15 +393,9 @@ class _StockAlertsCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: products.take(5).map<Widget>((p) {
@@ -445,16 +434,17 @@ class _CaRecapCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: [
-          _CaItem(label: l10n.today, value: cur.format(state.dailyRevenue), color: Colors.blue),
+          _CaItem(label: l10n.today, value: cur.format(state.dailyRevenue), color: AppTheme.primaryColor),
           const Divider(height: 24),
-          _CaItem(label: l10n.thisWeek, value: cur.format(weeklyCA), color: Colors.green),
+          _CaItem(label: l10n.thisWeek, value: cur.format(weeklyCA), color: AppTheme.primaryDark),
           const Divider(height: 24),
-          _CaItem(label: l10n.thisMonth, value: cur.format(weeklyCA * 4), color: Colors.orange),
+          _CaItem(label: l10n.thisMonth, value: cur.format(weeklyCA * 4), color: AppTheme.primaryLight),
         ],
       ),
     );
@@ -495,8 +485,9 @@ class _EmptyCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Center(
         child: Text(text, style: const TextStyle(color: Colors.grey)),

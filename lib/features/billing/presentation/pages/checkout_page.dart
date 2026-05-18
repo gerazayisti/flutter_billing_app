@@ -1,8 +1,8 @@
 import 'package:billing_app/core/utils/receipt_share_service.dart';
 import 'package:billing_app/core/utils/xaf_formatter.dart';
 import 'package:billing_app/features/billing/domain/entities/payment_method.dart';
+import 'package:billing_app/core/theme/app_theme.dart';
 import 'package:billing_app/core/widgets/primary_button.dart';
-import 'package:billing_app/features/payment/presentation/widgets/momo_payment_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -62,7 +62,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(l10n.successOrder,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
-                  backgroundColor: Colors.green));
+                  backgroundColor: AppTheme.primaryColor));
+              context.read<BillingBloc>().add(ClearCartEvent());
+              context.go('/home');
             }
           },
           builder: (context, billingState) {
@@ -129,7 +131,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                     hint: Text(l10n.selectVariant,
                                                         style: const TextStyle(fontSize: 12)),
                                                     style: const TextStyle(
-                                                        fontSize: 12, color: Colors.blue),
+                                                        fontSize: 12, color: AppTheme.primaryColor),
                                                     items: item.product.variants
                                                         .map((v) => DropdownMenuItem(
                                                             value: v, child: Text(v)))
@@ -367,7 +369,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  // Intercepts save/print: if MoMo method, shows payment dialog first.
+  // Merchant code is already shown in _momoSection — just execute the action.
   void _handleAction({
     required BuildContext context,
     required BillingState billingState,
@@ -375,36 +377,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
     required AppLocalizations l10n,
     required VoidCallback action,
   }) {
-    if (!billingState.paymentMethod.isMobileMoney) {
-      action();
-      return;
-    }
-
-    final isOrange = billingState.paymentMethod == PaymentMethod.orangeMoney;
-    final code = shop != null
-        ? (isOrange ? shop.orangeMoneyMerchant : shop.mtnMomoMerchant) as String
-        : '';
-
-    final authState = context.read<AuthBloc>().state;
-    final cashierId = authState is AuthAuthenticated ? authState.user.id : 'unknown';
-
-    MomoPaymentDialog.show(
-      context,
-      method: billingState.paymentMethod,
-      amount: billingState.totalAmount,
-      merchantCode: code,
-      cashierId: cashierId,
-      onConfirmed: action,
-    );
+    action();
   }
 
   Widget _paymentMethodSelector(
       BuildContext context, BillingState state, AppLocalizations l10n) {
     final methods = [
-      (PaymentMethod.cash, Icons.money_rounded, Colors.green, l10n.cash),
-      (PaymentMethod.orangeMoney, Icons.phone_android, Colors.orange, l10n.orangeMoney),
-      (PaymentMethod.mtnMomo, Icons.phone_android, Colors.yellow[800]!, l10n.mtnMomo),
-      (PaymentMethod.card, Icons.credit_card, Colors.blue, l10n.card),
+      (PaymentMethod.cash, Icons.money_rounded, AppTheme.primaryColor, l10n.cash),
+      (PaymentMethod.orangeMoney, Icons.phone_android, AppTheme.primaryColor, l10n.orangeMoney),
+      (PaymentMethod.mtnMomo, Icons.phone_android, AppTheme.primaryDark, l10n.mtnMomo),
+      (PaymentMethod.card, Icons.credit_card, AppTheme.textPrimary, l10n.card),
     ];
 
     return Wrap(
@@ -440,9 +422,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.green[50],
+        color: AppTheme.primaryLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green[200]!),
+        border: Border.all(color: AppTheme.primaryColor),
       ),
       child: Column(
         children: [
@@ -486,7 +468,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isInsufficient ? Colors.red : Colors.green[700],
+                    color: isInsufficient ? Colors.red : AppTheme.primaryColor,
                   ),
                 ),
               ],
@@ -513,7 +495,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       dynamic shop, AppLocalizations l10n) {
     final isOrange = method == PaymentMethod.orangeMoney;
     final code = isOrange ? shop.orangeMoneyMerchant : shop.mtnMomoMerchant;
-    final color = isOrange ? Colors.orange : Colors.yellow[800]!;
+    final color = isOrange ? AppTheme.primaryColor : AppTheme.primaryDark;
     final label = isOrange ? l10n.orangeMoney : l10n.mtnMomo;
 
     if (code.isEmpty) {

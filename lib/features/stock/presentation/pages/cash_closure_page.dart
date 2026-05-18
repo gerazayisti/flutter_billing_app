@@ -36,7 +36,7 @@ class _CashClosurePageState extends State<CashClosurePage> {
           if (state.successMessage == 'closed') {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.closureSuccess),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.primaryColor,
             ));
           }
         },
@@ -151,7 +151,7 @@ class _CloseButton extends StatelessWidget {
       label: Text(l10n.closeCashRegister,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.indigo[700],
+        backgroundColor: AppTheme.primaryColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -170,7 +170,7 @@ class _CloseButton extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo[700],
+                backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white),
             onPressed: () {
               Navigator.pop(ctx);
@@ -200,9 +200,9 @@ class _ClosureTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: [
@@ -216,25 +216,25 @@ class _ClosureTile extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.indigo[50],
+                  color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text('${closure.transactionCount} tx',
-                    style: TextStyle(
-                        color: Colors.indigo[700],
+                    style: const TextStyle(
+                        color: AppTheme.primaryColor,
                         fontSize: 11,
                         fontWeight: FontWeight.w600)),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          _row(l10n.cash, closure.cashTotal, Colors.green),
+          _row(l10n.cash, closure.cashTotal, AppTheme.primaryColor),
           if (closure.orangeMoneyTotal > 0)
-            _row(l10n.orangeMoney, closure.orangeMoneyTotal, Colors.orange),
+            _row(l10n.orangeMoney, closure.orangeMoneyTotal, AppTheme.primaryColor),
           if (closure.mtnMomoTotal > 0)
-            _row(l10n.mtnMomo, closure.mtnMomoTotal, Colors.yellow[800]!),
+            _row(l10n.mtnMomo, closure.mtnMomoTotal, AppTheme.primaryDark),
           if (closure.cardTotal > 0)
-            _row(l10n.card, closure.cardTotal, Colors.blue),
+            _row(l10n.card, closure.cardTotal, AppTheme.textPrimary),
           const Divider(height: 12),
           _row(l10n.totalATax, closure.grandTotal, Colors.black87,
               isBold: true),
