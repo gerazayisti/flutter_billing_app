@@ -702,4 +702,73 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cashClosureConfirm =>
       'This will record the cash register closure. Continue?';
+
+  @override
+  String get cloudSync => 'Cloud Sync';
+
+  @override
+  String get cloudConfigSaved => 'Cloud configuration saved!';
+
+  @override
+  String get cloudConnected => 'Cloud connected';
+
+  @override
+  String get cloudDisconnected => 'Cloud disconnected';
+
+  @override
+  String get setupSupabase => 'Configure Supabase';
+
+  @override
+  String get supabaseHint => 'Enter your Supabase project URL and anon key';
+
+  @override
+  String get cloudUrl => 'Supabase URL';
+
+  @override
+  String get anonKey => 'Anon key';
+
+  @override
+  String get ownerEmail => 'Owner email';
+
+  @override
+  String get ownerPassword => 'Password';
+
+  @override
+  String get signIn => 'Sign in';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get ownerSignIn => 'Owner sign-in';
+
+  @override
+  String get ownerSignInHint => 'Sign in to enable synchronisation';
+
+  @override
+  String get syncNow => 'Sync now';
+
+  @override
+  String get pullFromCloud => 'Pull from cloud';
+
+  @override
+  String get lastSynced => 'Last synced';
+
+  @override
+  String get autoSync => 'Auto-sync';
+
+  @override
+  String get syncSuccess => 'Sync successful!';
+
+  @override
+  String get syncError => 'Sync error';
+
+  @override
+  String get cloudAuthError => 'Incorrect email or password';
+
+  @override
+  String get sqlSchema => 'SQL schema (run in Supabase)';
+
+  @override
+  String get copied => 'Copied!';
 }

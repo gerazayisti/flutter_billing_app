@@ -704,4 +704,75 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get cashClosureConfirm =>
       'Cette action enregistre la clôture de caisse. Continuer ?';
+
+  @override
+  String get cloudSync => 'Synchronisation Cloud';
+
+  @override
+  String get cloudConfigSaved => 'Configuration cloud sauvegardée !';
+
+  @override
+  String get cloudConnected => 'Cloud connecté';
+
+  @override
+  String get cloudDisconnected => 'Cloud déconnecté';
+
+  @override
+  String get setupSupabase => 'Configurer Supabase';
+
+  @override
+  String get supabaseHint =>
+      'Entrez l\'URL et la clé anon de votre projet Supabase';
+
+  @override
+  String get cloudUrl => 'URL Supabase';
+
+  @override
+  String get anonKey => 'Clé anonyme (anon key)';
+
+  @override
+  String get ownerEmail => 'E-mail propriétaire';
+
+  @override
+  String get ownerPassword => 'Mot de passe';
+
+  @override
+  String get signIn => 'Se connecter';
+
+  @override
+  String get signOut => 'Se déconnecter';
+
+  @override
+  String get ownerSignIn => 'Connexion propriétaire';
+
+  @override
+  String get ownerSignInHint =>
+      'Connectez-vous pour activer la synchronisation';
+
+  @override
+  String get syncNow => 'Synchroniser';
+
+  @override
+  String get pullFromCloud => 'Récupérer du cloud';
+
+  @override
+  String get lastSynced => 'Dernière synchro';
+
+  @override
+  String get autoSync => 'Synchro auto';
+
+  @override
+  String get syncSuccess => 'Synchronisation réussie !';
+
+  @override
+  String get syncError => 'Erreur de synchro';
+
+  @override
+  String get cloudAuthError => 'E-mail ou mot de passe incorrect';
+
+  @override
+  String get sqlSchema => 'Schéma SQL (à exécuter dans Supabase)';
+
+  @override
+  String get copied => 'Copié !';
 }

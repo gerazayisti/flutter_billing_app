@@ -25,6 +25,9 @@ import '../../features/payment/presentation/bloc/payment_bloc.dart';
 import '../../features/stock/data/repositories/stock_repository_impl.dart';
 import '../../features/stock/domain/repositories/stock_repository.dart';
 import '../../features/stock/presentation/bloc/stock_bloc.dart';
+import 'cloud/supabase_sync_service.dart';
+import 'cloud/cloud_sync_service.dart';
+import '../../features/sync/presentation/bloc/sync_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -69,6 +72,7 @@ Future<void> init() async {
       getProductByBarcodeUseCase: sl(),
       saveOrderUseCase: sl(),
       heldOrderRepository: sl(),
+      syncService: sl<CloudSyncService>(),
     ),
   );
 
@@ -98,4 +102,9 @@ Future<void> init() async {
   // ── Features - Stock & Reporting ──────────────────────────────────────────
   sl.registerLazySingleton<StockRepository>(() => StockRepositoryImpl());
   sl.registerFactory(() => StockBloc(repository: sl()));
+
+  // ── Cloud Sync (Supabase) ─────────────────────────────────────────────────
+  sl.registerLazySingleton<SupabaseSyncService>(() => SupabaseSyncService());
+  sl.registerLazySingleton<CloudSyncService>(() => sl<SupabaseSyncService>());
+  sl.registerFactory(() => SyncBloc(syncService: sl<SupabaseSyncService>()));
 }

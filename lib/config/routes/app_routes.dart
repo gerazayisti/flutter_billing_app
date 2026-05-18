@@ -20,6 +20,8 @@ import '../../features/billing/presentation/pages/order_history_page.dart';
 import '../../features/stock/presentation/pages/stock_movements_page.dart';
 import '../../features/stock/presentation/pages/cash_closure_page.dart';
 import '../../features/stock/presentation/bloc/stock_bloc.dart';
+import '../../features/sync/presentation/pages/cloud_setup_page.dart';
+import '../../features/sync/presentation/bloc/sync_bloc.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -99,6 +101,13 @@ final router = GoRouter(
       builder: (context, state) => BlocProvider(
         create: (_) => sl<StockBloc>()..add(LoadStockEvent()),
         child: const CashClosurePage(),
+      ),
+    ),
+    GoRoute(
+      path: '/cloud',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<SyncBloc>()..add(LoadSyncStatusEvent()),
+        child: const CloudSetupPage(),
       ),
     ),
   ],

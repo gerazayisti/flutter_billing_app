@@ -35,6 +35,10 @@ dependencies:
   # HTTP client (Mobile Money API)
   http: ^1.2.0
 
+  # Cloud sync (Supabase)
+  supabase_flutter: ^2.5.0
+  connectivity_plus: ^6.0.3
+
   # UI & Utilities
   google_fonts: ^6.1.0
   vibration: ^3.1.8

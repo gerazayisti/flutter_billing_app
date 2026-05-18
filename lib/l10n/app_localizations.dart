@@ -1477,6 +1477,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cette action enregistre la clôture de caisse. Continuer ?'**
   String get cashClosureConfirm;
+
+  /// No description provided for @cloudSync.
+  ///
+  /// In fr, this message translates to:
+  /// **'Synchronisation Cloud'**
+  String get cloudSync;
+
+  /// No description provided for @cloudConfigSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration cloud sauvegardée !'**
+  String get cloudConfigSaved;
+
+  /// No description provided for @cloudConnected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cloud connecté'**
+  String get cloudConnected;
+
+  /// No description provided for @cloudDisconnected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cloud déconnecté'**
+  String get cloudDisconnected;
+
+  /// No description provided for @setupSupabase.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configurer Supabase'**
+  String get setupSupabase;
+
+  /// No description provided for @supabaseHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez l\'URL et la clé anon de votre projet Supabase'**
+  String get supabaseHint;
+
+  /// No description provided for @cloudUrl.
+  ///
+  /// In fr, this message translates to:
+  /// **'URL Supabase'**
+  String get cloudUrl;
+
+  /// No description provided for @anonKey.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clé anonyme (anon key)'**
+  String get anonKey;
+
+  /// No description provided for @ownerEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail propriétaire'**
+  String get ownerEmail;
+
+  /// No description provided for @ownerPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get ownerPassword;
+
+  /// No description provided for @signIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get signIn;
+
+  /// No description provided for @signOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get signOut;
+
+  /// No description provided for @ownerSignIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion propriétaire'**
+  String get ownerSignIn;
+
+  /// No description provided for @ownerSignInHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connectez-vous pour activer la synchronisation'**
+  String get ownerSignInHint;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Synchroniser'**
+  String get syncNow;
+
+  /// No description provided for @pullFromCloud.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récupérer du cloud'**
+  String get pullFromCloud;
+
+  /// No description provided for @lastSynced.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière synchro'**
+  String get lastSynced;
+
+  /// No description provided for @autoSync.
+  ///
+  /// In fr, this message translates to:
+  /// **'Synchro auto'**
+  String get autoSync;
+
+  /// No description provided for @syncSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Synchronisation réussie !'**
+  String get syncSuccess;
+
+  /// No description provided for @syncError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur de synchro'**
+  String get syncError;
+
+  /// No description provided for @cloudAuthError.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail ou mot de passe incorrect'**
+  String get cloudAuthError;
+
+  /// No description provided for @sqlSchema.
+  ///
+  /// In fr, this message translates to:
+  /// **'Schéma SQL (à exécuter dans Supabase)'**
+  String get sqlSchema;
+
+  /// No description provided for @copied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copié !'**
+  String get copied;
 }
 
 class _AppLocalizationsDelegate

@@ -54,6 +54,11 @@ class AppDrawer extends StatelessWidget {
                   _navItem(context, icon: Icons.lock_clock_rounded,
                       label: l10n.cashClosure, route: '/cash-closure'),
 
+                // Cloud sync: owner only
+                if (user == null || user.canAccessDashboard)
+                  _navItem(context, icon: Icons.cloud_sync_rounded,
+                      label: l10n.cloudSync, route: '/cloud'),
+
                 const Divider(),
 
                 // Settings: owner only

@@ -15,11 +15,14 @@ import 'features/settings/presentation/bloc/printer_event.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/settings/presentation/bloc/locale_bloc.dart';
 import 'features/stock/presentation/bloc/stock_bloc.dart';
+import 'features/sync/presentation/bloc/sync_bloc.dart';
+import 'core/cloud/supabase_sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveDatabase.init();
   await di.init();
+  await SupabaseSyncService().initialize();
   await initializeDateFormatting('fr', null);
   await initializeDateFormatting('en', null);
   runApp(const MyApp());
@@ -46,6 +49,8 @@ class MyApp extends StatelessWidget {
             create: (context) => di.sl<AuthBloc>()),
         BlocProvider<StockBloc>(
             create: (context) => di.sl<StockBloc>()),
+        BlocProvider<SyncBloc>(
+            create: (context) => di.sl<SyncBloc>()..add(LoadSyncStatusEvent())),
       ],
       child: BlocBuilder<LocaleBloc, LocaleState>(
         builder: (context, state) {

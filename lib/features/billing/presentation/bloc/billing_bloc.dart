@@ -15,6 +15,7 @@ import '../../data/repositories/held_order_repository.dart';
 import 'package:billing_app/features/product/data/models/product_model.dart';
 import 'package:billing_app/features/stock/data/models/stock_movement_model.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
+import 'package:billing_app/core/cloud/cloud_sync_service.dart';
 
 part 'billing_event.dart';
 part 'billing_state.dart';
@@ -23,11 +24,13 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
   final GetProductByBarcodeUseCase getProductByBarcodeUseCase;
   final SaveOrderUseCase saveOrderUseCase;
   final HeldOrderRepository heldOrderRepository;
+  final CloudSyncService? syncService;
 
   BillingBloc({
     required this.getProductByBarcodeUseCase,
     required this.saveOrderUseCase,
     required this.heldOrderRepository,
+    this.syncService,
   }) : super(const BillingState()) {
     on<ScanBarcodeEvent>(_onScanBarcode);
     on<AddProductToCartEvent>(_onAddProductToCart);
@@ -230,6 +233,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
       );
       await saveOrderUseCase(order);
       await _decrementStockAndRecord(order.id, event.cashierId);
+      await _autoSyncOrder(order);
 
       emit(state.copyWith(isPrinting: false, printSuccess: true));
     } catch (e) {
@@ -259,8 +263,30 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
     );
     await saveOrderUseCase(order);
     await _decrementStockAndRecord(order.id, event.cashierId);
+    await _autoSyncOrder(order);
 
     emit(state.copyWith(printSuccess: true));
+  }
+
+  Future<void> _autoSyncOrder(OrderModel order) async {
+    final autoSync =
+        HiveDatabase.settingsBox.get('cloud_auto_sync', defaultValue: true) as bool;
+    if (!autoSync || syncService == null || !syncService!.isConfigured) return;
+    await syncService!.pushOrder({
+      'id': order.id,
+      'date': order.date.toIso8601String(),
+      'totalAmount': order.totalAmount,
+      'paymentMethod': order.paymentMethod,
+      'items': order.items
+          .map((i) => {
+                'productId': i.productId,
+                'productName': i.productName,
+                'price': i.price,
+                'quantity': i.quantity,
+                'variant': i.selectedVariant,
+              })
+          .toList(),
+    });
   }
 
   Future<void> _decrementStockAndRecord(String orderId, String cashierId) async {
