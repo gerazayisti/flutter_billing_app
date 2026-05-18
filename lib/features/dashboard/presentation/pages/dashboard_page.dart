@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
@@ -9,7 +8,6 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../product/domain/entities/product.dart';
-import '../../../../core/widgets/app_drawer.dart';
 import '../../../../core/utils/report_service.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -180,7 +178,7 @@ class _ReportTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CircleAvatar(backgroundColor: color.withOpacity(0.1), child: Icon(icon, color: color)),
+      leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(icon, color: color)),
       title: Text(title),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,

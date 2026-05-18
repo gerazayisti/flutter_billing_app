@@ -93,7 +93,7 @@ class ReportService {
     for (var order in orders) {
       for (var item in order.items) {
         final product = products.firstWhere((p) => p.id == item.productId, 
-          orElse: () => ProductModel(id: '', name: item.productName, barcode: '', price: item.price, stock: 0, category: l10n.unknownCategory, minStockAlert: 0, variants: []));
+          orElse: () => ProductModel(id: '', name: item.productName, barcode: '', price: item.price, stock: 0, category: l10n.unknownCategory, minStockAlert: 0, variants: const []));
         
         final category = product.category;
         breakdown[category] = (breakdown[category] ?? 0) + (item.price * item.quantity);

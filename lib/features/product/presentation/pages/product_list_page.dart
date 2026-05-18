@@ -5,7 +5,6 @@ import 'package:billing_app/l10n/app_localizations.dart';
 import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/utils/app_validators.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/domain/entities/user.dart';
@@ -99,7 +98,7 @@ class _ProductListPageState extends State<ProductListPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
-                          icon: Icon(Icons.qr_code_scanner,
+                          icon: const Icon(Icons.qr_code_scanner,
                               color: AppTheme.primaryColor),
                           onPressed: () => _scanQR(state.products),
                           padding: const EdgeInsets.all(15),
@@ -211,7 +210,7 @@ class _ProductListPageState extends State<ProductListPage> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  icon: Icon(Icons.edit_rounded,
+                                  icon: const Icon(Icons.edit_rounded,
                                       color: AppTheme.primaryColor, size: 20),
                                   constraints: const BoxConstraints(),
                                   padding: const EdgeInsets.all(8),

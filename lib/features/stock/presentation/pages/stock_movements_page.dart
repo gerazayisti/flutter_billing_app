@@ -273,7 +273,7 @@ class _SuppliersTab extends StatelessWidget {
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
-              side: BorderSide(color: AppTheme.primaryColor),
+              side: const BorderSide(color: AppTheme.primaryColor),
               foregroundColor: AppTheme.primaryColor,
             ),
           ),
@@ -320,7 +320,7 @@ class _SupplierTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.12),
         child: Text(supplier.name[0].toUpperCase(),
-            style: TextStyle(
+            style: const TextStyle(
                 color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
       ),
       title: Text(supplier.name,
