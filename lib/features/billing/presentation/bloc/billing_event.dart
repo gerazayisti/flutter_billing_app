@@ -62,6 +62,7 @@ class PrintReceiptEvent extends BillingEvent {
   final String phone;
   final String footer;
   final AppLocalizations l10n;
+  final String cashierId;
 
   const PrintReceiptEvent({
     required this.shopName,
@@ -70,10 +71,12 @@ class PrintReceiptEvent extends BillingEvent {
     required this.phone,
     required this.footer,
     required this.l10n,
+    this.cashierId = 'system',
   });
 
   @override
-  List<Object> get props => [shopName, address1, address2, phone, footer, l10n];
+  List<Object> get props =>
+      [shopName, address1, address2, phone, footer, l10n, cashierId];
 }
 
 class SelectVariantEvent extends BillingEvent {
@@ -85,5 +88,8 @@ class SelectVariantEvent extends BillingEvent {
 }
 
 class SaveOrderWithoutPrintEvent extends BillingEvent {
-  const SaveOrderWithoutPrintEvent();
+  final String cashierId;
+  const SaveOrderWithoutPrintEvent({this.cashierId = 'system'});
+  @override
+  List<Object> get props => [cashierId];
 }

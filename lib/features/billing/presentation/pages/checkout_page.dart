@@ -288,15 +288,24 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               children: [
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _handleAction(
-                                      context: context,
-                                      billingState: billingState,
-                                      shop: shop,
-                                      l10n: l10n,
-                                      action: () => context
-                                          .read<BillingBloc>()
-                                          .add(const SaveOrderWithoutPrintEvent()),
-                                    ),
+                                    onPressed: () {
+                                      final authState =
+                                          context.read<AuthBloc>().state;
+                                      final cid = authState
+                                              is AuthAuthenticated
+                                          ? authState.user.id
+                                          : 'system';
+                                      _handleAction(
+                                        context: context,
+                                        billingState: billingState,
+                                        shop: shop,
+                                        l10n: l10n,
+                                        action: () => context
+                                            .read<BillingBloc>()
+                                            .add(SaveOrderWithoutPrintEvent(
+                                                cashierId: cid)),
+                                      );
+                                    },
                                     icon: const Icon(Icons.save, size: 20),
                                     label: Text(l10n.saveOnly),
                                     style: OutlinedButton.styleFrom(
@@ -311,23 +320,31 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   flex: 2,
                                   child: PrimaryButton(
                                     onPressed: shop != null
-                                        ? () => _handleAction(
+                                        ? () {
+                                            final authState =
+                                                context.read<AuthBloc>().state;
+                                            final cid = authState
+                                                    is AuthAuthenticated
+                                                ? authState.user.id
+                                                : 'system';
+                                            _handleAction(
                                               context: context,
                                               billingState: billingState,
                                               shop: shop,
                                               l10n: l10n,
-                                              action: () =>
-                                                  context.read<BillingBloc>().add(
-                                                        PrintReceiptEvent(
-                                                          shopName: shop.name,
-                                                          address1: shop.addressLine1,
-                                                          address2: shop.addressLine2,
-                                                          phone: shop.phoneNumber,
-                                                          footer: shop.footerText,
-                                                          l10n: l10n,
-                                                        ),
-                                                      ),
-                                            )
+                                              action: () => context
+                                                  .read<BillingBloc>()
+                                                  .add(PrintReceiptEvent(
+                                                    shopName: shop.name,
+                                                    address1: shop.addressLine1,
+                                                    address2: shop.addressLine2,
+                                                    phone: shop.phoneNumber,
+                                                    footer: shop.footerText,
+                                                    l10n: l10n,
+                                                    cashierId: cid,
+                                                  )),
+                                            );
+                                          }
                                         : () {},
                                     label: l10n.printReceipt,
                                     icon: Icons.print,

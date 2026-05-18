@@ -619,4 +619,89 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get apiConfigSaved => 'Configuration API sauvegardée !';
+
+  @override
+  String get stockMovements => 'Mouvements de Stock';
+
+  @override
+  String get movementsHistory => 'Mouvements';
+
+  @override
+  String get addRestock => 'Ajouter mouvement';
+
+  @override
+  String get movementType => 'Type de mouvement';
+
+  @override
+  String get moveSaleOut => 'Vente';
+
+  @override
+  String get moveManualOut => 'Sortie manuelle';
+
+  @override
+  String get moveRestockIn => 'Réapprovisionnement';
+
+  @override
+  String get moveAdjustIn => 'Ajustement +';
+
+  @override
+  String get moveAdjustOut => 'Ajustement −';
+
+  @override
+  String get moveReturnIn => 'Retour client';
+
+  @override
+  String get supplier => 'Fournisseur';
+
+  @override
+  String get suppliers => 'Fournisseurs';
+
+  @override
+  String get addSupplier => 'Ajouter un fournisseur';
+
+  @override
+  String get unitCost => 'Prix d\'achat unitaire';
+
+  @override
+  String get quantity => 'Quantité';
+
+  @override
+  String get note => 'Note / Raison';
+
+  @override
+  String get noMovements => 'Aucun mouvement enregistré';
+
+  @override
+  String get cashClosure => 'Clôture de Caisse';
+
+  @override
+  String get closeCashRegister => 'Clôturer la caisse';
+
+  @override
+  String get cashClosureTitle => 'Récapitulatif de Caisse';
+
+  @override
+  String get periodFrom => 'Depuis';
+
+  @override
+  String get tvaLabel => 'TVA 19,25%';
+
+  @override
+  String get totalHTax => 'Total HT';
+
+  @override
+  String get totalATax => 'Total TTC';
+
+  @override
+  String get closureSuccess => 'Clôture enregistrée avec succès !';
+
+  @override
+  String get lastClosure => 'Historique des clôtures';
+
+  @override
+  String get noClosure => 'Aucune clôture précédente';
+
+  @override
+  String get cashClosureConfirm =>
+      'Cette action enregistre la clôture de caisse. Continuer ?';
 }

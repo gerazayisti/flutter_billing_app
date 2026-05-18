@@ -39,10 +39,20 @@ class AppDrawer extends StatelessWidget {
                   _navItem(context, icon: Icons.inventory_2_outlined,
                       label: l10n.inventory, route: '/products'),
 
+                // Stock movements: owner + stockManager
+                if (user == null || user.canAccessInventory)
+                  _navItem(context, icon: Icons.swap_vert_rounded,
+                      label: l10n.stockMovements, route: '/stock'),
+
                 // Dashboard: owner only
                 if (user == null || user.canAccessDashboard)
                   _navItem(context, icon: Icons.bar_chart_rounded,
                       label: l10n.dashboard, route: '/dashboard'),
+
+                // Cash closure: owner only
+                if (user == null || user.canAccessDashboard)
+                  _navItem(context, icon: Icons.lock_clock_rounded,
+                      label: l10n.cashClosure, route: '/cash-closure'),
 
                 const Divider(),
 
@@ -106,7 +116,7 @@ class AppDrawer extends StatelessWidget {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: roleColor.withOpacity(0.25),
+              color: roleColor.withValues(alpha:0.25),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(roleLabel,
@@ -130,7 +140,7 @@ class AppDrawer extends StatelessWidget {
             color: isSelected ? AppTheme.primaryColor : Colors.black87,
           )),
       selected: isSelected,
-      selectedTileColor: AppTheme.primaryColor.withOpacity(0.05),
+      selectedTileColor: AppTheme.primaryColor.withValues(alpha:0.05),
       onTap: () {
         Navigator.pop(context);
         context.go(route);

@@ -1309,6 +1309,174 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Configuration API sauvegardée !'**
   String get apiConfigSaved;
+
+  /// No description provided for @stockMovements.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mouvements de Stock'**
+  String get stockMovements;
+
+  /// No description provided for @movementsHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mouvements'**
+  String get movementsHistory;
+
+  /// No description provided for @addRestock.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter mouvement'**
+  String get addRestock;
+
+  /// No description provided for @movementType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de mouvement'**
+  String get movementType;
+
+  /// No description provided for @moveSaleOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vente'**
+  String get moveSaleOut;
+
+  /// No description provided for @moveManualOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sortie manuelle'**
+  String get moveManualOut;
+
+  /// No description provided for @moveRestockIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réapprovisionnement'**
+  String get moveRestockIn;
+
+  /// No description provided for @moveAdjustIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajustement +'**
+  String get moveAdjustIn;
+
+  /// No description provided for @moveAdjustOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajustement −'**
+  String get moveAdjustOut;
+
+  /// No description provided for @moveReturnIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour client'**
+  String get moveReturnIn;
+
+  /// No description provided for @supplier.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fournisseur'**
+  String get supplier;
+
+  /// No description provided for @suppliers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fournisseurs'**
+  String get suppliers;
+
+  /// No description provided for @addSupplier.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un fournisseur'**
+  String get addSupplier;
+
+  /// No description provided for @unitCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix d\'achat unitaire'**
+  String get unitCost;
+
+  /// No description provided for @quantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantité'**
+  String get quantity;
+
+  /// No description provided for @note.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note / Raison'**
+  String get note;
+
+  /// No description provided for @noMovements.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun mouvement enregistré'**
+  String get noMovements;
+
+  /// No description provided for @cashClosure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôture de Caisse'**
+  String get cashClosure;
+
+  /// No description provided for @closeCashRegister.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer la caisse'**
+  String get closeCashRegister;
+
+  /// No description provided for @cashClosureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récapitulatif de Caisse'**
+  String get cashClosureTitle;
+
+  /// No description provided for @periodFrom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis'**
+  String get periodFrom;
+
+  /// No description provided for @tvaLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'TVA 19,25%'**
+  String get tvaLabel;
+
+  /// No description provided for @totalHTax.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total HT'**
+  String get totalHTax;
+
+  /// No description provided for @totalATax.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total TTC'**
+  String get totalATax;
+
+  /// No description provided for @closureSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôture enregistrée avec succès !'**
+  String get closureSuccess;
+
+  /// No description provided for @lastClosure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des clôtures'**
+  String get lastClosure;
+
+  /// No description provided for @noClosure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune clôture précédente'**
+  String get noClosure;
+
+  /// No description provided for @cashClosureConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette action enregistre la clôture de caisse. Continuer ?'**
+  String get cashClosureConfirm;
 }
 
 class _AppLocalizationsDelegate

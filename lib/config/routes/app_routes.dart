@@ -17,6 +17,9 @@ import '../../features/auth/presentation/pages/pin_login_page.dart';
 import '../../features/auth/presentation/bloc/user_management_bloc.dart';
 import '../../features/auth/presentation/pages/user_management_page.dart';
 import '../../features/billing/presentation/pages/order_history_page.dart';
+import '../../features/stock/presentation/pages/stock_movements_page.dart';
+import '../../features/stock/presentation/pages/cash_closure_page.dart';
+import '../../features/stock/presentation/bloc/stock_bloc.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -82,6 +85,20 @@ final router = GoRouter(
       builder: (context, state) => BlocProvider(
         create: (_) => sl<UserManagementBloc>()..add(LoadUsersEvent()),
         child: const UserManagementPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/stock',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<StockBloc>()..add(LoadStockEvent()),
+        child: const StockMovementsPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/cash-closure',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<StockBloc>()..add(LoadStockEvent()),
+        child: const CashClosurePage(),
       ),
     ),
   ],

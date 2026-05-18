@@ -7,6 +7,9 @@ import '../../features/billing/data/models/held_order_model.dart';
 import '../../features/auth/data/models/user_model.dart';
 import '../../features/auth/domain/entities/user.dart';
 import '../../features/payment/data/models/momo_transaction_model.dart';
+import '../../features/stock/data/models/stock_movement_model.dart';
+import '../../features/stock/data/models/supplier_model.dart';
+import '../../features/stock/data/models/cash_register_closure_model.dart';
 import '../utils/pin_hasher.dart';
 
 class HiveDatabase {
@@ -17,6 +20,9 @@ class HiveDatabase {
   static const String heldOrderBoxName = 'heldOrders';
   static const String usersBoxName = 'users';
   static const String momoTransactionsBoxName = 'momoTransactions';
+  static const String stockMovementsBoxName = 'stockMovements';
+  static const String suppliersBoxName = 'suppliers';
+  static const String cashClosuresBoxName = 'cashClosures';
 
   static late Box<ProductModel> productBox;
   static late Box<ShopModel> shopBox;
@@ -25,6 +31,9 @@ class HiveDatabase {
   static late Box<HeldOrderModel> heldOrderBox;
   static late Box<UserModel> usersBox;
   static late Box<MomoTransactionModel> momoTransactionsBox;
+  static late Box<StockMovementModel> stockMovementsBox;
+  static late Box<SupplierModel> suppliersBox;
+  static late Box<CashRegisterClosureModel> cashClosuresBox;
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -39,6 +48,9 @@ class HiveDatabase {
     Hive.registerAdapter(UserModelAdapter());
     Hive.registerAdapter(RoleAdapter());
     Hive.registerAdapter(MomoTransactionModelAdapter());
+    Hive.registerAdapter(StockMovementModelAdapter());
+    Hive.registerAdapter(SupplierModelAdapter());
+    Hive.registerAdapter(CashRegisterClosureModelAdapter());
 
     // Open boxes
     productBox = await Hive.openBox<ProductModel>(productBoxName);
@@ -48,6 +60,9 @@ class HiveDatabase {
     heldOrderBox = await Hive.openBox<HeldOrderModel>(heldOrderBoxName);
     usersBox = await Hive.openBox<UserModel>(usersBoxName);
     momoTransactionsBox = await Hive.openBox<MomoTransactionModel>(momoTransactionsBoxName);
+    stockMovementsBox = await Hive.openBox<StockMovementModel>(stockMovementsBoxName);
+    suppliersBox = await Hive.openBox<SupplierModel>(suppliersBoxName);
+    cashClosuresBox = await Hive.openBox<CashRegisterClosureModel>(cashClosuresBoxName);
 
     // Seed default owner if no users exist
     if (usersBox.isEmpty) {

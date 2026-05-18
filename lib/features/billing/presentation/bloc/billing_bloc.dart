@@ -13,6 +13,7 @@ import '../../domain/entities/payment_method.dart';
 import '../../data/models/held_order_model.dart';
 import '../../data/repositories/held_order_repository.dart';
 import 'package:billing_app/features/product/data/models/product_model.dart';
+import 'package:billing_app/features/stock/data/models/stock_movement_model.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
 part 'billing_event.dart';
@@ -228,28 +229,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
             .toList(),
       );
       await saveOrderUseCase(order);
-
-      // ✅ Decrement Stock
-      for (var item in state.cartItems) {
-        final productBox = HiveDatabase.productBox;
-        final productModel = productBox.get(item.product.id);
-        if (productModel != null) {
-          final newStock = productModel.stock - item.quantity;
-          await productBox.put(
-            item.product.id,
-            ProductModel(
-              id: productModel.id,
-              name: productModel.name,
-              barcode: productModel.barcode,
-              price: productModel.price,
-              stock: newStock >= 0 ? newStock : 0,
-              category: productModel.category,
-              minStockAlert: productModel.minStockAlert,
-              variants: productModel.variants,
-            ),
-          );
-        }
-      }
+      await _decrementStockAndRecord(order.id, event.cashierId);
 
       emit(state.copyWith(isPrinting: false, printSuccess: true));
     } catch (e) {
@@ -278,9 +258,13 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
           .toList(),
     );
     await saveOrderUseCase(order);
+    await _decrementStockAndRecord(order.id, event.cashierId);
 
-    // ✅ Decrement Stock
-    for (var item in state.cartItems) {
+    emit(state.copyWith(printSuccess: true));
+  }
+
+  Future<void> _decrementStockAndRecord(String orderId, String cashierId) async {
+    for (final item in state.cartItems) {
       final productBox = HiveDatabase.productBox;
       final productModel = productBox.get(item.product.id);
       if (productModel != null) {
@@ -299,9 +283,19 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
           ),
         );
       }
+      // Record saleOut movement
+      final movement = StockMovementModel(
+        id: const Uuid().v4(),
+        productId: item.product.id,
+        productName: item.product.name,
+        typeName: 'saleOut',
+        quantity: item.quantity,
+        operatorId: cashierId,
+        date: DateTime.now(),
+        orderId: orderId,
+      );
+      await HiveDatabase.stockMovementsBox.put(movement.id, movement);
     }
-
-    emit(state.copyWith(printSuccess: true));
   }
 
   void _onSelectVariant(SelectVariantEvent event, Emitter<BillingState> emit) {

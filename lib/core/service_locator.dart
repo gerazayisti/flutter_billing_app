@@ -22,6 +22,9 @@ import '../../features/settings/presentation/bloc/locale_bloc.dart';
 import '../../features/payment/data/repositories/payment_repository_impl.dart';
 import '../../features/payment/domain/repositories/payment_repository.dart';
 import '../../features/payment/presentation/bloc/payment_bloc.dart';
+import '../../features/stock/data/repositories/stock_repository_impl.dart';
+import '../../features/stock/domain/repositories/stock_repository.dart';
+import '../../features/stock/presentation/bloc/stock_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -91,4 +94,8 @@ Future<void> init() async {
   // ── Features - Payment (Mobile Money) ─────────────────────────────────────
   sl.registerLazySingleton<PaymentRepository>(() => PaymentRepositoryImpl());
   sl.registerFactory(() => PaymentBloc(repository: sl()));
+
+  // ── Features - Stock & Reporting ──────────────────────────────────────────
+  sl.registerLazySingleton<StockRepository>(() => StockRepositoryImpl());
+  sl.registerFactory(() => StockBloc(repository: sl()));
 }

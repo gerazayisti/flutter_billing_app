@@ -617,4 +617,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apiConfigSaved => 'API configuration saved!';
+
+  @override
+  String get stockMovements => 'Stock Movements';
+
+  @override
+  String get movementsHistory => 'Movements';
+
+  @override
+  String get addRestock => 'Add movement';
+
+  @override
+  String get movementType => 'Movement type';
+
+  @override
+  String get moveSaleOut => 'Sale';
+
+  @override
+  String get moveManualOut => 'Manual out';
+
+  @override
+  String get moveRestockIn => 'Restock';
+
+  @override
+  String get moveAdjustIn => 'Adjustment +';
+
+  @override
+  String get moveAdjustOut => 'Adjustment −';
+
+  @override
+  String get moveReturnIn => 'Customer return';
+
+  @override
+  String get supplier => 'Supplier';
+
+  @override
+  String get suppliers => 'Suppliers';
+
+  @override
+  String get addSupplier => 'Add supplier';
+
+  @override
+  String get unitCost => 'Unit purchase cost';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get note => 'Note / Reason';
+
+  @override
+  String get noMovements => 'No movements recorded';
+
+  @override
+  String get cashClosure => 'Cash Register Closure';
+
+  @override
+  String get closeCashRegister => 'Close cash register';
+
+  @override
+  String get cashClosureTitle => 'Cash Register Summary';
+
+  @override
+  String get periodFrom => 'Since';
+
+  @override
+  String get tvaLabel => 'VAT 19.25%';
+
+  @override
+  String get totalHTax => 'Total excl. tax';
+
+  @override
+  String get totalATax => 'Total incl. tax';
+
+  @override
+  String get closureSuccess => 'Cash closure recorded successfully!';
+
+  @override
+  String get lastClosure => 'Closure history';
+
+  @override
+  String get noClosure => 'No previous closure';
+
+  @override
+  String get cashClosureConfirm =>
+      'This will record the cash register closure. Continue?';
 }
