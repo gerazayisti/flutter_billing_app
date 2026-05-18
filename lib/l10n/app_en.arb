@@ -195,5 +195,26 @@
   "insufficientCash": "Insufficient amount",
 
   "pinLocked": "Locked after 3 attempts. Try again in 30 seconds.",
-  "attemptsLeft": "attempt(s) remaining"
+  "attemptsLeft": "attempt(s) remaining",
+
+  "momoPaymentTitle": "Mobile Money Payment",
+  "enterCustomerPhone": "Customer phone number",
+  "phoneHint": "e.g. 6XXXXXXXX",
+  "initiatePayment": "Initiate payment",
+  "waitingForPayment": "Waiting for payment...",
+  "paymentConfirmed": "Payment confirmed!",
+  "paymentFailed": "Payment failed",
+  "enterRefManually": "Enter reference manually",
+  "transactionRef": "Transaction reference",
+  "manualConfirmation": "Confirm manually",
+  "cancelPayment": "Cancel payment",
+  "dialUssdCode": "Customer should dial this code",
+  "mtnApiConfig": "MTN MoMo API Configuration",
+  "apiUserIdLabel": "API User ID (UUID)",
+  "apiKeyLabel": "API Key",
+  "subscriptionKeyLabel": "Subscription Key",
+  "targetEnvironment": "Environment",
+  "sandboxMode": "Sandbox (Test)",
+  "productionMode": "Production",
+  "apiConfigSaved": "API configuration saved!"
 }

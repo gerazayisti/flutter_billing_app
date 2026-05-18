@@ -6,6 +6,7 @@ import '../../features/billing/data/models/order_item_model.dart';
 import '../../features/billing/data/models/held_order_model.dart';
 import '../../features/auth/data/models/user_model.dart';
 import '../../features/auth/domain/entities/user.dart';
+import '../../features/payment/data/models/momo_transaction_model.dart';
 import '../utils/pin_hasher.dart';
 
 class HiveDatabase {
@@ -15,6 +16,7 @@ class HiveDatabase {
   static const String orderBoxName = 'orders';
   static const String heldOrderBoxName = 'heldOrders';
   static const String usersBoxName = 'users';
+  static const String momoTransactionsBoxName = 'momoTransactions';
 
   static late Box<ProductModel> productBox;
   static late Box<ShopModel> shopBox;
@@ -22,6 +24,7 @@ class HiveDatabase {
   static late Box<OrderModel> orderBox;
   static late Box<HeldOrderModel> heldOrderBox;
   static late Box<UserModel> usersBox;
+  static late Box<MomoTransactionModel> momoTransactionsBox;
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -35,6 +38,7 @@ class HiveDatabase {
     Hive.registerAdapter(HeldCartItemModelAdapter());
     Hive.registerAdapter(UserModelAdapter());
     Hive.registerAdapter(RoleAdapter());
+    Hive.registerAdapter(MomoTransactionModelAdapter());
 
     // Open boxes
     productBox = await Hive.openBox<ProductModel>(productBoxName);
@@ -43,6 +47,7 @@ class HiveDatabase {
     orderBox = await Hive.openBox<OrderModel>(orderBoxName);
     heldOrderBox = await Hive.openBox<HeldOrderModel>(heldOrderBoxName);
     usersBox = await Hive.openBox<UserModel>(usersBoxName);
+    momoTransactionsBox = await Hive.openBox<MomoTransactionModel>(momoTransactionsBoxName);
 
     // Seed default owner if no users exist
     if (usersBox.isEmpty) {

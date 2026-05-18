@@ -1189,6 +1189,126 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'tentative(s) restante(s)'**
   String get attemptsLeft;
+
+  /// No description provided for @momoPaymentTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement Mobile Money'**
+  String get momoPaymentTitle;
+
+  /// No description provided for @enterCustomerPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numéro du client'**
+  String get enterCustomerPhone;
+
+  /// No description provided for @phoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex: 6XXXXXXXX'**
+  String get phoneHint;
+
+  /// No description provided for @initiatePayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Initier le paiement'**
+  String get initiatePayment;
+
+  /// No description provided for @waitingForPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente du paiement...'**
+  String get waitingForPayment;
+
+  /// No description provided for @paymentConfirmed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement confirmé !'**
+  String get paymentConfirmed;
+
+  /// No description provided for @paymentFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement échoué'**
+  String get paymentFailed;
+
+  /// No description provided for @enterRefManually.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisir la référence manuellement'**
+  String get enterRefManually;
+
+  /// No description provided for @transactionRef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Référence de transaction'**
+  String get transactionRef;
+
+  /// No description provided for @manualConfirmation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer manuellement'**
+  String get manualConfirmation;
+
+  /// No description provided for @cancelPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le paiement'**
+  String get cancelPayment;
+
+  /// No description provided for @dialUssdCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le client doit composer ce code'**
+  String get dialUssdCode;
+
+  /// No description provided for @mtnApiConfig.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration API MTN MoMo'**
+  String get mtnApiConfig;
+
+  /// No description provided for @apiUserIdLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisateur API (UUID)'**
+  String get apiUserIdLabel;
+
+  /// No description provided for @apiKeyLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clé API'**
+  String get apiKeyLabel;
+
+  /// No description provided for @subscriptionKeyLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clé d\'abonnement'**
+  String get subscriptionKeyLabel;
+
+  /// No description provided for @targetEnvironment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Environnement'**
+  String get targetEnvironment;
+
+  /// No description provided for @sandboxMode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sandbox (Test)'**
+  String get sandboxMode;
+
+  /// No description provided for @productionMode.
+  ///
+  /// In fr, this message translates to:
+  /// **'Production'**
+  String get productionMode;
+
+  /// No description provided for @apiConfigSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration API sauvegardée !'**
+  String get apiConfigSaved;
 }
 
 class _AppLocalizationsDelegate

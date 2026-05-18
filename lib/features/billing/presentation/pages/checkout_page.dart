@@ -2,11 +2,13 @@ import 'package:billing_app/core/utils/receipt_share_service.dart';
 import 'package:billing_app/core/utils/xaf_formatter.dart';
 import 'package:billing_app/features/billing/domain/entities/payment_method.dart';
 import 'package:billing_app/core/widgets/primary_button.dart';
+import 'package:billing_app/features/payment/presentation/widgets/momo_payment_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/billing_bloc.dart';
 
@@ -286,9 +288,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               children: [
                                 Expanded(
                                   child: OutlinedButton.icon(
-                                    onPressed: () => context
-                                        .read<BillingBloc>()
-                                        .add(const SaveOrderWithoutPrintEvent()),
+                                    onPressed: () => _handleAction(
+                                      context: context,
+                                      billingState: billingState,
+                                      shop: shop,
+                                      l10n: l10n,
+                                      action: () => context
+                                          .read<BillingBloc>()
+                                          .add(const SaveOrderWithoutPrintEvent()),
+                                    ),
                                     icon: const Icon(Icons.save, size: 20),
                                     label: Text(l10n.saveOnly),
                                     style: OutlinedButton.styleFrom(
@@ -303,15 +311,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   flex: 2,
                                   child: PrimaryButton(
                                     onPressed: shop != null
-                                        ? () => context.read<BillingBloc>().add(
-                                              PrintReceiptEvent(
-                                                shopName: shop.name,
-                                                address1: shop.addressLine1,
-                                                address2: shop.addressLine2,
-                                                phone: shop.phoneNumber,
-                                                footer: shop.footerText,
-                                                l10n: l10n,
-                                              ))
+                                        ? () => _handleAction(
+                                              context: context,
+                                              billingState: billingState,
+                                              shop: shop,
+                                              l10n: l10n,
+                                              action: () =>
+                                                  context.read<BillingBloc>().add(
+                                                        PrintReceiptEvent(
+                                                          shopName: shop.name,
+                                                          address1: shop.addressLine1,
+                                                          address2: shop.addressLine2,
+                                                          phone: shop.phoneNumber,
+                                                          footer: shop.footerText,
+                                                          l10n: l10n,
+                                                        ),
+                                                      ),
+                                            )
                                         : () {},
                                     label: l10n.printReceipt,
                                     icon: Icons.print,
@@ -331,6 +347,37 @@ class _CheckoutPageState extends State<CheckoutPage> {
           },
         ),
       ),
+    );
+  }
+
+  // Intercepts save/print: if MoMo method, shows payment dialog first.
+  void _handleAction({
+    required BuildContext context,
+    required BillingState billingState,
+    required dynamic shop,
+    required AppLocalizations l10n,
+    required VoidCallback action,
+  }) {
+    if (!billingState.paymentMethod.isMobileMoney) {
+      action();
+      return;
+    }
+
+    final isOrange = billingState.paymentMethod == PaymentMethod.orangeMoney;
+    final code = shop != null
+        ? (isOrange ? shop.orangeMoneyMerchant : shop.mtnMomoMerchant) as String
+        : '';
+
+    final authState = context.read<AuthBloc>().state;
+    final cashierId = authState is AuthAuthenticated ? authState.user.id : 'unknown';
+
+    MomoPaymentDialog.show(
+      context,
+      method: billingState.paymentMethod,
+      amount: billingState.totalAmount,
+      merchantCode: code,
+      cashierId: cashierId,
+      onConfirmed: action,
     );
   }
 
@@ -480,9 +527,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

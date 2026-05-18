@@ -195,5 +195,26 @@
   "insufficientCash": "Montant insuffisant",
 
   "pinLocked": "Accès bloqué après 3 tentatives. Réessayez dans 30 secondes.",
-  "attemptsLeft": "tentative(s) restante(s)"
+  "attemptsLeft": "tentative(s) restante(s)",
+
+  "momoPaymentTitle": "Paiement Mobile Money",
+  "enterCustomerPhone": "Numéro du client",
+  "phoneHint": "Ex: 6XXXXXXXX",
+  "initiatePayment": "Initier le paiement",
+  "waitingForPayment": "En attente du paiement...",
+  "paymentConfirmed": "Paiement confirmé !",
+  "paymentFailed": "Paiement échoué",
+  "enterRefManually": "Saisir la référence manuellement",
+  "transactionRef": "Référence de transaction",
+  "manualConfirmation": "Confirmer manuellement",
+  "cancelPayment": "Annuler le paiement",
+  "dialUssdCode": "Le client doit composer ce code",
+  "mtnApiConfig": "Configuration API MTN MoMo",
+  "apiUserIdLabel": "Utilisateur API (UUID)",
+  "apiKeyLabel": "Clé API",
+  "subscriptionKeyLabel": "Clé d'abonnement",
+  "targetEnvironment": "Environnement",
+  "sandboxMode": "Sandbox (Test)",
+  "productionMode": "Production",
+  "apiConfigSaved": "Configuration API sauvegardée !"
 }

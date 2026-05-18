@@ -559,4 +559,64 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attemptsLeft => 'tentative(s) restante(s)';
+
+  @override
+  String get momoPaymentTitle => 'Paiement Mobile Money';
+
+  @override
+  String get enterCustomerPhone => 'Numéro du client';
+
+  @override
+  String get phoneHint => 'Ex: 6XXXXXXXX';
+
+  @override
+  String get initiatePayment => 'Initier le paiement';
+
+  @override
+  String get waitingForPayment => 'En attente du paiement...';
+
+  @override
+  String get paymentConfirmed => 'Paiement confirmé !';
+
+  @override
+  String get paymentFailed => 'Paiement échoué';
+
+  @override
+  String get enterRefManually => 'Saisir la référence manuellement';
+
+  @override
+  String get transactionRef => 'Référence de transaction';
+
+  @override
+  String get manualConfirmation => 'Confirmer manuellement';
+
+  @override
+  String get cancelPayment => 'Annuler le paiement';
+
+  @override
+  String get dialUssdCode => 'Le client doit composer ce code';
+
+  @override
+  String get mtnApiConfig => 'Configuration API MTN MoMo';
+
+  @override
+  String get apiUserIdLabel => 'Utilisateur API (UUID)';
+
+  @override
+  String get apiKeyLabel => 'Clé API';
+
+  @override
+  String get subscriptionKeyLabel => 'Clé d\'abonnement';
+
+  @override
+  String get targetEnvironment => 'Environnement';
+
+  @override
+  String get sandboxMode => 'Sandbox (Test)';
+
+  @override
+  String get productionMode => 'Production';
+
+  @override
+  String get apiConfigSaved => 'Configuration API sauvegardée !';
 }

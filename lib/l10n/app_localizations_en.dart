@@ -557,4 +557,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attemptsLeft => 'attempt(s) remaining';
+
+  @override
+  String get momoPaymentTitle => 'Mobile Money Payment';
+
+  @override
+  String get enterCustomerPhone => 'Customer phone number';
+
+  @override
+  String get phoneHint => 'e.g. 6XXXXXXXX';
+
+  @override
+  String get initiatePayment => 'Initiate payment';
+
+  @override
+  String get waitingForPayment => 'Waiting for payment...';
+
+  @override
+  String get paymentConfirmed => 'Payment confirmed!';
+
+  @override
+  String get paymentFailed => 'Payment failed';
+
+  @override
+  String get enterRefManually => 'Enter reference manually';
+
+  @override
+  String get transactionRef => 'Transaction reference';
+
+  @override
+  String get manualConfirmation => 'Confirm manually';
+
+  @override
+  String get cancelPayment => 'Cancel payment';
+
+  @override
+  String get dialUssdCode => 'Customer should dial this code';
+
+  @override
+  String get mtnApiConfig => 'MTN MoMo API Configuration';
+
+  @override
+  String get apiUserIdLabel => 'API User ID (UUID)';
+
+  @override
+  String get apiKeyLabel => 'API Key';
+
+  @override
+  String get subscriptionKeyLabel => 'Subscription Key';
+
+  @override
+  String get targetEnvironment => 'Environment';
+
+  @override
+  String get sandboxMode => 'Sandbox (Test)';
+
+  @override
+  String get productionMode => 'Production';
+
+  @override
+  String get apiConfigSaved => 'API configuration saved!';
 }
