@@ -30,10 +30,24 @@ import '../../features/subscription/presentation/pages/subscription_page.dart';
 import '../../features/subscription/presentation/bloc/subscription_bloc.dart';
 import '../../features/boutiques/presentation/pages/boutiques_page.dart';
 import '../../features/auth/presentation/pages/profile_page.dart';
+import '../../features/onboarding/presentation/pages/onboarding_page.dart';
+import '../../core/data/hive_database.dart';
+import '../../features/settings/presentation/pages/help_page.dart';
 
 final router = GoRouter(
   initialLocation: '/',
+  redirect: (context, state) {
+    final hasSeenOnboarding = HiveDatabase.settingsBox.get('has_seen_onboarding', defaultValue: false) as bool;
+    if (!hasSeenOnboarding && state.matchedLocation != '/onboarding') {
+      return '/onboarding';
+    }
+    return null;
+  },
   routes: [
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingPage(),
+    ),
     GoRoute(
       path: '/',
       builder: (context, state) => const EmailLoginPage(),
@@ -162,6 +176,10 @@ final router = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => const ProfilePage(),
+    ),
+    GoRoute(
+      path: '/help',
+      builder: (context, state) => const HelpPage(),
     ),
   ],
 );

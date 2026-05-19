@@ -854,4 +854,176 @@ class AppLocalizationsEn extends AppLocalizations {
   String insufficientStock(String name, int max) {
     return '$name: insufficient stock (max $max)';
   }
+
+  @override
+  String get onboardingTitle1 => 'Modernity & Speed';
+
+  @override
+  String get onboardingDesc1 =>
+      'Discover Gestock+, your new ultra-fast cash register and stock manager.';
+
+  @override
+  String get onboardingTitle2 => 'Sales & Inventory';
+
+  @override
+  String get onboardingDesc2 =>
+      'Scan your items, track your stock in real-time and generate professional receipts.';
+
+  @override
+  String get onboardingTitle3 => 'Offline Reliability';
+
+  @override
+  String get onboardingDesc3 =>
+      'Continue selling even without internet. Everything synchronizes automatically once connection is back!';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String stepProgress(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get genericError =>
+      'An error occurred. Please check your connection and try again later.';
+
+  @override
+  String get helpCenter => 'Help Center';
+
+  @override
+  String get helpGuideTitle => 'Gestock+ Setup Guide';
+
+  @override
+  String get helpGuideDesc =>
+      'Find the key steps here to configure and use the app based on your role.';
+
+  @override
+  String get keySteps => 'Your key steps';
+
+  @override
+  String get guidedTour => 'Interactive Guided Tour 🎬';
+
+  @override
+  String get guidedTourDesc =>
+      'Launch the step-by-step visual spotlight on your dashboard.';
+
+  @override
+  String get stepOwner1Title => 'Add Your Products';
+
+  @override
+  String get stepOwner1Desc =>
+      'Go to \"Inventory\" or \"Products\". Click the \"+\" button to add your items with their purchase price, retail price, and initial stock level.';
+
+  @override
+  String get stepOwner2Title => 'Perform a Test Sale';
+
+  @override
+  String get stepOwner2Desc =>
+      'Go to the \"Register\" (or Sales) tab. Tap products to add them to the cart. Complete the sale and choose the payment method.';
+
+  @override
+  String get stepOwner3Title => 'Hardware Configuration';
+
+  @override
+  String get stepOwner3Desc =>
+      'Access \"Settings\". You can pair your Bluetooth thermal receipt printer and customize the footer text of your printed receipts.';
+
+  @override
+  String get stepOwner4Title => 'Add Employees';
+
+  @override
+  String get stepOwner4Desc =>
+      'In \"Settings\", click on \"Employee management\" to add Cashiers or Stock Managers and assign them specific permissions.';
+
+  @override
+  String get spotlightHeaderTitle => 'Gestock+ Header';
+
+  @override
+  String get spotlightHeaderDesc =>
+      'Here is your cash register application logo and notifications center to stay updated.';
+
+  @override
+  String get spotlightSalesTitle => 'Sales Statistics';
+
+  @override
+  String get spotlightSalesDesc =>
+      'View your daily revenue, transaction counts, and variation compared to yesterday in real-time.';
+
+  @override
+  String get spotlightSubTitle => 'Subscription Status';
+
+  @override
+  String get spotlightSubDesc =>
+      'Track the status of your Gestock+ license and access offers to unlock all features.';
+
+  @override
+  String get spotlightQuickTitle => 'Quick Action Shortcuts';
+
+  @override
+  String get spotlightQuickDesc =>
+      'Quickly access checkout sales, product inventory, printer configuration, or employee management.';
+
+  @override
+  String get stepCashier1Title => 'Perform a Test Sale';
+
+  @override
+  String get stepCashier1Desc =>
+      'Go to checkout, scan or add items to the cart, then accept the payment.';
+
+  @override
+  String get stepCashier2Title => 'Pair Your Bluetooth Printer';
+
+  @override
+  String get stepCashier2Desc =>
+      'Pair your Bluetooth thermal printer to print physical receipts for your customers.';
+
+  @override
+  String get stepCashier3Title => 'View Your Sales History';
+
+  @override
+  String get stepCashier3Desc =>
+      'Access your billing history to review your daily sales or reprint a receipt.';
+
+  @override
+  String get stepManager1Title => 'View Stock Status';
+
+  @override
+  String get stepManager1Desc =>
+      'Access the complete inventory to monitor your item quantities and identify low stock alerts.';
+
+  @override
+  String get stepManager2Title => 'Add Stock Movements';
+
+  @override
+  String get stepManager2Desc =>
+      'Log new stock replenishments, losses, or manual inventory adjustments.';
+
+  @override
+  String get stepManager3Title => 'Add a Supplier';
+
+  @override
+  String get stepManager3Desc =>
+      'Register your partner suppliers to better track your purchase orders and inventory entries.';
+
+  @override
+  String get quickStartGuide => 'Quick Start Guide';
+
+  @override
+  String get hide => 'Hide';
+
+  @override
+  String get congratulations => 'Congratulations! 🎉';
+
+  @override
+  String get allStepsCompleted => 'You have completed all key setup steps.';
 }

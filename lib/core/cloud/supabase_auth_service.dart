@@ -3,6 +3,7 @@ import 'package:billing_app/core/config/app_config.dart';
 import 'package:billing_app/core/data/hive_database.dart';
 import 'package:billing_app/features/auth/data/models/user_model.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart' as app;
+import 'package:billing_app/core/services/error_logger_service.dart';
 
 /// Result returned after sign-in or sign-up.
 class AuthResult {
@@ -49,7 +50,13 @@ class SupabaseAuthService {
       if (res.user == null) return const AuthResult.fail('Connexion échouée');
       return _loadMembership(res.user!.id);
     } on AuthException catch (e) {
-      return AuthResult.fail(e.message);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('invalid login credentials')) {
+        return const AuthResult.fail('Email ou mot de passe incorrect.');
+      }
+      _logAuthError(e.toString(), email, 'Sign In (AuthException)');
+      return const AuthResult.fail(
+          'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.');
     } catch (e) {
       final msg = e.toString().toLowerCase();
       if (msg.contains('socket') || msg.contains('network') ||
@@ -57,8 +64,18 @@ class SupabaseAuthService {
         return const AuthResult.fail(
             'Pas de connexion Internet.\nConnectez-vous une première fois avec le réseau, puis l\'app fonctionnera hors ligne.');
       }
-      return AuthResult.fail(e.toString());
+      _logAuthError(e.toString(), email, 'Sign In (Generic Catch)');
+      return const AuthResult.fail(
+          'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.');
     }
+  }
+
+  void _logAuthError(String error, String email, String action) {
+    ErrorLoggerService.sendErrorLog(
+      error: error,
+      userEmail: email,
+      action: action,
+    );
   }
 
   // ── Sign up (owner creates a new boutique via OTP verification) ────
@@ -76,9 +93,15 @@ class SupabaseAuthService {
       if (res.user == null) return 'Inscription échouée';
       return null; // Success, no error
     } on AuthException catch (e) {
-      return e.message;
+      final msg = e.message.toLowerCase();
+      if (msg.contains('already registered') || msg.contains('user already exists')) {
+        return 'Cette adresse e-mail est déjà utilisée.';
+      }
+      _logAuthError(e.toString(), email, 'Initiate Sign Up (AuthException)');
+      return 'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.';
     } catch (e) {
-      return e.toString();
+      _logAuthError(e.toString(), email, 'Initiate Sign Up (Generic Catch)');
+      return 'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.';
     }
   }
 
@@ -133,9 +156,17 @@ class SupabaseAuthService {
         shopData: shopRow,
       );
     } on AuthException catch (e) {
-      return AuthResult.fail(e.message);
+      final msg = e.message.toLowerCase();
+      if (msg.contains('invalid flow state') || msg.contains('otp') || msg.contains('token')) {
+        return const AuthResult.fail('Code OTP incorrect ou expiré.');
+      }
+      _logAuthError(e.toString(), email, 'Verify OTP & Create Shop (AuthException)');
+      return const AuthResult.fail(
+          'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.');
     } catch (e) {
-      return AuthResult.fail(e.toString());
+      _logAuthError(e.toString(), email, 'Verify OTP & Create Shop (Generic Catch)');
+      return const AuthResult.fail(
+          'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.');
     }
   }
 
@@ -148,9 +179,11 @@ class SupabaseAuthService {
       );
       return null;
     } on AuthException catch (e) {
-      return e.message;
+      _logAuthError(e.toString(), email, 'Resend OTP (AuthException)');
+      return 'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.';
     } catch (e) {
-      return e.toString();
+      _logAuthError(e.toString(), email, 'Resend OTP (Generic Catch)');
+      return 'Une erreur s\'est produite. Veuillez vérifier votre connexion et réessayer plus tard.';
     }
   }
 

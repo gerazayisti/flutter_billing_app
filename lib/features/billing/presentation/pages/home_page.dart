@@ -11,6 +11,9 @@ import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../../../core/widgets/app_drawer.dart';
+import '../../../../core/widgets/interactive_guide_card.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/domain/entities/user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -503,21 +506,27 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildEmptyCart() {
     final l10n = AppLocalizations.of(context)!;
+    final authState = context.read<AuthBloc>().state;
+    final user = authState is AuthAuthenticated ? authState.user : null;
+
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (user != null) InteractiveGuideCard(user: user),
+            const SizedBox(height: 16),
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child:
+                  Icon(Icons.shopping_basket, size: 40, color: Colors.grey[300]),
             ),
-            alignment: Alignment.center,
-            child:
-                Icon(Icons.shopping_basket, size: 40, color: Colors.grey[300]),
-          ),
           const SizedBox(height: 16),
           Text(l10n.emptyList,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
@@ -532,8 +541,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCartItemCard(
     BuildContext context,

@@ -218,6 +218,7 @@ class _BoutiquesPageState extends State<BoutiquesPage> {
   }
 
   Widget? _buildFab(BuildContext context, Color accent) {
+    if (_loading) return null;
     if (!_canAddMore) return null;
     return FloatingActionButton.extended(
       backgroundColor: accent,

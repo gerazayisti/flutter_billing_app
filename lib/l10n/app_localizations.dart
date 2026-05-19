@@ -1771,6 +1771,306 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{name} : stock insuffisant (max {max})'**
   String insufficientStock(String name, int max);
+
+  /// No description provided for @onboardingTitle1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modernité et Rapidité'**
+  String get onboardingTitle1;
+
+  /// No description provided for @onboardingDesc1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvrez Gestock+, votre nouvelle caisse enregistreuse et gestionnaire de stock ultra-rapide.'**
+  String get onboardingDesc1;
+
+  /// No description provided for @onboardingTitle2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vente et Inventaire'**
+  String get onboardingTitle2;
+
+  /// No description provided for @onboardingDesc2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez vos articles, suivez vos stocks en temps réel et générez des reçus professionnels.'**
+  String get onboardingDesc2;
+
+  /// No description provided for @onboardingTitle3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiabilité Hors-Ligne'**
+  String get onboardingTitle3;
+
+  /// No description provided for @onboardingDesc3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuez à vendre même sans internet. Tout se synchronise automatiquement au retour de la connexion !'**
+  String get onboardingDesc3;
+
+  /// No description provided for @skip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passer'**
+  String get skip;
+
+  /// No description provided for @next.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivant'**
+  String get next;
+
+  /// No description provided for @previous.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précédent'**
+  String get previous;
+
+  /// No description provided for @finish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get finish;
+
+  /// No description provided for @stepProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Étape {current} sur {total}'**
+  String stepProgress(int current, int total);
+
+  /// No description provided for @genericError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une erreur s\'est produite, veuillez vérifier votre connexion et réessayer plus tard.'**
+  String get genericError;
+
+  /// No description provided for @helpCenter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Centre d\'Aide'**
+  String get helpCenter;
+
+  /// No description provided for @helpGuideTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Guide de configuration Gestock+'**
+  String get helpGuideTitle;
+
+  /// No description provided for @helpGuideDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrouvez ici les étapes indispensables pour configurer et utiliser l\'application selon vos droits.'**
+  String get helpGuideDesc;
+
+  /// No description provided for @keySteps.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos étapes clés'**
+  String get keySteps;
+
+  /// No description provided for @guidedTour.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visite guidée interactive 🎬'**
+  String get guidedTour;
+
+  /// No description provided for @guidedTourDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancer le projecteur visuel pas-à-pas sur votre tableau de bord.'**
+  String get guidedTourDesc;
+
+  /// No description provided for @stepOwner1Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajout de vos Produits'**
+  String get stepOwner1Title;
+
+  /// No description provided for @stepOwner1Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Allez dans \"Inventaire\" ou \"Produits\". Cliquez sur le bouton \"+\" pour ajouter vos articles avec leur prix d\'achat, prix de vente et niveau de stock initial.'**
+  String get stepOwner1Desc;
+
+  /// No description provided for @stepOwner2Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faire un Test de Vente'**
+  String get stepOwner2Title;
+
+  /// No description provided for @stepOwner2Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Allez sur l\'onglet \"Caisse\" (ou Ventes). Touchez vos produits pour les ajouter au panier. Validez la vente et choisissez le mode de règlement.'**
+  String get stepOwner2Desc;
+
+  /// No description provided for @stepOwner3Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Configuration du Matériel'**
+  String get stepOwner3Title;
+
+  /// No description provided for @stepOwner3Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accédez aux \"Paramètres\". Vous pourrez y jumeler votre imprimante de caisse thermique Bluetooth et personnaliser le texte de pied de page de vos reçus imprimés.'**
+  String get stepOwner3Desc;
+
+  /// No description provided for @stepOwner4Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajout des Employés'**
+  String get stepOwner4Title;
+
+  /// No description provided for @stepOwner4Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans les \"Paramètres\", cliquez sur \"Gestion employés\" pour ajouter des comptes de Caissiers ou Gestionnaires de stock et leur assigner des droits spécifiques.'**
+  String get stepOwner4Desc;
+
+  /// No description provided for @spotlightHeaderTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'En-tête Gestock+'**
+  String get spotlightHeaderTitle;
+
+  /// No description provided for @spotlightHeaderDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voici le logo de votre application de caisse et votre centre de notifications pour rester alerté.'**
+  String get spotlightHeaderDesc;
+
+  /// No description provided for @spotlightSalesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques des Ventes'**
+  String get spotlightSalesTitle;
+
+  /// No description provided for @spotlightSalesDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visualisez en temps réel votre chiffre d\'affaires journalier, le nombre de ventes et l\'évolution par rapport à la veille.'**
+  String get spotlightSalesDesc;
+
+  /// No description provided for @spotlightSubTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut de l\'Abonnement'**
+  String get spotlightSubTitle;
+
+  /// No description provided for @spotlightSubDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez le statut de votre licence Gestock+ et accédez aux offres pour débloquer toutes les fonctionnalités.'**
+  String get spotlightSubDesc;
+
+  /// No description provided for @spotlightQuickTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Raccourcis d\'Actions Rapides'**
+  String get spotlightQuickTitle;
+
+  /// No description provided for @spotlightQuickDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accédez rapidement à la caisse de vente, à l\'inventaire des produits, à la configuration de vos imprimantes ou à la gestion des employés.'**
+  String get spotlightQuickDesc;
+
+  /// No description provided for @stepCashier1Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effectuer un Test de Vente'**
+  String get stepCashier1Title;
+
+  /// No description provided for @stepCashier1Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Allez sur la caisse, scannez ou ajoutez des articles au panier puis encaissez le règlement.'**
+  String get stepCashier1Desc;
+
+  /// No description provided for @stepCashier2Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Associer votre Imprimante Bluetooth'**
+  String get stepCashier2Title;
+
+  /// No description provided for @stepCashier2Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jumelez votre imprimante thermique Bluetooth pour imprimer des reçus physiques pour vos clients.'**
+  String get stepCashier2Desc;
+
+  /// No description provided for @stepCashier3Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Consulter l\'Historique de vos Ventes'**
+  String get stepCashier3Title;
+
+  /// No description provided for @stepCashier3Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accédez à l\'historique de vos facturations pour faire le point sur vos ventes journalières ou ré-imprimer un reçu.'**
+  String get stepCashier3Desc;
+
+  /// No description provided for @stepManager1Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Consulter l\'État des Stocks'**
+  String get stepManager1Title;
+
+  /// No description provided for @stepManager1Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accédez à l\'inventaire complet pour surveiller les quantités de vos articles et repérer les alertes de stock minimal.'**
+  String get stepManager1Desc;
+
+  /// No description provided for @stepManager2Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter des Entrées/Sorties de Stock'**
+  String get stepManager2Title;
+
+  /// No description provided for @stepManager2Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renseignez les nouveaux approvisionnements, les pertes ou les ajustements manuels d\'inventaire.'**
+  String get stepManager2Desc;
+
+  /// No description provided for @stepManager3Title.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un Fournisseur'**
+  String get stepManager3Title;
+
+  /// No description provided for @stepManager3Desc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrez vos fournisseurs partenaires pour mieux assurer le suivi de vos bons de commande et entrées d\'inventaire.'**
+  String get stepManager3Desc;
+
+  /// No description provided for @quickStartGuide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Guide de démarrage rapide'**
+  String get quickStartGuide;
+
+  /// No description provided for @hide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer'**
+  String get hide;
+
+  /// No description provided for @congratulations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Félicitations ! 🎉'**
+  String get congratulations;
+
+  /// No description provided for @allStepsCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez complété l\'ensemble des étapes clés de configuration.'**
+  String get allStepsCompleted;
 }
 
 class _AppLocalizationsDelegate

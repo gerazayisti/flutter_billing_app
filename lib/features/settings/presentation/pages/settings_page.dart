@@ -256,6 +256,20 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
 
+            const SizedBox(height: 24),
+
+            _buildSectionHeader("Aide & Support"),
+            _buildListGroup(
+              children: [
+                _buildListItem(
+                  icon: Icons.help_outline_rounded,
+                  title: "Guide d'utilisation",
+                  subtitle: "Consulter les étapes clés pour votre profil",
+                  onTap: () => context.push('/help'),
+                ),
+              ],
+            ),
+
             if (isAdmin) ...[
               const SizedBox(height: 24),
               // Data & Backup Section

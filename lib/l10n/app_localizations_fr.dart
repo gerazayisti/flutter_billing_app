@@ -860,4 +860,177 @@ class AppLocalizationsFr extends AppLocalizations {
   String insufficientStock(String name, int max) {
     return '$name : stock insuffisant (max $max)';
   }
+
+  @override
+  String get onboardingTitle1 => 'Modernité et Rapidité';
+
+  @override
+  String get onboardingDesc1 =>
+      'Découvrez Gestock+, votre nouvelle caisse enregistreuse et gestionnaire de stock ultra-rapide.';
+
+  @override
+  String get onboardingTitle2 => 'Vente et Inventaire';
+
+  @override
+  String get onboardingDesc2 =>
+      'Scannez vos articles, suivez vos stocks en temps réel et générez des reçus professionnels.';
+
+  @override
+  String get onboardingTitle3 => 'Fiabilité Hors-Ligne';
+
+  @override
+  String get onboardingDesc3 =>
+      'Continuez à vendre même sans internet. Tout se synchronise automatiquement au retour de la connexion !';
+
+  @override
+  String get skip => 'Passer';
+
+  @override
+  String get next => 'Suivant';
+
+  @override
+  String get previous => 'Précédent';
+
+  @override
+  String get finish => 'Terminer';
+
+  @override
+  String stepProgress(int current, int total) {
+    return 'Étape $current sur $total';
+  }
+
+  @override
+  String get genericError =>
+      'Une erreur s\'est produite, veuillez vérifier votre connexion et réessayer plus tard.';
+
+  @override
+  String get helpCenter => 'Centre d\'Aide';
+
+  @override
+  String get helpGuideTitle => 'Guide de configuration Gestock+';
+
+  @override
+  String get helpGuideDesc =>
+      'Retrouvez ici les étapes indispensables pour configurer et utiliser l\'application selon vos droits.';
+
+  @override
+  String get keySteps => 'Vos étapes clés';
+
+  @override
+  String get guidedTour => 'Visite guidée interactive 🎬';
+
+  @override
+  String get guidedTourDesc =>
+      'Lancer le projecteur visuel pas-à-pas sur votre tableau de bord.';
+
+  @override
+  String get stepOwner1Title => 'Ajout de vos Produits';
+
+  @override
+  String get stepOwner1Desc =>
+      'Allez dans \"Inventaire\" ou \"Produits\". Cliquez sur le bouton \"+\" pour ajouter vos articles avec leur prix d\'achat, prix de vente et niveau de stock initial.';
+
+  @override
+  String get stepOwner2Title => 'Faire un Test de Vente';
+
+  @override
+  String get stepOwner2Desc =>
+      'Allez sur l\'onglet \"Caisse\" (ou Ventes). Touchez vos produits pour les ajouter au panier. Validez la vente et choisissez le mode de règlement.';
+
+  @override
+  String get stepOwner3Title => 'Configuration du Matériel';
+
+  @override
+  String get stepOwner3Desc =>
+      'Accédez aux \"Paramètres\". Vous pourrez y jumeler votre imprimante de caisse thermique Bluetooth et personnaliser le texte de pied de page de vos reçus imprimés.';
+
+  @override
+  String get stepOwner4Title => 'Ajout des Employés';
+
+  @override
+  String get stepOwner4Desc =>
+      'Dans les \"Paramètres\", cliquez sur \"Gestion employés\" pour ajouter des comptes de Caissiers ou Gestionnaires de stock et leur assigner des droits spécifiques.';
+
+  @override
+  String get spotlightHeaderTitle => 'En-tête Gestock+';
+
+  @override
+  String get spotlightHeaderDesc =>
+      'Voici le logo de votre application de caisse et votre centre de notifications pour rester alerté.';
+
+  @override
+  String get spotlightSalesTitle => 'Statistiques des Ventes';
+
+  @override
+  String get spotlightSalesDesc =>
+      'Visualisez en temps réel votre chiffre d\'affaires journalier, le nombre de ventes et l\'évolution par rapport à la veille.';
+
+  @override
+  String get spotlightSubTitle => 'Statut de l\'Abonnement';
+
+  @override
+  String get spotlightSubDesc =>
+      'Suivez le statut de votre licence Gestock+ et accédez aux offres pour débloquer toutes les fonctionnalités.';
+
+  @override
+  String get spotlightQuickTitle => 'Raccourcis d\'Actions Rapides';
+
+  @override
+  String get spotlightQuickDesc =>
+      'Accédez rapidement à la caisse de vente, à l\'inventaire des produits, à la configuration de vos imprimantes ou à la gestion des employés.';
+
+  @override
+  String get stepCashier1Title => 'Effectuer un Test de Vente';
+
+  @override
+  String get stepCashier1Desc =>
+      'Allez sur la caisse, scannez ou ajoutez des articles au panier puis encaissez le règlement.';
+
+  @override
+  String get stepCashier2Title => 'Associer votre Imprimante Bluetooth';
+
+  @override
+  String get stepCashier2Desc =>
+      'Jumelez votre imprimante thermique Bluetooth pour imprimer des reçus physiques pour vos clients.';
+
+  @override
+  String get stepCashier3Title => 'Consulter l\'Historique de vos Ventes';
+
+  @override
+  String get stepCashier3Desc =>
+      'Accédez à l\'historique de vos facturations pour faire le point sur vos ventes journalières ou ré-imprimer un reçu.';
+
+  @override
+  String get stepManager1Title => 'Consulter l\'État des Stocks';
+
+  @override
+  String get stepManager1Desc =>
+      'Accédez à l\'inventaire complet pour surveiller les quantités de vos articles et repérer les alertes de stock minimal.';
+
+  @override
+  String get stepManager2Title => 'Ajouter des Entrées/Sorties de Stock';
+
+  @override
+  String get stepManager2Desc =>
+      'Renseignez les nouveaux approvisionnements, les pertes ou les ajustements manuels d\'inventaire.';
+
+  @override
+  String get stepManager3Title => 'Ajouter un Fournisseur';
+
+  @override
+  String get stepManager3Desc =>
+      'Enregistrez vos fournisseurs partenaires pour mieux assurer le suivi de vos bons de commande et entrées d\'inventaire.';
+
+  @override
+  String get quickStartGuide => 'Guide de démarrage rapide';
+
+  @override
+  String get hide => 'Masquer';
+
+  @override
+  String get congratulations => 'Félicitations ! 🎉';
+
+  @override
+  String get allStepsCompleted =>
+      'Vous avez complété l\'ensemble des étapes clés de configuration.';
 }

@@ -66,6 +66,9 @@ dependencies:
   
   flutter_localizations:
     sdk: flutter
+  mailer: ^7.1.0
+  lottie: ^3.3.3
+  smooth_page_indicator: ^2.0.1
 
 dev_dependencies:
   flutter_test:

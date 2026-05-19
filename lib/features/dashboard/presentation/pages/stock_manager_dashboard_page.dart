@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/interactive_guide_card.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -39,6 +41,8 @@ class _StockManagerDashboardPageState
   @override
   Widget build(BuildContext context) {
     final accent = AppColorConfig.accentColor;
+    final authState = context.read<AuthBloc>().state;
+    final user = authState is AuthAuthenticated ? authState.user : null;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -55,6 +59,8 @@ class _StockManagerDashboardPageState
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 20),
+                    if (user != null) InteractiveGuideCard(user: user),
+                    const SizedBox(height: 12),
 
                     // ── Hero card stock ──────────────────────────────────
                     _StockHeroCard(

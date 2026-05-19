@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/subscription_service.dart';
+import '../../../../core/widgets/interactive_guide_card.dart';
+import '../../../../core/widgets/spotlight_tutorial.dart';
+import '../../../../core/data/hive_database.dart';
 import '../../../subscription/domain/subscription.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -28,17 +33,75 @@ class OwnerDashboardPage extends StatefulWidget {
 class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
   static const Color _bg = AppTheme.backgroundColor;
 
+  final GlobalKey _appBarKey = GlobalKey();
+  final GlobalKey _salesHeroKey = GlobalKey();
+  final GlobalKey _subscriptionBannerKey = GlobalKey();
+  final GlobalKey _quickActionsKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     context.read<DashboardBloc>().add(const LoadDashboardEvent());
     context.read<NotificationBloc>().add(LoadNotificationsEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowTutorial();
+    });
+  }
+
+  void _checkAndShowTutorial() {
+    final key = 'has_seen_spotlight_owner';
+    final hasSeen = HiveDatabase.settingsBox.get(key, defaultValue: false) as bool;
+    if (!hasSeen) {
+      _showTutorial(key);
+    }
+  }
+
+  void _showTutorial(String settingsKey) {
+    final accent = AppColorConfig.accentColor;
+    final l10n = AppLocalizations.of(context)!;
+    SpotlightTutorial.show(
+      context,
+      steps: [
+        SpotlightStep(
+          targetKey: _appBarKey,
+          title: l10n.spotlightHeaderTitle,
+          description: l10n.spotlightHeaderDesc,
+          tooltipAlignment: Alignment.bottomCenter,
+        ),
+        SpotlightStep(
+          targetKey: _salesHeroKey,
+          title: l10n.spotlightSalesTitle,
+          description: l10n.spotlightSalesDesc,
+          tooltipAlignment: Alignment.bottomCenter,
+        ),
+        SpotlightStep(
+          targetKey: _subscriptionBannerKey,
+          title: l10n.spotlightSubTitle,
+          description: l10n.spotlightSubDesc,
+          tooltipAlignment: Alignment.bottomCenter,
+        ),
+        SpotlightStep(
+          targetKey: _quickActionsKey,
+          title: l10n.spotlightQuickTitle,
+          description: l10n.spotlightQuickDesc,
+          tooltipAlignment: Alignment.topCenter,
+        ),
+      ],
+      onFinished: () {
+        HiveDatabase.settingsBox.put(settingsKey, true);
+      },
+      onSkipped: () {
+        HiveDatabase.settingsBox.put(settingsKey, true);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     // Lire la couleur d'accent à chaque rebuild (peut changer dans Paramètres)
     final accent = AppColorConfig.accentColor;
+    final authState = context.read<AuthBloc>().state;
+    final user = authState is AuthAuthenticated ? authState.user : null;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -55,23 +118,34 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 20),
+                    if (user != null) InteractiveGuideCard(user: user),
+                    const SizedBox(height: 12),
 
                     // ── Hero card ventes du jour ─────────────────────────
-                    _HeroSalesCard(
-                      accent: accent,
-                      isLoading: state.isLoading,
-                      dailyRevenue: state.dailyRevenue,
-                      transactionCount: state.recentOrders.length,
-                      weeklySales: state.weeklySales,
+                    Container(
+                      key: _salesHeroKey,
+                      child: _HeroSalesCard(
+                        accent: accent,
+                        isLoading: state.isLoading,
+                        dailyRevenue: state.dailyRevenue,
+                        transactionCount: state.recentOrders.length,
+                        weeklySales: state.weeklySales,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
                     // ── Subscription status banner ───────────────────────
-                    _SubscriptionBanner(accent: accent),
+                    Container(
+                      key: _subscriptionBannerKey,
+                      child: _SubscriptionBanner(accent: accent),
+                    ),
                     const SizedBox(height: 16),
 
                     // ── Grille de raccourcis ─────────────────────────────
-                    _QuickActionsGrid(accent: accent),
+                    Container(
+                      key: _quickActionsKey,
+                      child: _QuickActionsGrid(accent: accent),
+                    ),
                     const SizedBox(height: 28),
 
                     // ── Alerte stock ─────────────────────────────────────
@@ -108,7 +182,10 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
         icon: const Icon(Icons.menu_rounded, color: Colors.black87, size: 26),
         onPressed: () {},
       ),
-      title: _GestockLogo(accent: accent),
+      title: Container(
+        key: _appBarKey,
+        child: _GestockLogo(accent: accent),
+      ),
       centerTitle: true,
       actions: [
         BlocBuilder<NotificationBloc, NotificationState>(

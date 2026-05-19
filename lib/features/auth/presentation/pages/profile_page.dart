@@ -33,9 +33,7 @@ class ProfilePage extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 _buildSubscriptionCard(context, accent),
                 const SizedBox(height: 16),
-                _buildShopCard(context, accent),
-                const SizedBox(height: 16),
-                _buildActionsCard(context, accent, user),
+                _buildActionsCard(context, accent),
                 const SizedBox(height: 24),
                 _buildLogoutButton(context),
               ]),
@@ -206,126 +204,25 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildShopCard(BuildContext context, Color accent) {
+  Widget _buildActionsCard(BuildContext context, Color accent) {
     return _CardSection(
-      child: BlocBuilder<ShopBloc, ShopState>(
-        builder: (context, state) {
-          final shopName = state is ShopLoaded && state.shop.name.isNotEmpty
-              ? state.shop.name
-              : 'Ma boutique';
-          final city = state is ShopLoaded ? state.shop.city : '';
-          final shopType = state is ShopLoaded ? state.shop.shopType : '';
-
-          return Column(
-            children: [
-              ListTile(
-                onTap: () => context.push('/shop'),
-                leading: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.storefront_rounded,
-                      color: accent, size: 22),
-                ),
-                title: Text(
-                  shopName,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                subtitle: Text(
-                  [if (shopType.isNotEmpty) shopType, if (city.isNotEmpty) city]
-                      .join(' · ')
-                      .ifEmpty('Modifier les infos boutique'),
-                  style:
-                      TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-                trailing: Icon(Icons.chevron_right_rounded,
-                    color: Colors.grey[300], size: 22),
-                contentPadding: EdgeInsets.zero,
-              ),
-              const Divider(height: 1, indent: 60),
-              ListTile(
-                onTap: () => context.push('/boutiques'),
-                leading: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child:
-                      Icon(Icons.add_business_rounded, color: accent, size: 22),
-                ),
-                title: const Text(
-                  'Mes Boutiques',
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                subtitle: Text(
-                  'Gérer vos boutiques',
-                  style:
-                      TextStyle(fontSize: 12, color: Colors.grey[500]),
-                ),
-                trailing: Icon(Icons.chevron_right_rounded,
-                    color: Colors.grey[300], size: 22),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildActionsCard(
-      BuildContext context, Color accent, User user) {
-    return _CardSection(
-      child: Column(
-        children: [
-          ListTile(
-            onTap: () => context.push('/settings'),
-            leading: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.settings_outlined, color: accent, size: 22),
-            ),
-            title: const Text('Paramètres',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            trailing: Icon(Icons.chevron_right_rounded,
-                color: Colors.grey[300], size: 22),
-            contentPadding: EdgeInsets.zero,
+      child: ListTile(
+        onTap: () => context.push('/settings'),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          if (user.isOwner) ...[
-            const Divider(height: 1, indent: 60),
-            ListTile(
-              onTap: () => context.push('/users'),
-              leading: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.people_outline_rounded,
-                    color: accent, size: 22),
-              ),
-              title: const Text('Gestion employés',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14)),
-              trailing: Icon(Icons.chevron_right_rounded,
-                  color: Colors.grey[300], size: 22),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ],
-        ],
+          child: Icon(Icons.settings_outlined, color: accent, size: 22),
+        ),
+        title: const Text('Paramètres',
+            style:
+                TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        trailing: Icon(Icons.chevron_right_rounded,
+            color: Colors.grey[300], size: 22),
+        contentPadding: EdgeInsets.zero,
       ),
     );
   }
