@@ -1,6 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/subscription.dart';
 import '../../../../core/services/subscription_service.dart';
+import '../../../../core/cloud/supabase_subscription_service.dart';
+import '../../../../core/data/hive_database.dart';
+
 
 // ── Events ────────────────────────────────────────────────────────────────────
 
@@ -65,7 +68,10 @@ class SubscriptionState {
 // ── Bloc ──────────────────────────────────────────────────────────────────────
 
 class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
-  SubscriptionBloc() : super(const SubscriptionState()) {
+  final SupabaseSubscriptionService subscriptionService;
+
+  SubscriptionBloc({required this.subscriptionService})
+      : super(const SubscriptionState()) {
     on<LoadSubscriptionEvent>(_onLoad);
     on<ActivateSubscriptionEvent>(_onActivate);
   }
@@ -82,30 +88,33 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       ActivateSubscriptionEvent event, Emitter<SubscriptionState> emit) async {
     if (event.reference.trim().isEmpty) {
       emit(state.copyWith(error: 'Entrez la référence Freemopay'));
-      emit(state.copyWith(clearError: true));
       return;
     }
 
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(isLoading: true, clearError: true));
 
-    final duration = event.cycle == BillingCycle.monthly
-        ? const Duration(days: 31)
-        : const Duration(days: 366);
+    final shopId = HiveDatabase.settingsBox
+        .get('cloud_shop_id', defaultValue: '') as String;
 
-    final info = SubscriptionInfo(
-      tier: event.tier,
-      cycle: event.cycle,
-      startDate: DateTime.now(),
-      expiryDate: DateTime.now().add(duration),
-      freemopayReference: event.reference.trim(),
+    // Vérification côté serveur via Edge Function :
+    // appelle l'API FreemoPay, vérifie le montant, puis écrit dans Supabase.
+    final error = await subscriptionService.verifyAndActivate(
+      shopId:    shopId,
+      reference: event.reference.trim(),
+      tier:      event.tier,
+      cycle:     event.cycle,
     );
 
-    await SubscriptionService.save(info);
+    if (error != null) {
+      emit(state.copyWith(isLoading: false, error: error));
+      return;
+    }
 
+    // verifyAndActivate a déjà sauvegardé dans Hive — on relit pour être cohérent
     emit(state.copyWith(
       isLoading: false,
-      info: info,
-      activeTier: event.tier,
+      info:      SubscriptionService.current,
+      activeTier: SubscriptionService.activeTier,
       activated: true,
     ));
   }

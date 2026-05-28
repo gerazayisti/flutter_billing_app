@@ -25,15 +25,17 @@ import '../../features/stock/presentation/bloc/stock_bloc.dart';
 import 'cloud/supabase_sync_service.dart';
 import 'cloud/cloud_sync_service.dart';
 import 'cloud/supabase_auth_service.dart';
+import 'cloud/supabase_subscription_service.dart';
 import '../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../features/subscription/presentation/bloc/subscription_bloc.dart';
+import '../features/sync/presentation/bloc/sync_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
   // ── Auth ──────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<SupabaseAuthService>(() => SupabaseAuthService());
-  sl.registerFactory(() => AuthBloc(authService: sl()));
+  sl.registerFactory(() => AuthBloc(authService: sl(), syncService: sl<SupabaseSyncService>()));
   sl.registerFactory(() => UserManagementBloc(authService: sl()));
   sl.registerFactory(() => LocaleBloc());
 
@@ -44,6 +46,7 @@ Future<void> init() async {
       addProductUseCase: sl(),
       updateProductUseCase: sl(),
       deleteProductUseCase: sl(),
+      syncService: sl<CloudSyncService>(),
     ),
   );
   sl.registerLazySingleton(() => GetProductsUseCase(sl()));
@@ -58,6 +61,7 @@ Future<void> init() async {
     () => ShopBloc(
       getShopUseCase: sl(),
       updateShopUseCase: sl(),
+      syncService: sl<CloudSyncService>(),
     ),
   );
   sl.registerLazySingleton(() => GetShopUseCase(sl()));
@@ -97,15 +101,19 @@ Future<void> init() async {
 
   // ── Features - Stock & Reporting ──────────────────────────────────────────
   sl.registerLazySingleton<StockRepository>(() => StockRepositoryImpl());
-  sl.registerFactory(() => StockBloc(repository: sl()));
+  sl.registerFactory(() => StockBloc(repository: sl(), syncService: sl<CloudSyncService>()));
 
   // ── Notifications ─────────────────────────────────────────────────────────
   sl.registerLazySingleton(() => NotificationBloc());
 
   // ── Subscription ──────────────────────────────────────────────────────────
-  sl.registerFactory(() => SubscriptionBloc());
+  sl.registerLazySingleton<SupabaseSubscriptionService>(
+      () => SupabaseSubscriptionService());
+  sl.registerFactory(
+      () => SubscriptionBloc(subscriptionService: sl()));
 
   // ── Cloud Sync ────────────────────────────────────────────────────────────
   sl.registerLazySingleton<SupabaseSyncService>(() => SupabaseSyncService());
   sl.registerLazySingleton<CloudSyncService>(() => sl<SupabaseSyncService>());
+  sl.registerFactory(() => SyncBloc(syncService: sl<SupabaseSyncService>()));
 }

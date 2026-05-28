@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:billing_app/core/cloud/supabase_auth_service.dart';
+import 'package:billing_app/core/cloud/supabase_sync_service.dart';
 import 'package:billing_app/core/data/hive_database.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart';
 import 'package:billing_app/features/shop/data/models/shop_model.dart';
@@ -75,8 +76,10 @@ class AuthError extends AuthState {
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SupabaseAuthService authService;
+  final SupabaseSyncService syncService;
 
-  AuthBloc({required this.authService}) : super(AuthInitial()) {
+  AuthBloc({required this.authService, required this.syncService})
+      : super(AuthInitial()) {
     on<CheckAuthEvent>(_onCheckAuth);
     on<LoginEvent>(_onLogin);
     on<LogoutEvent>(_onLogout);
@@ -102,6 +105,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     _syncShopToHive(result.shopData!);
+    await syncService.pullSubscriptionOnly();
+    // Pousse les changements locaux en arrière-plan (ne bloque pas le démarrage).
+    syncService.pushAll();
     emit(AuthAuthenticated(user: result.user!, shopId: result.shopId!));
   }
 
@@ -113,6 +119,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     _syncShopToHive(result.shopData!);
+    // 1. Push d'abord : s'assure que les données locales (ex: ancien téléphone)
+    //    sont uploadées avant que le nouveau téléphone ne tire du cloud.
+    await syncService.pushAll();
+    // 2. Pull complet : récupère tous les produits, commandes, stock, fournisseurs,
+    //    fermetures caisse et abonnement depuis le cloud.
+    //    Indispensable pour les nouveaux appareils (caissière, responsable de stock).
+    await syncService.pullAll();
     emit(AuthAuthenticated(user: result.user!, shopId: result.shopId!));
   }
 

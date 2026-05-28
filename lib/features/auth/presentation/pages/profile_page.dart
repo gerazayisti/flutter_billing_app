@@ -139,13 +139,16 @@ class ProfilePage extends StatelessWidget {
 
   Widget _buildSubscriptionCard(BuildContext context, Color accent) {
     final sub = SubscriptionService.current;
+    final isTrial = sub == null && SubscriptionService.isTrialActive;
     final tier = SubscriptionService.activeTier;
-    final tierLabel = switch (tier) {
-      SubscriptionTier.trial => 'Essai gratuit',
-      SubscriptionTier.starter => 'Starter',
-      SubscriptionTier.pro => 'Pro',
-      SubscriptionTier.business => 'Business',
-    };
+    final tierLabel = isTrial
+        ? 'Essai Pro gratuit'
+        : switch (tier) {
+            SubscriptionTier.trial => 'Expiré',
+            SubscriptionTier.starter => 'Starter',
+            SubscriptionTier.pro => 'Pro',
+            SubscriptionTier.business => 'Business',
+          };
 
     String statusText;
     Color statusColor;
@@ -155,19 +158,12 @@ class ProfilePage extends StatelessWidget {
       statusText = '${sub.daysRemaining} jours restants';
       statusColor = accent;
       statusIcon = Icons.verified_rounded;
-    } else if (tier == SubscriptionTier.trial) {
-      final days = SubscriptionService.trialDaysRemaining;
-      if (days > 0) {
-        statusText = '$days jours restants';
-        statusColor = AppTheme.primaryColor;
-        statusIcon = Icons.hourglass_bottom_rounded;
-      } else {
-        statusText = 'Expiré — Abonnez-vous';
-        statusColor = AppTheme.errorColor;
-        statusIcon = Icons.warning_amber_rounded;
-      }
+    } else if (isTrial) {
+      statusText = '${SubscriptionService.trialDaysRemaining} jours restants';
+      statusColor = AppTheme.primaryColor;
+      statusIcon = Icons.hourglass_bottom_rounded;
     } else {
-      statusText = 'Inactif';
+      statusText = 'Expiré — Abonnez-vous';
       statusColor = AppTheme.errorColor;
       statusIcon = Icons.warning_amber_rounded;
     }

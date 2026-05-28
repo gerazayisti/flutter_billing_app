@@ -20,6 +20,8 @@ class SubscriptionService {
   static SubscriptionTier get activeTier {
     final sub = current;
     if (sub != null && sub.isActive) return sub.tier;
+    // Trial period gives full Pro access for 30 days
+    if (isTrialActive) return SubscriptionTier.pro;
     return SubscriptionTier.trial;
   }
 

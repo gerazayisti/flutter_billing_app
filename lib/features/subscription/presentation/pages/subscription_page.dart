@@ -123,8 +123,8 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       return _banner(
         icon: Icons.timer_rounded,
         color: AppTheme.primaryColor,
-        title: 'Essai gratuit en cours',
-        subtitle: '$days jours restants · Toutes les fonctionnalités incluses',
+        title: 'Essai Pro gratuit',
+        subtitle: 'Accès Pro complet · $days jours restants',
         trailing: null,
       );
     }

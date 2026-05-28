@@ -110,15 +110,14 @@ class UserManagementBloc
 
   Future<void> _onDelete(
       DeleteEmployeeEvent event, Emitter<UserManagementState> emit) async {
-    final error = await authService.deleteEmployee(event.userId);
+    final shopId = state.members.isNotEmpty
+        ? state.members.first['shop_id'] as String
+        : '';
+    final error = await authService.deleteEmployee(event.userId, shopId);
     if (error != null) {
       emit(state.copyWith(status: UserMgmtStatus.error, message: error));
       return;
     }
-    // Reload with same shopId — take it from current state members
-    final shopId = state.members.isNotEmpty
-        ? state.members.first['shop_id'] as String
-        : '';
     if (shopId.isNotEmpty) add(LoadUsersEvent(shopId));
   }
 }

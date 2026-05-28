@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../product/presentation/bloc/product_bloc.dart';
 
 class EmailLoginPage extends StatefulWidget {
   const EmailLoginPage({super.key});
@@ -44,6 +45,9 @@ class _EmailLoginPageState extends State<EmailLoginPage> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
+          // Recharge les produits depuis Hive, maintenant rempli par le sync cloud.
+          context.read<ProductBloc>().add(LoadProducts());
+
           // Redirection selon le rôle :
           //   owner        → tableau de bord propriétaire
           //   stockManager → tableau de bord gestionnaire de stock

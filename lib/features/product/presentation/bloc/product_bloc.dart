@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/usecases/product_usecases.dart';
 import '../../../../core/usecase/usecase.dart';
+import '../../../../core/cloud/cloud_sync_service.dart';
 
 part 'product_event.dart';
 part 'product_state.dart';
@@ -12,12 +13,14 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   final AddProductUseCase addProductUseCase;
   final UpdateProductUseCase updateProductUseCase;
   final DeleteProductUseCase deleteProductUseCase;
+  final CloudSyncService? syncService;
 
   ProductBloc({
     required this.getProductsUseCase,
     required this.addProductUseCase,
     required this.updateProductUseCase,
     required this.deleteProductUseCase,
+    this.syncService,
   }) : super(const ProductState()) {
     on<LoadProducts>(_onLoadProducts);
     on<AddProduct>(_onAddProduct);
@@ -39,7 +42,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   Future<void> _onAddProduct(
       AddProduct event, Emitter<ProductState> emit) async {
-    emit(state.copyWith(status: ProductStatus.loading)); // Keep products
+    emit(state.copyWith(status: ProductStatus.loading));
     final result = await addProductUseCase(event.product);
     result.fold(
       (failure) => emit(state.copyWith(
@@ -49,6 +52,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             status: ProductStatus.success,
             message: 'Product added successfully'));
         add(LoadProducts());
+        _autoSync();
       },
     );
   }
@@ -65,6 +69,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             status: ProductStatus.success,
             message: 'Product updated successfully'));
         add(LoadProducts());
+        _autoSync();
       },
     );
   }
@@ -81,7 +86,16 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             status: ProductStatus.success,
             message: 'Product deleted successfully'));
         add(LoadProducts());
+        // Supprime aussi du cloud pour éviter qu'il revienne sur un nouvel appareil.
+        if (syncService != null && syncService!.isConfigured && syncService!.isSignedIn) {
+          syncService!.deleteRecord('product', event.id);
+        }
       },
     );
+  }
+
+  void _autoSync() {
+    if (syncService == null || !syncService!.isConfigured || !syncService!.isSignedIn) return;
+    syncService!.pushAll();
   }
 }

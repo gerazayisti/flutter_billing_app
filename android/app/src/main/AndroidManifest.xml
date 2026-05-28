@@ -38,6 +38,43 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Gestock+ Home Screen Widgets -->
+        <receiver
+            android:name=".GestockSummaryWidget"
+            android:exported="true"
+            android:label="Gestock+ Ventes du jour">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_summary_info" />
+        </receiver>
+
+        <receiver
+            android:name=".GestockLowStockWidget"
+            android:exported="true"
+            android:label="Gestock+ Stock bas">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_low_stock_info" />
+        </receiver>
+
+        <receiver
+            android:name=".GestockTopProductWidget"
+            android:exported="true"
+            android:label="Gestock+ Top produit">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_top_product_info" />
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

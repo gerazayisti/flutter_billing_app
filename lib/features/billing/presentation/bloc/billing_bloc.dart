@@ -18,6 +18,7 @@ import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/cloud/cloud_sync_service.dart';
 import 'package:billing_app/core/notifications/notification_item.dart';
 import 'package:billing_app/core/notifications/notification_service.dart';
+import 'package:billing_app/core/services/widget_update_service.dart';
 
 part 'billing_event.dart';
 part 'billing_state.dart';
@@ -314,24 +315,12 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
   }
 
   Future<void> _autoSyncOrder(OrderModel order) async {
+    WidgetUpdateService.update(); // fire-and-forget
     final autoSync =
         HiveDatabase.settingsBox.get('cloud_auto_sync', defaultValue: true) as bool;
-    if (!autoSync || syncService == null || !syncService!.isConfigured) return;
-    await syncService!.pushOrder({
-      'id': order.id,
-      'date': order.date.toIso8601String(),
-      'totalAmount': order.totalAmount,
-      'paymentMethod': order.paymentMethod,
-      'items': order.items
-          .map((i) => {
-                'productId': i.productId,
-                'productName': i.productName,
-                'price': i.price,
-                'quantity': i.quantity,
-                'variant': i.selectedVariant,
-              })
-          .toList(),
-    });
+    if (!autoSync || syncService == null || !syncService!.isConfigured || !syncService!.isSignedIn) return;
+    // pushAll inclut commandes, produits (stock mis à jour) et mouvements de stock
+    await syncService!.pushAll();
   }
 
   Future<void> _decrementStockAndRecord(String orderId, String cashierId) async {

@@ -1,5 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:billing_app/core/config/app_config.dart';
 import 'package:billing_app/core/data/hive_database.dart';
 import 'package:billing_app/features/auth/data/models/user_model.dart';
 import 'package:billing_app/features/auth/domain/entities/user.dart' as app;
@@ -20,19 +19,9 @@ class AuthResult {
 }
 
 class SupabaseAuthService {
-  // Anon client — used for regular auth (session persisted by Supabase.initialize)
   SupabaseClient get _client => Supabase.instance.client;
 
-  // Admin client — service role, used only to create employee accounts.
-  // Does NOT affect the current user session.
-  late final SupabaseClient _adminClient;
-
-  SupabaseAuthService() {
-    _adminClient = SupabaseClient(
-      AppConfig.supabaseUrl,
-      AppConfig.supabaseServiceRoleKey,
-    );
-  }
+  SupabaseAuthService();
 
   // ── State ─────────────────────────────────────────────────
 
@@ -208,7 +197,7 @@ class SupabaseAuthService {
     }
   }
 
-  // ── Employee management (uses service role) ───────────────
+  // ── Employee management (via Edge Function manage-employee) ──
 
   Future<String?> createEmployee({
     required String shopId,
@@ -218,36 +207,42 @@ class SupabaseAuthService {
     required String role,
   }) async {
     try {
-      // Create Supabase auth user without touching the current session
-      final res = await _adminClient.auth.admin.createUser(
-        AdminUserAttributes(
-          email: email,
-          password: password,
-          emailConfirm: true,
-        ),
+      await _client.functions.invoke(
+        'manage-employee',
+        body: {
+          'action':   'create',
+          'shop_id':  shopId,
+          'name':     name,
+          'email':    email,
+          'password': password,
+          'role':     role,
+        },
       );
-
-      final uid = res.user!.id;
-
-      // Add to shop_members
-      await _client.from('shop_members').insert({
-        'shop_id': shopId,
-        'user_id': uid,
-        'role':    role,
-        'name':    name,
-        'email':   email,
-      });
-
-      return null; // no error
+      return null;
+    } on FunctionException catch (e) {
+      final details = e.details;
+      if (details is Map) return details['error'] as String? ?? 'Erreur création employé';
+      return 'Erreur création employé';
     } catch (e) {
       return e.toString();
     }
   }
 
-  Future<String?> deleteEmployee(String userId) async {
+  Future<String?> deleteEmployee(String userId, String shopId) async {
     try {
-      await _adminClient.auth.admin.deleteUser(userId);
+      await _client.functions.invoke(
+        'manage-employee',
+        body: {
+          'action':  'delete',
+          'shop_id': shopId,
+          'user_id': userId,
+        },
+      );
       return null;
+    } on FunctionException catch (e) {
+      final details = e.details;
+      if (details is Map) return details['error'] as String? ?? 'Erreur suppression employé';
+      return 'Erreur suppression employé';
     } catch (e) {
       return e.toString();
     }

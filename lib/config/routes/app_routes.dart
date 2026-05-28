@@ -33,6 +33,7 @@ import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../core/data/hive_database.dart';
 import '../../features/settings/presentation/pages/help_page.dart';
+import '../../features/sync/presentation/pages/cloud_setup_page.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -180,6 +181,10 @@ final router = GoRouter(
     GoRoute(
       path: '/help',
       builder: (context, state) => const HelpPage(),
+    ),
+    GoRoute(
+      path: '/cloud-setup',
+      builder: (context, state) => const CloudSetupPage(),
     ),
   ],
 );

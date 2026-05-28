@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 import 'package:billing_app/core/data/hive_database.dart';
+import 'package:billing_app/core/cloud/cloud_sync_service.dart';
 import 'package:billing_app/features/product/data/models/product_model.dart';
 import '../../domain/entities/stock_movement.dart';
 import '../../domain/entities/supplier.dart';
@@ -119,8 +120,9 @@ class StockState extends Equatable {
 
 class StockBloc extends Bloc<StockEvent, StockState> {
   final StockRepository repository;
+  final CloudSyncService? syncService;
 
-  StockBloc({required this.repository}) : super(const StockState()) {
+  StockBloc({required this.repository, this.syncService}) : super(const StockState()) {
     on<LoadStockEvent>(_onLoad);
     on<AddStockMovementEvent>(_onAddMovement);
     on<SaveSupplierEvent>(_onSaveSupplier);
@@ -183,12 +185,14 @@ class StockBloc extends Bloc<StockEvent, StockState> {
     final updated = repository.getRecentMovements();
     emit(state.copyWith(movements: updated, successMessage: 'ok'));
     emit(state.copyWith(clearMessages: true));
+    _autoSync();
   }
 
   Future<void> _onSaveSupplier(
       SaveSupplierEvent event, Emitter<StockState> emit) async {
     await repository.saveSupplier(event.supplier);
     emit(state.copyWith(suppliers: repository.getSuppliers()));
+    _autoSync();
   }
 
   Future<void> _onDeleteSupplier(
@@ -244,5 +248,11 @@ class StockBloc extends Bloc<StockEvent, StockState> {
       successMessage: 'closed',
     ));
     emit(state.copyWith(clearMessages: true));
+    _autoSync();
+  }
+
+  void _autoSync() {
+    if (syncService == null || !syncService!.isConfigured || !syncService!.isSignedIn) return;
+    syncService!.pushAll();
   }
 }

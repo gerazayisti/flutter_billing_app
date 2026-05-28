@@ -19,4 +19,7 @@ abstract class CloudSyncService {
 
   /// Quick push for a single order (called after every sale).
   Future<void> pushOrder(Map<String, dynamic> orderJson);
+
+  /// Remove a single record from the cloud (used when deleting a product).
+  Future<void> deleteRecord(String entityType, String id);
 }

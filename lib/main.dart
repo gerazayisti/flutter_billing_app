@@ -19,6 +19,8 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/settings/presentation/bloc/locale_bloc.dart';
 import 'features/stock/presentation/bloc/stock_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
+import 'features/sync/presentation/bloc/sync_bloc.dart';
+import 'core/services/widget_update_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,7 @@ void main() async {
   await di.init();
   await initializeDateFormatting('fr', null);
   await initializeDateFormatting('en', null);
+  WidgetUpdateService.update(); // sync widget data on startup
   runApp(const MyApp());
 }
 
@@ -61,6 +64,8 @@ class MyApp extends StatelessWidget {
         BlocProvider<NotificationBloc>(
             create: (context) => di.sl<NotificationBloc>()
               ..add(LoadNotificationsEvent())),
+        BlocProvider<SyncBloc>(
+            create: (context) => di.sl<SyncBloc>()..add(LoadSyncStatusEvent())),
         // SupabaseAuthService available globally (for SignUpPage etc.)
         RepositoryProvider<SupabaseAuthService>(
             create: (context) => di.sl<SupabaseAuthService>()),

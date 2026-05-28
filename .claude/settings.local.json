@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(flutter analyze *)"
+      "Bash(flutter analyze *)",
+      "Bash(npx supabase *)",
+      "WebFetch(domain:www.svgrepo.com)",
+      "WebFetch(domain:api.iconify.design)",
+      "WebFetch(domain:unpkg.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:cdn.jsdelivr.net)"
     ]
   }
 }
