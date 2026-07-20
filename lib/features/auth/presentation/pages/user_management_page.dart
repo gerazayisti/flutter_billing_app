@@ -99,8 +99,8 @@ class UserManagementPage extends StatelessWidget {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.1),
-          child: Icon(icon, color: color),
+          backgroundColor: Colors.transparent,
+          child: Icon(icon, color: color, size: 28),
         ),
         title: Text(name,
             style: const TextStyle(fontWeight: FontWeight.bold)),

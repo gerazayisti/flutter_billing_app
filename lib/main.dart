@@ -36,6 +36,8 @@ void main() async {
   await di.init();
   await initializeDateFormatting('fr', null);
   await initializeDateFormatting('en', null);
+  await HiveDatabase.settingsBox.put('has_seen_onboarding', false);
+  await HiveDatabase.settingsBox.put('is_pin_verified', false);
   WidgetUpdateService.update(); // sync widget data on startup
   runApp(const MyApp());
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/utils/xaf_formatter.dart';
 import 'package:billing_app/features/billing/domain/entities/payment_method.dart';
+import 'package:billing_app/core/theme/app_theme.dart';
 import 'package:billing_app/core/service_locator.dart' as di;
 import '../bloc/payment_bloc.dart';
 
@@ -63,11 +64,9 @@ class _MomoPaymentDialogState extends State<MomoPaymentDialog> {
     super.dispose();
   }
 
-  Color get _brandColor =>
-      widget.method == PaymentMethod.orangeMoney ? Colors.orange : Colors.yellow[800]!;
+  Color get _brandColor => AppTheme.primaryColor;
 
-  String get _brandName =>
-      widget.method == PaymentMethod.orangeMoney ? 'Orange Money' : 'MTN MoMo';
+  String get _brandName => 'Mobile Money';
 
   @override
   Widget build(BuildContext context) {

@@ -48,6 +48,7 @@ dependencies:
   
   # Scanner & Printer
   pretty_qr_code: ^3.3.0
+  barcode_widget: ^2.0.4
   print_bluetooth_thermal: ^1.1.2
   mobile_scanner: ^5.1.0
   bloc: ^8.1.4
@@ -88,3 +89,7 @@ flutter:
   generate: true
   assets:
     - assets/logo.png
+    - assets/onboarding_bg_1.png
+    - assets/onboarding_bg_2.png
+    - assets/onboarding_bg_3.png
+    - assets/onboarding_bg_4.png

@@ -567,7 +567,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enterCustomerPhone => 'Numéro du client';
 
   @override
-  String get phoneHint => 'Ex: 6XXXXXXXX';
+  String get phoneHint => 'Ex: 2376XXXXXXXX';
 
   @override
   String get initiatePayment => 'Initier le paiement';
@@ -883,6 +883,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Continuez à vendre même sans internet. Tout se synchronise automatiquement au retour de la connexion !';
 
   @override
+  String get onboardingTitle4 => 'Accepter Mobile Money';
+
+  @override
+  String get onboardingDesc4 =>
+      'Enregistrez vos paiements via Orange Money, MTN MoMo et plus en toute simplicité.';
+
+  @override
   String get skip => 'Passer';
 
   @override
@@ -1033,4 +1040,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get allStepsCompleted =>
       'Vous avez complété l\'ensemble des étapes clés de configuration.';
+
+  @override
+  String get continueToPayment => 'Continuer vers paiement';
+
+  @override
+  String get putOnHold => 'Mettre en attente';
+
+  @override
+  String get paymentTimeoutTitle => 'Paiement Mobile Money expiré';
+
+  @override
+  String paymentTimeoutBody(Object amount) {
+    return 'Le paiement de $amount FCFA est resté en attente pendant 15 minutes et a été annulé.';
+  }
+
+  @override
+  String get pendingPayment => 'Paiement en cours...';
 }

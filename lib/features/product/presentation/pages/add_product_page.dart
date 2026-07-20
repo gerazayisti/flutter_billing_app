@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 
+import 'package:barcode_widget/barcode_widget.dart';
+import '../../../../core/utils/barcode_print_service.dart';
 import '../bloc/product_bloc.dart';
 import '../../domain/entities/product.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -36,6 +38,23 @@ class _AddProductPageState extends State<AddProductPage> {
         _barcode = result;
       });
     }
+  }
+
+  void _generateBarcode() {
+    final productState = context.read<ProductBloc>().state;
+    String newBarcode = '';
+    bool exists = true;
+
+    while (exists) {
+      final stamp = DateTime.now().millisecondsSinceEpoch.toString();
+      // Code de type Code128 commençant par 20 (usage interne magasin) + 10 chiffres uniques
+      newBarcode = '20${stamp.substring(stamp.length - 10)}';
+      exists = productState.products.any((p) => p.barcode == newBarcode);
+    }
+
+    setState(() {
+      _barcode = newBarcode;
+    });
   }
 
   void _submit() {
@@ -109,26 +128,82 @@ class _AddProductPageState extends State<AddProductPage> {
                           ),
                           validator: (v) => AppValidators.required(l10n.enterBarcode)(v),
                           onSaved: (value) => _barcode = value!,
+                          onChanged: (val) {
+                            setState(() {
+                              _barcode = val;
+                            });
+                          },
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.qr_code_scanner,
-                              color: AppTheme.primaryColor),
-                          onPressed: _scanBarcode,
-                          padding: const EdgeInsets.all(14),
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.qr_code_scanner,
+                            color: AppTheme.primaryColor, size: 28),
+                        onPressed: _scanBarcode,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(l10n.tapToOpenScanner,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF4C669A))),
+                  const SizedBox(height: 8),
+                  if (_barcode.isEmpty)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _generateBarcode,
+                        icon: const Icon(Icons.analytics_outlined),
+                        label: const Text('Générer un code-barres unique'),
+                      ),
+                    )
+                  else ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.borderColor),
+                      ),
+                      child: Column(
+                        children: [
+                          BarcodeWidget(
+                            barcode: Barcode.code128(),
+                            data: _barcode,
+                            width: double.infinity,
+                            height: 60,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _barcode = '';
+                                  });
+                                },
+                                icon: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
+                                label: const Text('Effacer', style: TextStyle(color: AppTheme.errorColor)),
+                              ),
+                              const SizedBox(width: 16),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  if (_barcode.isNotEmpty) {
+                                    BarcodePrintService.printBarcodeLabel(
+                                      productName: _name.isNotEmpty ? _name : 'Nouveau Produit',
+                                      productPrice: _price,
+                                      barcodeData: _barcode,
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.print_rounded),
+                                label: const Text('Imprimer l\'étiquette'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   InputLabel(text: l10n.productName),
                   TextFormField(
@@ -138,6 +213,7 @@ class _AddProductPageState extends State<AddProductPage> {
                     textCapitalization: TextCapitalization.words,
                     validator: (v) => AppValidators.required(l10n.enterName)(v),
                     onSaved: (value) => _name = value!,
+                    onChanged: (value) => _name = value,
                   ),
                   const SizedBox(height: 24),
                   InputLabel(text: l10n.price),
@@ -153,7 +229,8 @@ class _AddProductPageState extends State<AddProductPage> {
                           color: Colors.black),
                     ),
                     validator: (v) => AppValidators.price(v, l10n),
-                    onSaved: (value) => _price = double.parse(value!),
+                    onSaved: (value) => _price = double.tryParse(value ?? '0') ?? 0.0,
+                    onChanged: (value) => _price = double.tryParse(value) ?? 0.0,
                   ),
                   const SizedBox(height: 24),
                   Row(

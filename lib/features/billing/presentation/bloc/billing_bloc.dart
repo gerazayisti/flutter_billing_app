@@ -19,6 +19,7 @@ import 'package:billing_app/core/cloud/cloud_sync_service.dart';
 import 'package:billing_app/core/notifications/notification_item.dart';
 import 'package:billing_app/core/notifications/notification_service.dart';
 import 'package:billing_app/core/services/widget_update_service.dart';
+import 'package:billing_app/core/services/subscription_service.dart';
 
 part 'billing_event.dart';
 part 'billing_state.dart';
@@ -51,6 +52,11 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
 
   Future<void> _onScanBarcode(
       ScanBarcodeEvent event, Emitter<BillingState> emit) async {
+    // ── Gate abonnement ───────────────────────────────────────────────────────
+    if (!SubscriptionService.hasActiveSubscription && !SubscriptionService.isTrialActive) {
+      emit(state.copyWith(subscriptionExpired: true));
+      return;
+    }
     final result = await getProductByBarcodeUseCase(event.barcode);
     result.fold(
       (failure) =>
@@ -63,6 +69,11 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
 
   void _onAddProductToCart(
       AddProductToCartEvent event, Emitter<BillingState> emit) {
+    // ── Gate abonnement ───────────────────────────────────────────────────────
+    if (!SubscriptionService.hasActiveSubscription && !SubscriptionService.isTrialActive) {
+      emit(state.copyWith(subscriptionExpired: true));
+      return;
+    }
     final productModel = HiveDatabase.productBox.get(event.product.id);
     final currentStock = productModel?.stock ?? event.product.stock;
 
@@ -251,7 +262,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
 
       // ✅ Save the order to local history after successful print
       final order = OrderModel(
-        id: const Uuid().v4(),
+        id: event.orderId ?? const Uuid().v4(),
         date: DateTime.now(),
         totalAmount: state.totalAmount,
         paymentMethod: state.paymentMethod.stringValue,
@@ -287,7 +298,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
   Future<void> _onSaveOrderWithoutPrint(
       SaveOrderWithoutPrintEvent event, Emitter<BillingState> emit) async {
     final order = OrderModel(
-      id: const Uuid().v4(),
+      id: event.orderId ?? const Uuid().v4(),
       date: DateTime.now(),
       totalAmount: state.totalAmount,
       paymentMethod: state.paymentMethod.stringValue,

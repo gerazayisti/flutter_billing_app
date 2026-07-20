@@ -7,6 +7,8 @@ class BillingState extends Equatable {
   final bool printSuccess;
   final PaymentMethod paymentMethod;
   final List<HeldOrderModel> heldOrders;
+  /// true quand l'abonnement est expiré et qu'une action de vente a été bloquée.
+  final bool subscriptionExpired;
 
   const BillingState({
     this.cartItems = const [],
@@ -15,6 +17,7 @@ class BillingState extends Equatable {
     this.printSuccess = false,
     this.paymentMethod = PaymentMethod.cash,
     this.heldOrders = const [],
+    this.subscriptionExpired = false,
   });
 
   double get totalAmount => cartItems.fold(0, (sum, item) => sum + item.total);
@@ -27,6 +30,7 @@ class BillingState extends Equatable {
     bool? printSuccess,
     PaymentMethod? paymentMethod,
     List<HeldOrderModel>? heldOrders,
+    bool? subscriptionExpired,
   }) {
     return BillingState(
       cartItems: cartItems ?? this.cartItems,
@@ -35,10 +39,11 @@ class BillingState extends Equatable {
       printSuccess: printSuccess ?? this.printSuccess,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       heldOrders: heldOrders ?? this.heldOrders,
+      subscriptionExpired: subscriptionExpired ?? this.subscriptionExpired,
     );
   }
 
   @override
   List<Object?> get props =>
-      [cartItems, error, isPrinting, printSuccess, paymentMethod, heldOrders];
+      [cartItems, error, isPrinting, printSuccess, paymentMethod, heldOrders, subscriptionExpired];
 }

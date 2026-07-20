@@ -11,9 +11,7 @@ import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../../../core/widgets/app_drawer.dart';
-import '../../../../core/widgets/interactive_guide_card.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/domain/entities/user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -514,8 +512,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (user != null) InteractiveGuideCard(user: user),
-            const SizedBox(height: 16),
             Container(
               width: 80,
               height: 80,

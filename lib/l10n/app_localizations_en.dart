@@ -877,6 +877,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Continue selling even without internet. Everything synchronizes automatically once connection is back!';
 
   @override
+  String get onboardingTitle4 => 'Accept Mobile Money';
+
+  @override
+  String get onboardingDesc4 =>
+      'Accept payments via Orange Money, MTN MoMo and more with ease.';
+
+  @override
   String get skip => 'Skip';
 
   @override
@@ -1026,4 +1033,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allStepsCompleted => 'You have completed all key setup steps.';
+
+  @override
+  String get continueToPayment => 'Continue to payment';
+
+  @override
+  String get putOnHold => 'Put on hold';
+
+  @override
+  String get paymentTimeoutTitle => 'Mobile Money payment expired';
+
+  @override
+  String paymentTimeoutBody(Object amount) {
+    return 'The payment of $amount XAF was pending for 15 minutes and has been cancelled.';
+  }
+
+  @override
+  String get pendingPayment => 'Payment pending...';
 }

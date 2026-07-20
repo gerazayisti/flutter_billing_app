@@ -27,20 +27,57 @@ import '../../features/stock/presentation/pages/cash_closure_page.dart';
 import '../../features/stock/presentation/bloc/stock_bloc.dart';
 import '../../features/notifications/presentation/pages/notification_page.dart';
 import '../../features/subscription/presentation/pages/subscription_page.dart';
+import '../../features/payment/presentation/pages/credit_score_page.dart';
 import '../../features/subscription/presentation/bloc/subscription_bloc.dart';
 import '../../features/boutiques/presentation/pages/boutiques_page.dart';
 import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../features/auth/presentation/pages/pin_login_page.dart';
+import '../../features/auth/presentation/pages/pin_setup_page.dart';
 import '../../core/data/hive_database.dart';
 import '../../features/settings/presentation/pages/help_page.dart';
 import '../../features/sync/presentation/pages/cloud_setup_page.dart';
+import '../../features/payment/presentation/pages/wallet_page.dart';
 
 final router = GoRouter(
   initialLocation: '/',
   redirect: (context, state) {
     final hasSeenOnboarding = HiveDatabase.settingsBox.get('has_seen_onboarding', defaultValue: false) as bool;
-    if (!hasSeenOnboarding && state.matchedLocation != '/onboarding') {
-      return '/onboarding';
+    if (!hasSeenOnboarding) {
+      if (state.matchedLocation != '/onboarding') {
+        return '/onboarding';
+      }
+      return null;
+    }
+
+    final s = HiveDatabase.settingsBox;
+    final pin = s.get('user_pin', defaultValue: '') as String;
+    final isPinVerified = s.get('is_pin_verified', defaultValue: false) as bool;
+
+    if (pin.isNotEmpty && !isPinVerified) {
+      final lastActiveStr = s.get('last_active_time', defaultValue: '') as String;
+      if (lastActiveStr.isNotEmpty) {
+        final lastActive = DateTime.parse(lastActiveStr);
+        final diff = DateTime.now().difference(lastActive);
+
+        if (diff.inHours < 24) {
+          if (state.matchedLocation != '/pin-login') {
+            return '/pin-login';
+          }
+        } else {
+          // Plus de 24h : déconnexion Supabase + nettoyage PIN local
+          try {
+            Supabase.instance.client.auth.signOut();
+          } catch (_) {}
+          s.delete('user_pin');
+          s.delete('last_active_time');
+          s.put('is_pin_verified', false);
+          if (state.matchedLocation != '/') {
+            return '/';
+          }
+        }
+      }
     }
     return null;
   },
@@ -185,6 +222,22 @@ final router = GoRouter(
     GoRoute(
       path: '/cloud-setup',
       builder: (context, state) => const CloudSetupPage(),
+    ),
+    GoRoute(
+      path: '/wallet',
+      builder: (context, state) => const WalletPage(),
+    ),
+    GoRoute(
+      path: '/credit-score',
+      builder: (context, state) => const CreditScorePage(),
+    ),
+    GoRoute(
+      path: '/pin-login',
+      builder: (context, state) => const PinLoginPage(),
+    ),
+    GoRoute(
+      path: '/pin-setup',
+      builder: (context, state) => const PinSetupPage(),
     ),
   ],
 );

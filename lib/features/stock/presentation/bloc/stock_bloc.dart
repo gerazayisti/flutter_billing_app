@@ -217,10 +217,8 @@ class StockBloc extends Bloc<StockEvent, StockState> {
       switch (PaymentMethodExtension.fromString(o.paymentMethod)) {
         case PaymentMethod.cash:
           cash += o.totalAmount;
-        case PaymentMethod.orangeMoney:
-          orange += o.totalAmount;
-        case PaymentMethod.mtnMomo:
-          mtn += o.totalAmount;
+        case PaymentMethod.mobileMoney:
+          orange += o.totalAmount; // Putting all mobile money in orange for compatibility
         case PaymentMethod.card:
           card += o.totalAmount;
         default:

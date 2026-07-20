@@ -11,6 +11,11 @@ import 'package:billing_app/l10n/app_localizations.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../shop/presentation/bloc/shop_bloc.dart';
 import '../bloc/billing_bloc.dart';
+import 'package:uuid/uuid.dart';
+import 'package:billing_app/core/service_locator.dart' as di;
+import '../../../payment/presentation/bloc/mobile_money_bloc.dart';
+import '../../../payment/presentation/pages/enter_phone_number_page.dart';
+import 'package:billing_app/core/data/hive_database.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -126,6 +131,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                 const SizedBox(height: 4),
                                                 DropdownButtonHideUnderline(
                                                   child: DropdownButton<String>(
+                                                    isExpanded: true,
                                                     isDense: true,
                                                     value: item.selectedVariant,
                                                     hint: Text(l10n.selectVariant,
@@ -194,8 +200,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   _cashChangeSection(context, total, l10n),
 
                                 // ── Mobile Money section ──────────────────────
-                                if (billingState.paymentMethod.isMobileMoney && shop != null)
-                                  _momoSection(context, billingState.paymentMethod, shop, l10n),
+                                // Removed manual momo section as Pawapay is now pushing requests
+
 
                                 const SizedBox(height: 8),
 
@@ -286,43 +292,42 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           // ── Action buttons ────────────────────────────────
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      final authState =
-                                          context.read<AuthBloc>().state;
-                                      final cid = authState
-                                              is AuthAuthenticated
-                                          ? authState.user.id
-                                          : 'system';
-                                      _handleAction(
-                                        context: context,
-                                        billingState: billingState,
-                                        shop: shop,
-                                        l10n: l10n,
-                                        action: () => context
-                                            .read<BillingBloc>()
-                                            .add(SaveOrderWithoutPrintEvent(
-                                                cashierId: cid)),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.save, size: 20),
-                                    label: Text(l10n.saveOnly),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12)),
+                            child: billingState.paymentMethod.isMobileMoney
+                                ? // ── Mobile Money: single CTA ──
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: PrimaryButton(
+                                      onPressed: shop != null
+                                          ? () {
+                                              final authState =
+                                                  context.read<AuthBloc>().state;
+                                              final cid = authState
+                                                      is AuthAuthenticated
+                                                  ? authState.user.id
+                                                  : 'system';
+                                              _handleAction(
+                                                context: context,
+                                                billingState: billingState,
+                                                shop: shop,
+                                                l10n: l10n,
+                                                action: ([orderId]) => context
+                                                    .read<BillingBloc>()
+                                                    .add(SaveOrderWithoutPrintEvent(
+                                                        cashierId: cid, orderId: orderId)),
+                                              );
+                                            }
+                                          : () {},
+                                      label: l10n.continueToPayment,
+                                      icon: Icons.phone_android,
+                                      isLoading: billingState.isPrinting,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  flex: 2,
-                                  child: PrimaryButton(
-                                    onPressed: shop != null
-                                        ? () {
+                                  )
+                                : // ── Cash / Card: save + print ──
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: OutlinedButton.icon(
+                                          onPressed: () {
                                             final authState =
                                                 context.read<AuthBloc>().state;
                                             final cid = authState
@@ -334,27 +339,60 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                               billingState: billingState,
                                               shop: shop,
                                               l10n: l10n,
-                                              action: () => context
+                                              action: ([orderId]) => context
                                                   .read<BillingBloc>()
-                                                  .add(PrintReceiptEvent(
-                                                    shopName: shop.name,
-                                                    address1: shop.addressLine1,
-                                                    address2: shop.addressLine2,
-                                                    phone: shop.phoneNumber,
-                                                    footer: shop.footerText,
-                                                    l10n: l10n,
-                                                    cashierId: cid,
-                                                  )),
+                                                  .add(SaveOrderWithoutPrintEvent(
+                                                      cashierId: cid, orderId: orderId)),
                                             );
-                                          }
-                                        : () {},
-                                    label: l10n.printReceipt,
-                                    icon: Icons.print,
-                                    isLoading: billingState.isPrinting,
+                                          },
+                                          icon: const Icon(Icons.save, size: 20),
+                                          label: Text(l10n.saveOnly),
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(vertical: 16),
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12)),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        flex: 2,
+                                        child: PrimaryButton(
+                                          onPressed: shop != null
+                                              ? () {
+                                                  final authState =
+                                                      context.read<AuthBloc>().state;
+                                                  final cid = authState
+                                                          is AuthAuthenticated
+                                                      ? authState.user.id
+                                                      : 'system';
+                                                  _handleAction(
+                                                    context: context,
+                                                    billingState: billingState,
+                                                    shop: shop,
+                                                    l10n: l10n,
+                                                    action: ([orderId]) => context
+                                                        .read<BillingBloc>()
+                                                        .add(PrintReceiptEvent(
+                                                          shopName: shop.name,
+                                                          address1: shop.addressLine1,
+                                                          address2: shop.addressLine2,
+                                                          phone: shop.phoneNumber,
+                                                          footer: shop.footerText,
+                                                          l10n: l10n,
+                                                          cashierId: cid,
+                                                          orderId: orderId,
+                                                        )),
+                                                  );
+                                                }
+                                              : () {},
+                                          label: l10n.printReceipt,
+                                          icon: Icons.print,
+                                          isLoading: billingState.isPrinting,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
@@ -369,23 +407,46 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  // Merchant code is already shown in _momoSection — just execute the action.
   void _handleAction({
     required BuildContext context,
     required BillingState billingState,
     required dynamic shop,
     required AppLocalizations l10n,
-    required VoidCallback action,
+    required void Function([String? orderId]) action,
   }) {
-    action();
+    if (billingState.paymentMethod.isMobileMoney) {
+      final s = HiveDatabase.settingsBox;
+      var cloudShopId = s.get('cloud_shop_id', defaultValue: '') as String;
+      if (cloudShopId.isEmpty) {
+        cloudShopId = shop != null
+            ? shop.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_')
+            : 'shop_${DateTime.now().millisecondsSinceEpoch}';
+        s.put('cloud_shop_id', cloudShopId);
+      }
+      final saleId = '${cloudShopId}_${const Uuid().v4()}';
+      
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => di.sl<MobileMoneyBloc>(),
+            child: EnterPhoneNumberPage(
+              saleId: saleId,
+              amount: billingState.totalAmount,
+              onConfirmed: () => action(saleId),
+            ),
+          ),
+        ),
+      );
+    } else {
+      action(null);
+    }
   }
 
   Widget _paymentMethodSelector(
       BuildContext context, BillingState state, AppLocalizations l10n) {
     final methods = [
       (PaymentMethod.cash, Icons.money_rounded, AppTheme.primaryColor, l10n.cash),
-      (PaymentMethod.orangeMoney, Icons.phone_android, AppTheme.primaryColor, l10n.orangeMoney),
-      (PaymentMethod.mtnMomo, Icons.phone_android, AppTheme.primaryDark, l10n.mtnMomo),
+      (PaymentMethod.mobileMoney, Icons.phone_android, AppTheme.primaryColor, l10n.mobileMoney),
       (PaymentMethod.card, Icons.credit_card, AppTheme.textPrimary, l10n.card),
     ];
 
@@ -491,88 +552,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _momoSection(BuildContext context, PaymentMethod method,
-      dynamic shop, AppLocalizations l10n) {
-    final isOrange = method == PaymentMethod.orangeMoney;
-    final code = isOrange ? shop.orangeMoneyMerchant : shop.mtnMomoMerchant;
-    final color = isOrange ? AppTheme.primaryColor : AppTheme.primaryDark;
-    final label = isOrange ? l10n.orangeMoney : l10n.mtnMomo;
-
-    if (code.isEmpty) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.grey[400], size: 16),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'Code marchand $label non configuré. Allez dans Paramètres → Boutique.',
-                style: TextStyle(color: Colors.grey[500], fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.phone_android, color: color, size: 18),
-              const SizedBox(width: 8),
-              Text(label,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: color)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text('${l10n.momoMerchantCode} : ',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-              Flexible(
-                child: Text(
-                  code,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                      color: color),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.info_outline, size: 12, color: Colors.grey[400]),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(l10n.momoPayInstruction,
-                    style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _headerCell(String text, TextAlign align) {
     return Padding(

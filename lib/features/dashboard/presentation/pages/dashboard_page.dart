@@ -19,6 +19,8 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  bool _isStockAlertDismissed = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,8 +48,21 @@ class _DashboardPageState extends State<DashboardPage> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 8),
-                    if (state.lowStockProducts.isNotEmpty) ...[
-                      _SectionTitle(title: '${l10n.stockAlerts} ⚠️'),
+                    if (state.lowStockProducts.isNotEmpty && !_isStockAlertDismissed) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _SectionTitle(title: '${l10n.stockAlerts} ⚠️'),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, size: 20, color: Colors.grey),
+                            onPressed: () {
+                              setState(() {
+                                _isStockAlertDismissed = true;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 12),
                       _StockAlertsCard(
                           products: state.lowStockProducts, accent: Colors.red),
@@ -179,7 +194,7 @@ class _ReportTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(icon, color: color)),
+      leading: CircleAvatar(backgroundColor: Colors.transparent, child: Icon(icon, color: color, size: 28)),
       title: Text(title),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
@@ -341,11 +356,8 @@ class _RecentOrdersCard extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Icons.receipt_rounded, color: accent, size: 20),
+                  alignment: Alignment.center,
+                  child: Icon(Icons.receipt_rounded, color: accent, size: 26),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -401,8 +413,8 @@ class _StockAlertsCard extends StatelessWidget {
         children: products.take(5).map<Widget>((p) {
           return ListTile(
             leading: CircleAvatar(
-              backgroundColor: accent.withValues(alpha: 0.1),
-              child: Icon(Icons.warning_amber_rounded, color: accent, size: 20),
+              backgroundColor: Colors.transparent,
+              child: Icon(Icons.warning_amber_rounded, color: accent, size: 24),
             ),
             title: Text(p.name,
                 style:

@@ -1205,7 +1205,7 @@ abstract class AppLocalizations {
   /// No description provided for @phoneHint.
   ///
   /// In fr, this message translates to:
-  /// **'Ex: 6XXXXXXXX'**
+  /// **'Ex: 2376XXXXXXXX'**
   String get phoneHint;
 
   /// No description provided for @initiatePayment.
@@ -1808,6 +1808,18 @@ abstract class AppLocalizations {
   /// **'Continuez à vendre même sans internet. Tout se synchronise automatiquement au retour de la connexion !'**
   String get onboardingDesc3;
 
+  /// No description provided for @onboardingTitle4.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter Mobile Money'**
+  String get onboardingTitle4;
+
+  /// No description provided for @onboardingDesc4.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrez vos paiements via Orange Money, MTN MoMo et plus en toute simplicité.'**
+  String get onboardingDesc4;
+
   /// No description provided for @skip.
   ///
   /// In fr, this message translates to:
@@ -2071,6 +2083,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Vous avez complété l\'ensemble des étapes clés de configuration.'**
   String get allStepsCompleted;
+
+  /// No description provided for @continueToPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer vers paiement'**
+  String get continueToPayment;
+
+  /// No description provided for @putOnHold.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre en attente'**
+  String get putOnHold;
+
+  /// No description provided for @paymentTimeoutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement Mobile Money expiré'**
+  String get paymentTimeoutTitle;
+
+  /// No description provided for @paymentTimeoutBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le paiement de {amount} FCFA est resté en attente pendant 15 minutes et a été annulé.'**
+  String paymentTimeoutBody(Object amount);
+
+  /// No description provided for @pendingPayment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement en cours...'**
+  String get pendingPayment;
 }
 
 class _AppLocalizationsDelegate

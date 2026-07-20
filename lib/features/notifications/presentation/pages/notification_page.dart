@@ -69,6 +69,8 @@ class _NotificationTile extends StatelessWidget {
         (Icons.warning_amber_rounded, AppTheme.errorColor),
       NotificationType.movement =>
         (Icons.swap_vert_rounded, AppTheme.primaryDark),
+      NotificationType.payment =>
+        (Icons.payment_rounded, Colors.orange),
     };
 
     return Container(

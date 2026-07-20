@@ -2,7 +2,7 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:billing_app/core/data/hive_database.dart';
 
-enum NotificationType { sale, stockAlert, movement }
+enum NotificationType { sale, stockAlert, movement, payment }
 
 class NotificationItem {
   final String id;

@@ -31,6 +31,7 @@ class StockManagerDashboardPage extends StatefulWidget {
 class _StockManagerDashboardPageState
     extends State<StockManagerDashboardPage> {
   static const Color _bg = Color(0xFFF5F5F7);
+  bool _isStockAlertDismissed = false;
 
   @override
   void initState() {
@@ -76,13 +77,18 @@ class _StockManagerDashboardPageState
                     const SizedBox(height: 28),
 
                     // ── Alertes stock ────────────────────────────────────
-                    if (state.lowStockProducts.isNotEmpty) ...[
+                    if (state.lowStockProducts.isNotEmpty && !_isStockAlertDismissed) ...[
                       _SmStockAlertCard(
                         accent: accent,
                         products: state.lowStockProducts,
+                        onDismiss: () {
+                          setState(() {
+                            _isStockAlertDismissed = true;
+                          });
+                        },
                       ),
                       const SizedBox(height: 28),
-                    ] else ...[
+                    ] else if (state.lowStockProducts.isEmpty) ...[
                       _SmNoAlertBanner(accent: accent),
                       const SizedBox(height: 28),
                     ],
@@ -417,11 +423,8 @@ class _SmActionCardState extends State<_SmActionCard>
               Container(
                 width: 52,
                 height: 52,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(widget.action.icon, color: accent, size: 26),
+                alignment: Alignment.center,
+                child: Icon(widget.action.icon, color: accent, size: 30),
               ),
               const SizedBox(height: 16),
               Text(
@@ -455,8 +458,13 @@ class _SmActionCardState extends State<_SmActionCard>
 class _SmStockAlertCard extends StatelessWidget {
   final Color accent;
   final List products;
+  final VoidCallback onDismiss;
 
-  const _SmStockAlertCard({required this.accent, required this.products});
+  const _SmStockAlertCard({
+    required this.accent,
+    required this.products,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -476,38 +484,51 @@ class _SmStockAlertCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── En-tête ──────────────────────────────────────────────────
-          GestureDetector(
-            onTap: () => context.push('/stock'),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded,
-                      color: AppTheme.primaryColor, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Alertes stock',
-                      style: TextStyle(
-                        color: accent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => context.push('/stock'),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded,
+                            color: AppTheme.primaryColor, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Alertes stock',
+                            style: TextStyle(
+                              color: accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '${products.length} produit${products.length > 1 ? 's' : ''}',
+                          style: const TextStyle(
+                            color: AppTheme.primaryDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.chevron_right_rounded,
+                            color: Colors.black38, size: 20),
+                      ],
                     ),
                   ),
-                  Text(
-                    '${products.length} produit${products.length > 1 ? 's' : ''}',
-                    style: const TextStyle(
-                      color: AppTheme.primaryDark,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded,
-                      color: Colors.black38, size: 20),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.close_rounded, color: Colors.black45, size: 18),
+                  onPressed: onDismiss,
+                ),
+              ],
             ),
           ),
           const Divider(height: 1, thickness: 0.8),
@@ -712,11 +733,8 @@ class _SmTopProductsSection extends StatelessWidget {
                         Container(
                           width: 44,
                           height: 44,
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, color: color, size: 22),
+                          alignment: Alignment.center,
+                          child: Icon(icon, color: color, size: 28),
                         ),
                         const SizedBox(width: 14),
                         Expanded(

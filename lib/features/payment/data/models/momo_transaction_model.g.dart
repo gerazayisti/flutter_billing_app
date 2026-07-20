@@ -17,18 +17,18 @@ class MomoTransactionModelAdapter extends TypeAdapter<MomoTransactionModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MomoTransactionModel(
-      id: fields[0] as String? ?? '',
+      id: fields[0] as String,
       orderId: fields[1] as String?,
-      operatorName: fields[2] as String? ?? 'mtn',
-      customerPhone: fields[3] as String? ?? '',
-      amount: fields[4] as double? ?? 0.0,
-      statusName: fields[5] as String? ?? 'pending',
+      operatorName: fields[2] as String,
+      customerPhone: fields[3] as String,
+      amount: fields[4] as double,
+      statusName: fields[5] as String,
       reference: fields[6] as String?,
       externalId: fields[7] as String?,
-      initiatedAt: fields[8] as DateTime? ?? DateTime.now(),
+      initiatedAt: fields[8] as DateTime,
       confirmedAt: fields[9] as DateTime?,
       errorMessage: fields[10] as String?,
-      cashierId: fields[11] as String? ?? '',
+      cashierId: fields[11] as String,
     );
   }
 

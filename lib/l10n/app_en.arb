@@ -310,12 +310,15 @@
       "max": { "type": "int" }
     }
   },
+
   "onboardingTitle1": "Modernity & Speed",
   "onboardingDesc1": "Discover Gestock+, your new ultra-fast cash register and stock manager.",
   "onboardingTitle2": "Sales & Inventory",
   "onboardingDesc2": "Scan your items, track your stock in real-time and generate professional receipts.",
   "onboardingTitle3": "Offline Reliability",
   "onboardingDesc3": "Continue selling even without internet. Everything synchronizes automatically once connection is back!",
+  "onboardingTitle4": "Accept Mobile Money",
+  "onboardingDesc4": "Accept payments via Orange Money, MTN MoMo and more with ease.",
   "skip": "Skip",
   "next": "Next",
   "previous": "Previous",
@@ -365,5 +368,10 @@
   "quickStartGuide": "Quick Start Guide",
   "hide": "Hide",
   "congratulations": "Congratulations! 🎉",
-  "allStepsCompleted": "You have completed all key setup steps."
+  "allStepsCompleted": "You have completed all key setup steps.",
+  "continueToPayment": "Continue to payment",
+  "putOnHold": "Put on hold",
+  "paymentTimeoutTitle": "Mobile Money payment expired",
+  "paymentTimeoutBody": "The payment of {amount} XAF was pending for 15 minutes and has been cancelled.",
+  "pendingPayment": "Payment pending..."
 }

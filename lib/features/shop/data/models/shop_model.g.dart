@@ -17,18 +17,18 @@ class ShopModelAdapter extends TypeAdapter<ShopModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return ShopModel(
-      name: fields[0] as String? ?? '',
-      addressLine1: fields[1] as String? ?? '',
-      addressLine2: fields[2] as String? ?? '',
-      phoneNumber: fields[3] as String? ?? '',
-      upiId: fields[4] as String? ?? '',
-      footerText: fields[5] as String? ?? '',
-      orangeMoneyMerchant: fields[6] as String? ?? '',
-      mtnMomoMerchant: fields[7] as String? ?? '',
-      city: fields[8] as String? ?? '',
-      district: fields[9] as String? ?? '',
-      shopType: fields[10] as String? ?? '',
-      taxId: fields[11] as String? ?? '',
+      name: fields[0] as String,
+      addressLine1: fields[1] as String,
+      addressLine2: fields[2] as String,
+      phoneNumber: fields[3] as String,
+      upiId: fields[4] as String,
+      footerText: fields[5] as String,
+      orangeMoneyMerchant: fields[6] as String,
+      mtnMomoMerchant: fields[7] as String,
+      city: fields[8] as String,
+      district: fields[9] as String,
+      shopType: fields[10] as String,
+      taxId: fields[11] as String,
     );
   }
 

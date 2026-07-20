@@ -199,7 +199,7 @@
 
   "momoPaymentTitle": "Paiement Mobile Money",
   "enterCustomerPhone": "Numéro du client",
-  "phoneHint": "Ex: 6XXXXXXXX",
+  "phoneHint": "Ex: 2376XXXXXXXX",
   "initiatePayment": "Initier le paiement",
   "waitingForPayment": "En attente du paiement...",
   "paymentConfirmed": "Paiement confirmé !",
@@ -310,12 +310,15 @@
       "max": { "type": "int" }
     }
   },
+
   "onboardingTitle1": "Modernité et Rapidité",
   "onboardingDesc1": "Découvrez Gestock+, votre nouvelle caisse enregistreuse et gestionnaire de stock ultra-rapide.",
   "onboardingTitle2": "Vente et Inventaire",
   "onboardingDesc2": "Scannez vos articles, suivez vos stocks en temps réel et générez des reçus professionnels.",
   "onboardingTitle3": "Fiabilité Hors-Ligne",
   "onboardingDesc3": "Continuez à vendre même sans internet. Tout se synchronise automatiquement au retour de la connexion !",
+  "onboardingTitle4": "Accepter Mobile Money",
+  "onboardingDesc4": "Enregistrez vos paiements via Orange Money, MTN MoMo et plus en toute simplicité.",
   "skip": "Passer",
   "next": "Suivant",
   "previous": "Précédent",
@@ -365,5 +368,10 @@
   "quickStartGuide": "Guide de démarrage rapide",
   "hide": "Masquer",
   "congratulations": "Félicitations ! 🎉",
-  "allStepsCompleted": "Vous avez complété l'ensemble des étapes clés de configuration."
+  "allStepsCompleted": "Vous avez complété l'ensemble des étapes clés de configuration.",
+  "continueToPayment": "Continuer vers paiement",
+  "putOnHold": "Mettre en attente",
+  "paymentTimeoutTitle": "Paiement Mobile Money expiré",
+  "paymentTimeoutBody": "Le paiement de {amount} FCFA est resté en attente pendant 15 minutes et a été annulé.",
+  "pendingPayment": "Paiement en cours..."
 }

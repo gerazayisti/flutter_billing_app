@@ -32,6 +32,7 @@ class OwnerDashboardPage extends StatefulWidget {
 
 class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
   static const Color _bg = AppTheme.backgroundColor;
+  bool _isStockAlertDismissed = false;
 
   final GlobalKey _appBarKey = GlobalKey();
   final GlobalKey _salesHeroKey = GlobalKey();
@@ -149,10 +150,15 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                     const SizedBox(height: 28),
 
                     // ── Alerte stock ─────────────────────────────────────
-                    if (state.lowStockProducts.isNotEmpty) ...[
+                    if (state.lowStockProducts.isNotEmpty && !_isStockAlertDismissed) ...[
                       _StockAlertCard(
                           accent: accent,
-                          count: state.lowStockProducts.length),
+                          count: state.lowStockProducts.length,
+                          onDismiss: () {
+                            setState(() {
+                              _isStockAlertDismissed = true;
+                            });
+                          }),
                       const SizedBox(height: 28),
                     ],
 
@@ -555,8 +561,12 @@ class _QuickActionsGrid extends StatelessWidget {
         route: '/users'),
     _QuickAction(
         icon: Icons.account_balance_wallet_outlined,
-        label: 'Caisses',
+        label: 'Cloture des caisses',
         route: '/cash-closure'),
+    _QuickAction(
+        icon: Icons.account_balance_wallet_outlined,
+        label: 'Portefeuille',
+        route: '/wallet'),
     _QuickAction(
         icon: Icons.settings_outlined,
         label: 'Paramètres',
@@ -647,12 +657,9 @@ class _QuickActionTileState extends State<_QuickActionTile>
               Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                ),
+                alignment: Alignment.center,
                 child:
-                    Icon(widget.action.icon, color: accent, size: 24),
+                    Icon(widget.action.icon, color: accent, size: 28),
               ),
               const SizedBox(height: 8),
               Text(
@@ -681,22 +688,28 @@ class _QuickActionTileState extends State<_QuickActionTile>
 class _StockAlertCard extends StatelessWidget {
   final Color accent;
   final int count;
-  const _StockAlertCard({required this.accent, required this.count});
+  final VoidCallback onDismiss;
+
+  const _StockAlertCard({
+    required this.accent,
+    required this.count,
+    required this.onDismiss,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.push('/stock'),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => context.push('/stock'),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -709,20 +722,32 @@ class _StockAlertCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '$count produit${count > 1 ? 's' : ''} atteignent le seuil minimum',
-                    style: const TextStyle(
-                      color: Colors.black54,
-                      fontSize: 13,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '$count produit${count > 1 ? 's' : ''} atteignent le seuil minimum',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chevron_right_rounded,
+                          color: Colors.black38, size: 20),
+                    ],
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded,
-                color: Colors.black38, size: 24),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: Colors.black45, size: 20),
+            onPressed: onDismiss,
+          ),
+        ],
       ),
     );
   }
@@ -793,11 +818,8 @@ class _TopProductsSection extends StatelessWidget {
                         Container(
                           width: 44,
                           height: 44,
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, color: color, size: 22),
+                          alignment: Alignment.center,
+                          child: Icon(icon, color: color, size: 28),
                         ),
                         const SizedBox(width: 14),
                         Expanded(

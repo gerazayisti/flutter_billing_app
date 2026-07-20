@@ -17,7 +17,7 @@ migrate_working_dir/
 *.ipr
 *.iws
 .idea/
-
+#pawapays api=eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjIyNDUyIiwibWF2IjoiMSIsImV4cCI6MjA5NzE0MzIyMSwiaWF0IjoxNzgxNTI0MDIxLCJwbSI6IkRBRixQQUYiLCJqdGkiOiJjYzUwNmIzMC05MDk1LTQ2YmMtOWMwOC0yZTczMTE4NzAxY2EifQ.aXGSvG66aAUhgFPqKBaBDCEqIOt4bc5jXwwFrqUWh2grK9jupk-mAnZ2Fo7EUAfBW8WAqC7wQeZ90zJLvSNWog 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
@@ -43,6 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
+#nodes modules from supabase
+/node_modules
 # Sensitive configuration
 /lib/core/config/app_config.dart

@@ -119,12 +119,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       return;
     }
     _syncShopToHive(result.shopData!);
-    // 1. Push d'abord : s'assure que les données locales (ex: ancien téléphone)
+    // 1. Synchronise l'abonnement depuis Supabase en priorité.
+    //    Corrige le bug de réinstallation : Hive est vide après réinstall,
+    //    mais Supabase garde la vraie date d'expiration.
+    await syncService.pullSubscriptionOnly();
+    // 2. Push d'abord : s'assure que les données locales (ex: ancien téléphone)
     //    sont uploadées avant que le nouveau téléphone ne tire du cloud.
     await syncService.pushAll();
-    // 2. Pull complet : récupère tous les produits, commandes, stock, fournisseurs,
-    //    fermetures caisse et abonnement depuis le cloud.
-    //    Indispensable pour les nouveaux appareils (caissière, responsable de stock).
+    // 3. Pull complet : récupère tous les produits, commandes, stock, fournisseurs,
+    //    fermetures caisse depuis le cloud.
     await syncService.pullAll();
     emit(AuthAuthenticated(user: result.user!, shopId: result.shopId!));
   }

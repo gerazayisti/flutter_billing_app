@@ -6,6 +6,7 @@ import '../../features/billing/data/models/order_item_model.dart';
 import '../../features/billing/data/models/held_order_model.dart';
 import '../../features/auth/data/models/user_model.dart';
 import '../../features/payment/data/models/momo_transaction_model.dart';
+import '../../features/payment/data/models/shop_withdrawal_model.dart';
 import '../../features/stock/data/models/stock_movement_model.dart';
 import '../../features/stock/data/models/supplier_model.dart';
 import '../../features/stock/data/models/cash_register_closure_model.dart';
@@ -17,6 +18,7 @@ class HiveDatabase {
   static const String heldOrderBoxName = 'heldOrders';
   static const String usersBoxName = 'users';
   static const String momoTransactionsBoxName = 'momoTransactions';
+  static const String shopWithdrawalsBoxName = 'shopWithdrawals';
   static const String stockMovementsBoxName = 'stockMovements';
   static const String suppliersBoxName = 'suppliers';
   static const String cashClosuresBoxName = 'cashClosures';
@@ -28,6 +30,7 @@ class HiveDatabase {
   static late Box<HeldOrderModel> heldOrderBox;
   static late Box<UserModel> usersBox;
   static late Box<MomoTransactionModel> momoTransactionsBox;
+  static late Box<ShopWithdrawalModel> shopWithdrawalsBox;
   static late Box<StockMovementModel> stockMovementsBox;
   static late Box<SupplierModel> suppliersBox;
   static late Box<CashRegisterClosureModel> cashClosuresBox;
@@ -45,6 +48,7 @@ class HiveDatabase {
     Hive.registerAdapter(UserModelAdapter());
     Hive.registerAdapter(RoleAdapter());
     Hive.registerAdapter(MomoTransactionModelAdapter());
+    Hive.registerAdapter(ShopWithdrawalModelAdapter());
     Hive.registerAdapter(StockMovementModelAdapter());
     Hive.registerAdapter(SupplierModelAdapter());
     Hive.registerAdapter(CashRegisterClosureModelAdapter());
@@ -57,6 +61,7 @@ class HiveDatabase {
     heldOrderBox = await Hive.openBox<HeldOrderModel>(heldOrderBoxName);
     usersBox = await Hive.openBox<UserModel>(usersBoxName);
     momoTransactionsBox = await Hive.openBox<MomoTransactionModel>(momoTransactionsBoxName);
+    shopWithdrawalsBox = await Hive.openBox<ShopWithdrawalModel>(shopWithdrawalsBoxName);
     stockMovementsBox = await Hive.openBox<StockMovementModel>(stockMovementsBoxName);
     suppliersBox = await Hive.openBox<SupplierModel>(suppliersBoxName);
     cashClosuresBox = await Hive.openBox<CashRegisterClosureModel>(cashClosuresBoxName);
