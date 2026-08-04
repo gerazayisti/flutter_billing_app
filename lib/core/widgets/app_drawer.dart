@@ -51,6 +51,12 @@ class AppDrawer extends StatelessWidget {
                       label: l10n.stockMovements,
                       route: '/stock'),
 
+                if (user == null || user.canAccessInventory)
+                  _navItem(context,
+                      icon: Icons.analytics_outlined,
+                      label: 'Rapport Inventaire',
+                      route: '/inventory-report'),
+
                 // ── Tableau de bord : owner → vue complète ────────────
                 if (user == null || user.isOwner)
                   _navItem(context,

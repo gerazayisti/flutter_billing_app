@@ -60,7 +60,13 @@ class ProfilePage extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-        onPressed: () => context.pop(),
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/home');
+          }
+        },
       ),
       title: const Text(
         'Mon Profil',

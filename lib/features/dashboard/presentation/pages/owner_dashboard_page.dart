@@ -8,6 +8,7 @@ import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/subscription_service.dart';
 import '../../../../core/widgets/interactive_guide_card.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import '../../../../core/widgets/spotlight_tutorial.dart';
 import '../../../../core/data/hive_database.dart';
 import '../../../subscription/domain/subscription.dart';
@@ -16,6 +17,7 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
+import '../../../subscription/presentation/bloc/subscription_bloc.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Owner Dashboard Page — vue principale du propriétaire de boutique.
@@ -44,6 +46,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
     super.initState();
     context.read<DashboardBloc>().add(const LoadDashboardEvent());
     context.read<NotificationBloc>().add(LoadNotificationsEvent());
+    context.read<SubscriptionBloc>().add(const LoadSubscriptionEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAndShowTutorial();
     });
@@ -106,6 +109,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
 
     return Scaffold(
       backgroundColor: _bg,
+      drawer: const AppDrawer(),
       body: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           return CustomScrollView(
@@ -186,7 +190,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
       surfaceTintColor: Colors.white,
       leading: IconButton(
         icon: const Icon(Icons.menu_rounded, color: Colors.black87, size: 26),
-        onPressed: () {},
+        onPressed: () => Scaffold.of(context).openDrawer(),
       ),
       title: Container(
         key: _appBarKey,

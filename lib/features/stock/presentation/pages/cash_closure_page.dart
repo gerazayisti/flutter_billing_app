@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/utils/xaf_formatter.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
@@ -24,6 +25,12 @@ class _CashClosurePageState extends State<CashClosurePage> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: context.canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => context.pop(),
+              )
+            : null,
         title: Text(l10n.cashClosure,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,

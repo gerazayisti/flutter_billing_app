@@ -425,17 +425,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
       final saleId = '${cloudShopId}_${const Uuid().v4()}';
       
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => di.sl<MobileMoneyBloc>(),
-            child: EnterPhoneNumberPage(
-              saleId: saleId,
-              amount: billingState.totalAmount,
-              onConfirmed: () => action(saleId),
-            ),
-          ),
-        ),
+      context.push(
+        '/payment/momo',
+        extra: {
+          'saleId': saleId,
+          'amount': billingState.totalAmount,
+          'onConfirmed': () => action(saleId),
+        },
       );
     } else {
       action(null);

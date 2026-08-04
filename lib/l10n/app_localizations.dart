@@ -2113,6 +2113,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Paiement en cours...'**
   String get pendingPayment;
+
+  /// No description provided for @inventoryReport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapport d\'Inventaire'**
+  String get inventoryReport;
+
+  /// No description provided for @selectPeriod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner la période'**
+  String get selectPeriod;
+
+  /// No description provided for @customPeriod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Période Personnalisée...'**
+  String get customPeriod;
+
+  /// No description provided for @periodOverview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aperçu de la période'**
+  String get periodOverview;
+
+  /// No description provided for @downloadReport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Télécharger le Rapport'**
+  String get downloadReport;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportExcel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export Excel'**
+  String get exportExcel;
+
+  /// No description provided for @movements.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mouvements'**
+  String get movements;
+
+  /// No description provided for @entries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrées'**
+  String get entries;
+
+  /// No description provided for @exits.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sorties'**
+  String get exits;
 }
 
 class _AppLocalizationsDelegate

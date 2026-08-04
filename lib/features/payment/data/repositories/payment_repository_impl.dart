@@ -5,10 +5,10 @@ import '../../domain/entities/shop_withdrawal.dart';
 import '../../domain/repositories/payment_repository.dart';
 import '../models/momo_transaction_model.dart';
 import '../models/shop_withdrawal_model.dart';
-import '../datasources/pawapay_remote_datasource.dart';
+import '../datasources/freemopay_remote_datasource.dart';
 
 class PaymentRepositoryImpl implements PaymentRepository {
-  final PawaPayRemoteDataSource _remote;
+  final FreemoPayRemoteDataSource _remote;
 
   PaymentRepositoryImpl(this._remote);
 
@@ -52,8 +52,9 @@ class PaymentRepositoryImpl implements PaymentRepository {
     return HiveDatabase.momoTransactionsBox.get(id)?.toEntity();
   }
 
+  // --- FreeMoPay Deposit Methods ---
   @override
-  Future<MobileMoneyPayment> initiatePawaPayDeposit({
+  Future<MobileMoneyPayment> initiateFreemoPayDeposit({
     required String saleId,
     required double amount,
     required String phoneNumberRaw,
@@ -66,27 +67,33 @@ class PaymentRepositoryImpl implements PaymentRepository {
 
     if (json['status'] == 'REJECTED') {
       return MobileMoneyPayment(
-        depositId: json['depositId'],
+        depositId: json['depositId'] ?? saleId,
         status: PaymentStatus.failed,
         pinPrompt: json['pinPrompt'] ?? 'AUTOMATIC',
         pinPromptRevivable: json['pinPromptRevivable'] ?? false,
         failureCode: json['failureReason']?['failureCode'],
         failureMessage: json['failureReason']?['failureMessage'],
+        amount: amount,
+        phoneNumber: phoneNumberRaw,
+        provider: 'FreeMoPay',
       );
     }
 
     return MobileMoneyPayment(
-      depositId: json['depositId'],
+      depositId: json['depositId'] ?? saleId,
       status: _parseStatus(json['status'] as String? ?? 'ACCEPTED'),
       pinPrompt: json['pinPrompt'] ?? 'AUTOMATIC',
       pinPromptRevivable: json['pinPromptRevivable'] ?? false,
       pinPromptInstructions: json['pinPromptInstructions'],
       nameDisplayedToCustomer: json['nameDisplayedToCustomer'],
+      amount: amount,
+      phoneNumber: phoneNumberRaw,
+      provider: 'FreeMoPay',
     );
   }
 
   @override
-  Stream<MobileMoneyPayment> watchPawaPayDepositStatus(String depositId) {
+  Stream<MobileMoneyPayment> watchFreemoPayDepositStatus(String depositId) {
     return _remote.watchDepositStatus(depositId).map((row) {
       final status = _parseStatus(row['status'] as String);
       return MobileMoneyPayment(
@@ -96,32 +103,53 @@ class PaymentRepositoryImpl implements PaymentRepository {
         pinPromptRevivable: false,
         failureCode: row['failure_code'],
         failureMessage: row['failure_message'],
+        amount: (row['amount'] as num?)?.toDouble() ?? 0.0,
+        phoneNumber: row['phone_number'] as String? ?? '',
+        provider: row['provider'] as String? ?? 'FreeMoPay',
       );
     });
   }
 
   @override
-  Future<MobileMoneyPayment> checkPawaPayDepositStatus(String depositId) async {
+  Future<MobileMoneyPayment> checkFreemoPayDepositStatus(String depositId) async {
     final json = await _remote.checkDepositStatus(depositId);
     final status = _parseStatus(json['status'] as String? ?? 'ACCEPTED');
 
     return MobileMoneyPayment(
-      depositId: json['depositId'],
+      depositId: json['depositId'] ?? depositId,
       status: status,
       pinPrompt: 'AUTOMATIC',
       pinPromptRevivable: false,
       failureCode: json['failureReason']?['failureCode'],
       failureMessage: json['failureReason']?['failureMessage'],
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      phoneNumber: json['phone_number'] as String? ?? '',
+      provider: json['provider'] as String? ?? 'FreeMoPay',
     );
   }
 
+  // Backwards compatibility aliases
+  @override
+  Future<MobileMoneyPayment> initiatePawaPayDeposit({
+    required String saleId,
+    required double amount,
+    required String phoneNumberRaw,
+  }) => initiateFreemoPayDeposit(saleId: saleId, amount: amount, phoneNumberRaw: phoneNumberRaw);
+
+  @override
+  Stream<MobileMoneyPayment> watchPawaPayDepositStatus(String depositId) => watchFreemoPayDepositStatus(depositId);
+
+  @override
+  Future<MobileMoneyPayment> checkPawaPayDepositStatus(String depositId) => checkFreemoPayDepositStatus(depositId);
+
+  // --- Gestion des Retraits (Payouts) & Soldes ---
   @override
   Future<double> getShopBalance(String shopId) async {
     return _remote.getShopBalance(shopId);
   }
 
   @override
-  Future<ShopWithdrawal> initiatePawaPayPayout({
+  Future<ShopWithdrawal> initiateFreemoPayPayout({
     required String shopId,
     required double amountRequested,
     required String phoneNumberRaw,
@@ -133,10 +161,10 @@ class PaymentRepositoryImpl implements PaymentRepository {
     );
 
     final withdrawal = ShopWithdrawal(
-      payoutId: json['payoutId'],
+      payoutId: json['payoutId'] ?? 'payout_${DateTime.now().millisecondsSinceEpoch}',
       shopId: shopId,
       phoneNumber: phoneNumberRaw,
-      provider: json['provider'] ?? 'UNKNOWN',
+      provider: json['provider'] ?? 'FREEMOPAY',
       grossAmount: amountRequested,
       feeAmount: (json['feeAmount'] as num?)?.toDouble() ?? (amountRequested * 0.01),
       netAmount: (json['netAmount'] as num?)?.toDouble() ?? (amountRequested * 0.99),
@@ -146,7 +174,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
       createdAt: DateTime.now(),
     );
 
-    // Persister localement pour le suivi
     await HiveDatabase.shopWithdrawalsBox.put(
       withdrawal.payoutId,
       ShopWithdrawalModel.fromEntity(withdrawal),
@@ -156,8 +183,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
-  Stream<ShopWithdrawal> watchPawaPayPayoutStatus(String payoutId) {
-    return _remote.watchWithdrawalStatus(payoutId).map((row) {
+  Stream<ShopWithdrawal> watchFreemoPayPayoutStatus(String payoutId) {
+    return _remote.watchDepositStatus(payoutId).map((row) {
       final status = _parseWithdrawalStatus(row['status'] as String);
       return ShopWithdrawal(
         payoutId: row['payout_id'],
@@ -176,12 +203,12 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
-  Future<ShopWithdrawal> checkPawaPayPayoutStatus(String payoutId) async {
+  Future<ShopWithdrawal> checkFreemoPayPayoutStatus(String payoutId) async {
     final json = await _remote.checkPayoutStatus(payoutId);
     final status = _parseWithdrawalStatus(json['status'] as String? ?? 'ACCEPTED');
 
     final existing = HiveDatabase.shopWithdrawalsBox.get(payoutId);
-    
+
     final updated = ShopWithdrawal(
       payoutId: payoutId,
       shopId: json['metadata']?['shopId'] ?? existing?.shopId ?? 'UNKNOWN',
@@ -196,7 +223,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
       createdAt: existing?.createdAt ?? DateTime.now(),
     );
 
-    // Mettre à jour le cache local
     await HiveDatabase.shopWithdrawalsBox.put(
       payoutId,
       ShopWithdrawalModel.fromEntity(updated),
@@ -205,13 +231,30 @@ class PaymentRepositoryImpl implements PaymentRepository {
     return updated;
   }
 
+  // Backwards compatibility aliases
+  @override
+  Future<ShopWithdrawal> initiatePawaPayPayout({
+    required String shopId,
+    required double amountRequested,
+    required String phoneNumberRaw,
+  }) => initiateFreemoPayPayout(shopId: shopId, amountRequested: amountRequested, phoneNumberRaw: phoneNumberRaw);
+
+  @override
+  Stream<ShopWithdrawal> watchPawaPayPayoutStatus(String payoutId) => watchFreemoPayPayoutStatus(payoutId);
+
+  @override
+  Future<ShopWithdrawal> checkPawaPayPayoutStatus(String payoutId) => checkFreemoPayPayoutStatus(payoutId);
+
   WithdrawalStatus _parseWithdrawalStatus(String s) {
     switch (s) {
       case 'COMPLETED':
+      case 'SUCCESS':
         return WithdrawalStatus.completed;
       case 'FAILED':
+      case 'REJECTED':
         return WithdrawalStatus.failed;
       case 'PROCESSING':
+      case 'PENDING':
         return WithdrawalStatus.pending;
       case 'ACCEPTED':
       case 'ENQUEUED':
@@ -224,10 +267,13 @@ class PaymentRepositoryImpl implements PaymentRepository {
   PaymentStatus _parseStatus(String s) {
     switch (s) {
       case 'COMPLETED':
+      case 'SUCCESS':
         return PaymentStatus.completed;
       case 'FAILED':
+      case 'REJECTED':
         return PaymentStatus.failed;
       case 'PROCESSING':
+      case 'PENDING':
         return PaymentStatus.processing;
       case 'ACCEPTED':
         return PaymentStatus.accepted;

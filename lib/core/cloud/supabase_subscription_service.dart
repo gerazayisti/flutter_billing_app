@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:billing_app/core/data/hive_database.dart';
 import '../../features/subscription/domain/subscription.dart';
 import '../services/subscription_service.dart';
 
@@ -6,9 +7,78 @@ import '../services/subscription_service.dart';
 ///
 /// Activation  : verifyAndActivate() → Edge Function verify-subscription
 ///               → vérifie paiement FreemoPay API → écrit dans Supabase
-/// Synchronisation : pullAndCache() → lit depuis Supabase → écrit dans Hive
+/// Synchronisation : pullAndCache() / ensureTrialOrSync() → lit/écrit depuis Supabase → écrit dans Hive
 class SupabaseSubscriptionService {
   SupabaseClient get _client => Supabase.instance.client;
+
+  /// Assure qu'une ligne d'abonnement existe dans la table Supabase 'subscriptions'.
+  /// Si absente (nouvel inscrit / boutique en essai), insère automatiquement la ligne d'essai (30 jours)
+  /// dans la base de données Supabase avec shop_id, tier ('trial'), start_date et expiry_date.
+  /// Si présente, synchronise les dates et l'état vers Hive.
+  Future<void> ensureTrialOrSync(String shopId) async {
+    String validShopId = shopId;
+
+    try {
+      final user = _client.auth.currentUser;
+      if (user != null) {
+        final member = await _client
+            .from('shop_members')
+            .select('shop_id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+        if (member != null && member['shop_id'] != null) {
+          validShopId = member['shop_id'] as String;
+          await HiveDatabase.settingsBox.put('cloud_shop_id', validShopId);
+        }
+      }
+
+      if (validShopId.isEmpty) return;
+
+      final row = await _client
+          .from('subscriptions')
+          .select()
+          .eq('shop_id', validShopId)
+          .maybeSingle();
+
+      if (row == null) {
+        final startRaw = HiveDatabase.settingsBox.get('subscription_trial_start') as String?;
+        final startDate = startRaw != null ? DateTime.parse(startRaw) : DateTime.now();
+        if (startRaw == null) {
+          await HiveDatabase.settingsBox.put('subscription_trial_start', startDate.toIso8601String());
+        }
+        final expiryDate = startDate.add(const Duration(days: 30));
+
+        await _client.from('subscriptions').upsert({
+          'shop_id': validShopId,
+          'tier': 'trial',
+          'billing_cycle': 'monthly',
+          'start_date': startDate.toIso8601String(),
+          'expiry_date': expiryDate.toIso8601String(),
+          'freemopay_reference': 'TRIAL_30_DAYS',
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'shop_id');
+      } else {
+        final startRaw = row['start_date'] as String?;
+        final expiryRaw = row['expiry_date'] as String?;
+        if (startRaw != null && expiryRaw != null) {
+          final info = SubscriptionInfo(
+            tier: SubscriptionTier.values.firstWhere(
+              (t) => t.name == (row['tier'] as String),
+              orElse: () => SubscriptionTier.trial,
+            ),
+            cycle: BillingCycle.values.firstWhere(
+              (c) => c.name == (row['billing_cycle'] as String? ?? 'monthly'),
+              orElse: () => BillingCycle.monthly,
+            ),
+            startDate: DateTime.parse(startRaw),
+            expiryDate: DateTime.parse(expiryRaw),
+            freemopayReference: row['freemopay_reference'] as String?,
+          );
+          await SubscriptionService.save(info);
+        }
+      }
+    } catch (_) {}
+  }
 
   // ── Activation via Edge Function ──────────────────────────────────────────
 
@@ -20,7 +90,20 @@ class SupabaseSubscriptionService {
     required SubscriptionTier tier,
     required BillingCycle cycle,
   }) async {
-    if (shopId.isEmpty) {
+    String validShopId = shopId;
+    final user = _client.auth.currentUser;
+    if (user != null) {
+      final member = await _client
+          .from('shop_members')
+          .select('shop_id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      if (member != null && member['shop_id'] != null) {
+        validShopId = member['shop_id'] as String;
+      }
+    }
+
+    if (validShopId.isEmpty) {
       return 'Boutique non connectée. Reconnectez-vous et réessayez.';
     }
 
@@ -29,13 +112,12 @@ class SupabaseSubscriptionService {
         'verify-subscription',
         body: {
           'reference': reference,
-          'shop_id':   shopId,
+          'shop_id':   validShopId,
           'tier':      tier.name,
           'cycle':     cycle.name,
         },
       );
 
-      // La fonction retourne 200 avec { start_date, expiry_date, tier, cycle }
       final data = response.data as Map<String, dynamic>?;
       if (data == null) return 'Réponse invalide du serveur';
 
@@ -51,12 +133,10 @@ class SupabaseSubscriptionService {
         freemopayReference: reference,
       );
 
-      // Sauvegarde locale dans Hive
       await SubscriptionService.save(info);
-      return null; // succès
+      return null;
 
     } on FunctionException catch (e) {
-      // La Edge Function a retourné une erreur (400, 500)
       final details = e.details;
       if (details is Map) {
         return details['error'] as String? ?? 'Vérification du paiement échouée';
@@ -67,39 +147,9 @@ class SupabaseSubscriptionService {
     }
   }
 
-  // ── Synchronisation au login ──────────────────────────────────────────────
+  // ── Synchronisation ────────────────────────────────────────────────────────
 
-  /// Télécharge l'abonnement depuis Supabase et le sauvegarde dans Hive.
-  /// Ignoré silencieusement si hors-ligne ou si aucun abonnement actif.
   Future<void> pullAndCache(String shopId) async {
-    try {
-      final row = await _client
-          .from('subscriptions')
-          .select()
-          .eq('shop_id', shopId)
-          .maybeSingle();
-
-      if (row == null) return;
-
-      final startRaw  = row['start_date'] as String?;
-      final expiryRaw = row['expiry_date'] as String?;
-      if (startRaw == null || expiryRaw == null) return;
-
-      final info = SubscriptionInfo(
-        tier: SubscriptionTier.values.firstWhere(
-          (t) => t.name == (row['tier'] as String),
-          orElse: () => SubscriptionTier.trial,
-        ),
-        cycle: BillingCycle.values.firstWhere(
-          (c) => c.name == (row['billing_cycle'] as String? ?? 'monthly'),
-          orElse: () => BillingCycle.monthly,
-        ),
-        startDate:          DateTime.parse(startRaw),
-        expiryDate:         DateTime.parse(expiryRaw),
-        freemopayReference: row['freemopay_reference'] as String?,
-      );
-
-      await SubscriptionService.save(info);
-    } catch (_) {}
+    await ensureTrialOrSync(shopId);
   }
 }

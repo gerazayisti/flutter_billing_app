@@ -29,10 +29,12 @@ import 'cloud/supabase_subscription_service.dart';
 import '../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../features/subscription/presentation/bloc/subscription_bloc.dart';
 import '../features/sync/presentation/bloc/sync_bloc.dart';
+import '../features/payment/data/datasources/freemopay_remote_datasource.dart';
 import '../features/payment/data/datasources/pawapay_remote_datasource.dart';
 import '../features/payment/data/repositories/payment_repository_impl.dart';
 import '../features/payment/domain/repositories/payment_repository.dart';
 import '../features/payment/presentation/bloc/mobile_money_bloc.dart';
+import '../features/payment/presentation/bloc/wallet_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../features/onboarding/data/repositories/onboarding_repository_impl.dart';
 import '../features/onboarding/domain/repositories/onboarding_repository.dart';
@@ -131,14 +133,20 @@ Future<void> init() async {
   sl.registerLazySingleton<CloudSyncService>(() => sl<SupabaseSyncService>());
   sl.registerFactory(() => SyncBloc(syncService: sl<SupabaseSyncService>()));
 
-  // ── PawaPay Mobile Money ──────────────────────────────────────────────────
+  // ── FreeMoPay Mobile Money ──────────────────────────────────────────────────
+  sl.registerLazySingleton<FreemoPayRemoteDataSource>(
+    () => FreemoPayRemoteDataSource(Supabase.instance.client),
+  );
   sl.registerLazySingleton<PawaPayRemoteDataSource>(
     () => PawaPayRemoteDataSource(Supabase.instance.client),
   );
   sl.registerLazySingleton<PaymentRepository>(
-    () => PaymentRepositoryImpl(sl<PawaPayRemoteDataSource>()),
+    () => PaymentRepositoryImpl(sl<FreemoPayRemoteDataSource>()),
   );
   sl.registerFactory<MobileMoneyBloc>(
     () => MobileMoneyBloc(sl<PaymentRepository>()),
+  );
+  sl.registerFactory<WalletBloc>(
+    () => WalletBloc(paymentRepository: sl<PaymentRepository>()),
   );
 }

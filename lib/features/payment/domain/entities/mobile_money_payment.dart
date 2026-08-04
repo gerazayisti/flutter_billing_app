@@ -9,6 +9,9 @@ class MobileMoneyPayment {
   final String? nameDisplayedToCustomer;
   final String? failureCode;
   final String? failureMessage;
+  final double amount;
+  final String phoneNumber;
+  final String provider;
 
   MobileMoneyPayment({
     required this.depositId,
@@ -19,12 +22,18 @@ class MobileMoneyPayment {
     this.nameDisplayedToCustomer,
     this.failureCode,
     this.failureMessage,
+    this.amount = 0.0,
+    this.phoneNumber = '',
+    this.provider = 'Mobile Money',
   });
 
   MobileMoneyPayment copyWith({
     PaymentStatus? status,
     String? failureCode,
     String? failureMessage,
+    double? amount,
+    String? phoneNumber,
+    String? provider,
   }) {
     return MobileMoneyPayment(
       depositId: depositId,
@@ -35,6 +44,9 @@ class MobileMoneyPayment {
       nameDisplayedToCustomer: nameDisplayedToCustomer,
       failureCode: failureCode ?? this.failureCode,
       failureMessage: failureMessage ?? this.failureMessage,
+      amount: amount ?? this.amount,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      provider: provider ?? this.provider,
     );
   }
 }

@@ -132,6 +132,22 @@ class SupabaseAuthService {
         'email':   email,
       });
 
+      // Créer automatiquement la ligne d'essai (30 jours) dans la BD Supabase 'subscriptions'
+      try {
+        final now = DateTime.now();
+        final expiry = now.add(const Duration(days: 30));
+        await _client.from('subscriptions').upsert({
+          'shop_id': shopId,
+          'tier': 'pro',
+          'billing_cycle': 'trial',
+          'status': 'active',
+          'start_date': now.toIso8601String(),
+          'expiry_date': expiry.toIso8601String(),
+          'freemopay_reference': 'TRIAL_30_DAYS',
+          'updated_at': now.toIso8601String(),
+        }, onConflict: 'shop_id');
+      } catch (_) {}
+
       final user = app.User(
         id: uid, name: ownerName, email: email,
         role: app.Role.owner, shopId: shopId,

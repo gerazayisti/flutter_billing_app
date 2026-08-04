@@ -1,155 +1,17 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
-import 'package:billing_app/core/data/hive_database.dart';
-import 'package:billing_app/core/service_locator.dart' as di;
 import 'package:billing_app/core/utils/xaf_formatter.dart';
 import 'package:billing_app/features/payment/domain/entities/shop_withdrawal.dart';
-import 'package:billing_app/features/payment/domain/repositories/payment_repository.dart';
+import 'package:billing_app/features/payment/presentation/bloc/wallet_bloc.dart';
+import 'package:billing_app/features/payment/presentation/bloc/wallet_event.dart';
+import 'package:billing_app/features/payment/presentation/bloc/wallet_state.dart';
 import 'package:intl/intl.dart';
+import 'package:billing_app/core/data/hive_database.dart';
 
-class WalletPage extends StatefulWidget {
+class WalletPage extends StatelessWidget {
   const WalletPage({super.key});
-
-  @override
-  State<WalletPage> createState() => _WalletPageState();
-}
-
-class _WalletPageState extends State<WalletPage> {
-  bool _isLoading = true;
-  double _balance = 0.0;
-  String _errorMessage = '';
-  String _shopIdDebug = '';
-  List<ShopWithdrawal> _withdrawals = [];
-  Timer? _pollingTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchBalance();
-    _startPolling();
-  }
-
-  @override
-  void dispose() {
-    _pollingTimer?.cancel();
-    super.dispose();
-  }
-
-  void _startPolling() {
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      _checkPendingWithdrawals();
-    });
-  }
-
-  Future<void> _checkPendingWithdrawals() async {
-    final pending = _withdrawals.where((w) =>
-      w.status == WithdrawalStatus.pending || w.status == WithdrawalStatus.accepted
-    ).toList();
-
-    if (pending.isEmpty) return;
-
-    final repository = di.sl<PaymentRepository>();
-    bool hasChanged = false;
-
-    for (var w in pending) {
-      try {
-        final updated = await repository.checkPawaPayPayoutStatus(w.payoutId);
-        if (updated.status != w.status) {
-          hasChanged = true;
-        }
-      } catch (e) {
-        debugPrint('Polling error: $e');
-      }
-    }
-
-    if (hasChanged && mounted) {
-      _fetchBalance();
-    }
-  }
-
-  void _loadLocalWithdrawals() {
-    final items = HiveDatabase.shopWithdrawalsBox.values
-        .map((m) => m.toEntity())
-        .toList();
-    items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    setState(() {
-      _withdrawals = items;
-    });
-  }
-
-  Future<void> _fetchBalance() async {
-    setState(() { _isLoading = true; });
-    try {
-      final s = HiveDatabase.settingsBox;
-      var shopId = s.get('cloud_shop_id', defaultValue: '') as String;
-      
-      if (shopId.isEmpty) {
-        final shop = HiveDatabase.shopBox.values.isNotEmpty ? HiveDatabase.shopBox.values.first : null;
-        shopId = shop != null ? shop.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_') : 'default_shop';
-      }
-
-      final resp = await Supabase.instance.client.functions.invoke(
-        'pawapay-get-balance',
-        body: {'shopId': shopId},
-      );
-
-      if (resp.status == 200) {
-        final data = resp.data as Map<String, dynamic>;
-        _balance = (data['balance'] as num? ?? 0).toDouble();
-        _shopIdDebug = data['shop_id'] as String? ?? shopId;
-        if (data['shop_id'] != null) s.put('cloud_shop_id', data['shop_id']);
-      }
-
-      // Synchronisation de l'historique
-      final localShopName = HiveDatabase.shopBox.values.isNotEmpty 
-          ? HiveDatabase.shopBox.values.first.name.toLowerCase().replaceAll(RegExp(r'\s+'), '_') 
-          : 'default_shop';
-
-      final query = Supabase.instance.client
-          .from('shop_withdrawals')
-          .select();
-      
-      // On filtre soit par l'ID cloud (UUID), soit par le slug local (shop_id peut être l'un ou l'autre)
-      final List<dynamic> remoteData = await query
-          .or('shop_id.eq.$_shopIdDebug,shop_id.eq.$shopId,shop_id.eq.$localShopName')
-          .order('created_at', ascending: false);
-
-      setState(() {
-        _withdrawals = remoteData.map((json) => ShopWithdrawal(
-          payoutId: json['payout_id'] ?? '',
-          shopId: json['shop_id'] ?? '',
-          phoneNumber: json['phone_number'] ?? '',
-          provider: json['provider'] ?? '',
-          grossAmount: (json['gross_amount'] as num? ?? 0).toDouble(),
-          feeAmount: (json['fee_amount'] as num? ?? 0).toDouble(),
-          netAmount: (json['net_amount'] as num? ?? 0).toDouble(),
-          status: _mapStatus(json['status']),
-          createdAt: DateTime.parse(json['created_at']),
-        )).toList();
-        _isLoading = false;
-        _errorMessage = '';
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = "Erreur synchro : $e";
-        _isLoading = false;
-      });
-      _loadLocalWithdrawals();
-    }
-  }
-
-  WithdrawalStatus _mapStatus(String? status) {
-    switch (status?.toUpperCase()) {
-      case 'COMPLETED': return WithdrawalStatus.completed;
-      case 'ACCEPTED': return WithdrawalStatus.accepted;
-      case 'FAILED': return WithdrawalStatus.failed;
-      default: return WithdrawalStatus.pending;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,43 +20,87 @@ class _WalletPageState extends State<WalletPage> {
         title: const Text('Portefeuille Gestock', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black), onPressed: () => context.pop()),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _fetchBalance,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            _buildBalanceCard(),
-            if (_errorMessage.isNotEmpty) _buildErrorTile(),
-            const SizedBox(height: 16),
-
-            // ── Score de Crédit ─────────────────────────────────────────
-            _CreditScoreBanner(),
-            const SizedBox(height: 16),
-
-            ElevatedButton.icon(
-              onPressed: () => _showWithdrawalDialog(context),
-              icon: const Icon(Icons.send_rounded),
-              label: const Text('RETIRER MON ARGENT'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Text('Activités récentes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            if (_withdrawals.isEmpty && !_isLoading) _buildEmptyState(),
-            ..._withdrawals.map((w) => _buildWithdrawalItem(w)),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/home');
+            }
+          },
         ),
+      ),
+      body: BlocConsumer<WalletBloc, WalletState>(
+        listenWhen: (previous, current) {
+          return previous.isWithdrawing != current.isWithdrawing || 
+                 previous.withdrawalSuccessMessage != current.withdrawalSuccessMessage || 
+                 previous.withdrawalErrorMessage != current.withdrawalErrorMessage;
+        },
+        listener: (context, state) {
+          if (state.withdrawalSuccessMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.withdrawalSuccessMessage!), backgroundColor: Colors.green),
+            );
+          }
+          if (state.withdrawalErrorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.withdrawalErrorMessage!), backgroundColor: Colors.red),
+            );
+          }
+        },
+        builder: (context, state) {
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<WalletBloc>().add(LoadWalletDataEvent());
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                _buildBalanceCard(state),
+                if (state.errorMessage.isNotEmpty) _buildErrorTile(state.errorMessage),
+                const SizedBox(height: 16),
+
+                // ── Score de Crédit ─────────────────────────────────────────
+                const _CreditScoreBanner(),
+                const SizedBox(height: 16),
+
+                ElevatedButton.icon(
+                  onPressed: state.status == WalletStatus.loading || state.isWithdrawing
+                      ? null
+                      : () => _showWithdrawalDialog(context),
+                  icon: const Icon(Icons.send_rounded),
+                  label: const Text('RETIRER MON ARGENT'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                if (state.isWithdrawing)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Center(child: Text("Initiation du retrait en cours...", style: TextStyle(color: Colors.grey, fontSize: 12))),
+                  ),
+                const SizedBox(height: 32),
+                const Text('Activités récentes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                
+                if (state.status == WalletStatus.loading)
+                  const Center(child: CircularProgressIndicator())
+                else if (state.withdrawals.isEmpty)
+                  _buildEmptyState()
+                else
+                  ...state.withdrawals.map((w) => _buildWithdrawalItem(w)),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBalanceCard() {
+  Widget _buildBalanceCard(WalletState state) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -206,14 +112,21 @@ class _WalletPageState extends State<WalletPage> {
         children: [
           const Text('SOLDE DISPONIBLE', style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 8),
-          Text(XafFormatter.format(_balance), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+          if (state.status == WalletStatus.loading)
+            const CircularProgressIndicator(color: Colors.white)
+          else
+            Text(XafFormatter.format(state.balance), style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildErrorTile() => Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 12));
-  Widget _buildEmptyState() => const Center(child: Text('Aucun retrait trouvé'));
+  Widget _buildErrorTile(String errorMessage) => Text(errorMessage, style: const TextStyle(color: Colors.red, fontSize: 12));
+  
+  Widget _buildEmptyState() => const Center(child: Padding(
+    padding: EdgeInsets.all(20.0),
+    child: Text('Aucun retrait trouvé'),
+  ));
 
   Widget _buildWithdrawalItem(ShopWithdrawal w) {
     Color statusColor;
@@ -245,27 +158,21 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  void _showWithdrawalDialog(BuildContext pageContext) {
+  void _showWithdrawalDialog(BuildContext context) {
     final amountController = TextEditingController();
     final phoneController = TextEditingController();
-
-    // ⚠️ Déclaré ICI pour persister entre les rebuilds du StatefulBuilder
-    bool isSubmitting = false;
-    StateSetter? _setState;
-
-    // Capturer le messenger de la PAGE (reste valide après fermeture du bottom sheet)
-    final messenger = ScaffoldMessenger.of(pageContext);
+    final pinController = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+    final walletBloc = context.read<WalletBloc>();
 
     showModalBottomSheet(
-      context: pageContext,
+      context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetCtx) => StatefulBuilder(
         builder: (_, setModalState) {
-          _setState = setModalState; // lier le setter pour l'utiliser hors builder
-
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
@@ -282,7 +189,7 @@ class _WalletPageState extends State<WalletPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Solde : ${XafFormatter.format(_balance)}',
+                  'Solde : ${XafFormatter.format(walletBloc.state.balance)}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.grey),
                 ),
@@ -306,6 +213,18 @@ class _WalletPageState extends State<WalletPage> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  maxLength: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Code PIN (4 chiffres)',
+                    prefixIcon: Icon(Icons.lock_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -314,74 +233,45 @@ class _WalletPageState extends State<WalletPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          final amountText = amountController.text.trim();
-                          final phoneText = phoneController.text.trim();
+                  onPressed: () {
+                    final amountText = amountController.text.trim();
+                    final phoneText = phoneController.text.trim();
+                    final pinText = pinController.text.trim();
 
-                          if (amountText.isEmpty || phoneText.isEmpty) {
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('Veuillez remplir tous les champs')),
-                            );
-                            return;
-                          }
+                    if (amountText.isEmpty || phoneText.isEmpty || pinText.isEmpty) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Veuillez remplir tous les champs')),
+                      );
+                      return;
+                    }
 
-                          final amount = double.tryParse(amountText);
-                          if (amount == null || amount <= 0) {
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('Montant invalide')),
-                            );
-                            return;
-                          }
+                    final amount = double.tryParse(amountText);
+                    if (amount == null || amount <= 0) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Montant invalide')),
+                      );
+                      return;
+                    }
 
-                          if (amount > _balance) {
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('Solde insuffisant')),
-                            );
-                            return;
-                          }
+                    if (amount > walletBloc.state.balance) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Solde insuffisant')),
+                      );
+                      return;
+                    }
 
-                          _setState?.call(() => isSubmitting = true);
+                    final savedPin = HiveDatabase.settingsBox.get('user_pin', defaultValue: '') as String;
+                    if (pinText != savedPin) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Code PIN incorrect')),
+                      );
+                      return;
+                    }
 
-                          try {
-                            debugPrint('🔄 Retrait shopId=$_shopIdDebug amount=$amount phone=$phoneText');
-                            await di.sl<PaymentRepository>().initiatePawaPayPayout(
-                              shopId: _shopIdDebug,
-                              amountRequested: amount,
-                              phoneNumberRaw: phoneText,
-                            );
-                            debugPrint('✅ Retrait initié avec succès');
-
-                            // Fermer le bottom sheet via le contexte de la page
-                            Navigator.of(pageContext).pop();
-
-                            messenger.showSnackBar(
-                              const SnackBar(
-                                content: Text('✅ Retrait initié avec succès !'),
-                                backgroundColor: Colors.green,
-                                duration: Duration(seconds: 4),
-                              ),
-                            );
-                            _fetchBalance();
-                          } catch (e, stack) {
-                            debugPrint('❌ Erreur retrait: $e\n$stack');
-                            _setState?.call(() => isSubmitting = false);
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text('❌ Erreur: $e'),
-                                backgroundColor: Colors.red,
-                                duration: const Duration(seconds: 6),
-                              ),
-                            );
-                          }
-                        },
-                  child: isSubmitting
-                      ? const SizedBox(
-                          height: 22, width: 22,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
-                        )
-                      : const Text('CONFIRMER LE RETRAIT'),
+                    walletBloc.add(InitiateWithdrawalEvent(amount: amount, phoneNumber: phoneText));
+                    Navigator.of(sheetCtx).pop();
+                  },
+                  child: const Text('CONFIRMER LE RETRAIT'),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -408,7 +298,7 @@ class _CreditScoreBanner extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               const Color(0xFF1A1A2E),
-              AppTheme.primaryDark.withOpacity(0.85),
+              AppTheme.primaryDark.withValues(alpha: 0.85),
             ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,

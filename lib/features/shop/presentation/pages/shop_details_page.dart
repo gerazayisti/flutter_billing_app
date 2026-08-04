@@ -24,18 +24,19 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
   late final TextEditingController _address2Controller;
   late final TextEditingController _phoneController;
   late final TextEditingController _footerController;
+  late final TextEditingController _cityController;
   late final TextEditingController _districtController;
   late final TextEditingController _orangeController;
   late final TextEditingController _mtnController;
   late final TextEditingController _taxIdController;
 
-  String? _selectedCity;
   String? _selectedShopType;
 
-  static const List<String> _cities = [
+  static const List<String> _commonCities = [
     'Douala', 'Yaoundé', 'Bafoussam', 'Buea', 'Bamenda',
-    'Maroua', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Limbe',
-    'Kribi', 'Garoua', 'Kumba', 'Nkongsamba', 'Autre',
+    'Abidjan', 'Paris', 'Dakar', 'Libreville', 'Kinshasa',
+    'Montréal', 'Bruxelles', 'Lomé', 'Cotonou', 'N\'Djamena',
+    'Bangui', 'Brazzaville', 'New York', 'Autre / International',
   ];
 
   @override
@@ -46,6 +47,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     _address2Controller = TextEditingController();
     _phoneController = TextEditingController();
     _footerController = TextEditingController();
+    _cityController = TextEditingController();
     _districtController = TextEditingController();
     _orangeController = TextEditingController();
     _mtnController = TextEditingController();
@@ -60,6 +62,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     _address2Controller.dispose();
     _phoneController.dispose();
     _footerController.dispose();
+    _cityController.dispose();
     _districtController.dispose();
     _orangeController.dispose();
     _mtnController.dispose();
@@ -74,12 +77,12 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
       _address2Controller.text = shop.addressLine2;
       _phoneController.text = shop.phoneNumber;
       _footerController.text = shop.footerText;
+      _cityController.text = shop.city;
       _districtController.text = shop.district;
       _orangeController.text = shop.orangeMoneyMerchant;
       _mtnController.text = shop.mtnMomoMerchant;
       _taxIdController.text = shop.taxId;
       setState(() {
-        _selectedCity = _cities.contains(shop.city) ? shop.city : null;
         _selectedShopType = shop.shopType.isEmpty ? null : shop.shopType;
       });
     }
@@ -93,7 +96,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
         addressLine2: _address2Controller.text.trim(),
         phoneNumber: _phoneController.text.trim(),
         footerText: _footerController.text.trim(),
-        city: _selectedCity ?? '',
+        city: _cityController.text.trim(),
         district: _districtController.text.trim(),
         shopType: _selectedShopType ?? '',
         orangeMoneyMerchant: _orangeController.text.trim(),
@@ -163,7 +166,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                   const SizedBox(height: 12),
                   InputLabel(text: l10n.shopTypeLabel),
                   DropdownButtonFormField<String>(
-                    value: _selectedShopType,
+                    initialValue: _selectedShopType,
                     hint: Text(l10n.shopTypeAutre),
                     items: shopTypes
                         .map((t) => DropdownMenuItem(value: t.$1, child: Text(t.$2)))
@@ -179,16 +182,36 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            InputLabel(text: l10n.city),
-                            DropdownButtonFormField<String>(
-                              value: _selectedCity,
-                              hint: const Text('Ville'),
-                              items: _cities
-                                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                                  .toList(),
-                              onChanged: (v) => setState(() => _selectedCity = v),
-                              decoration: const InputDecoration(),
-                              validator: AppValidators.required(l10n.required),
+                            InputLabel(text: 'Ville / City (International)'),
+                            Autocomplete<String>(
+                              optionsBuilder: (TextEditingValue textEditingValue) {
+                                if (textEditingValue.text.isEmpty) {
+                                  return _commonCities;
+                                }
+                                return _commonCities.where((c) => c
+                                    .toLowerCase()
+                                    .contains(textEditingValue.text.toLowerCase()));
+                              },
+                              initialValue: TextEditingValue(text: _cityController.text),
+                              onSelected: (String selection) {
+                                _cityController.text = selection;
+                              },
+                              fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                                if (_cityController.text.isNotEmpty && controller.text.isEmpty) {
+                                  controller.text = _cityController.text;
+                                }
+                                controller.addListener(() {
+                                  _cityController.text = controller.text;
+                                });
+                                return TextFormField(
+                                  controller: controller,
+                                  focusNode: focusNode,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Ex: Douala, Paris, Abidjan...',
+                                  ),
+                                  validator: AppValidators.required(l10n.required),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -199,7 +222,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             InputLabel(text: l10n.district),
-                            _field(_districtController, 'Ex: Akwa, Bastos'),
+                            _field(_districtController, 'Ex: Akwa, Bastos, Centre...'),
                           ],
                         ),
                       ),
@@ -208,7 +231,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
 
                   const SizedBox(height: 12),
                   InputLabel(text: l10n.addressLine1),
-                  _field(_address1Controller, 'Rue, Avenue...',
+                  _field(_address1Controller, 'Rue, Avenue, Quartier...',
                       validator: AppValidators.required(l10n.required)),
 
                   const SizedBox(height: 12),
@@ -216,15 +239,15 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                   _field(_address2Controller, l10n.addressLine2),
 
                   const SizedBox(height: 12),
-                  InputLabel(text: l10n.phoneNumber),
-                  _field(_phoneController, '+237 6XX XXX XXX',
+                  InputLabel(text: '${l10n.phoneNumber} (International)'),
+                  _field(_phoneController, 'Ex: +237 6XX XXX XXX ou +33 6 XX XX XX XX',
                       inputType: TextInputType.phone,
                       validator: AppValidators.required(l10n.required)),
 
                   const SizedBox(height: 24),
                   _sectionHeader(l10n.mobilePaymentSection, Colors.orange[700]!),
                   Text(
-                    'Renseignez vos codes marchands pour recevoir les paiements Mobile Money.',
+                    'Renseignez vos codes marchands pour recevoir les paiements Mobile Money (si applicables).',
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                   const SizedBox(height: 16),
@@ -249,7 +272,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                   _sectionHeader('Informations légales', Colors.grey[700]!),
                   const SizedBox(height: 12),
                   InputLabel(text: l10n.taxId),
-                  _field(_taxIdController, 'Ex: M123456789'),
+                  _field(_taxIdController, 'Ex: M123456789 (NIU / Tax ID)'),
 
                   const SizedBox(height: 24),
                   _sectionHeader('Reçu', AppTheme.primaryColor),
@@ -279,35 +302,31 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
 
   Widget _sectionHeader(String title, Color color) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-          color: color.withValues(alpha: 0.8),
-        ),
-      ),
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Text(title,
+          style: TextStyle(
+              fontSize: 15, fontWeight: FontWeight.bold, color: color)),
     );
   }
 
   Widget _field(
-    TextEditingController ctrl,
+    TextEditingController controller,
     String hint, {
-    TextInputType? inputType,
+    TextInputType inputType = TextInputType.text,
     int maxLines = 1,
     int? maxLength,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
-      controller: ctrl,
+      controller: controller,
       keyboardType: inputType,
       maxLines: maxLines,
       maxLength: maxLength,
-      textCapitalization: TextCapitalization.words,
       validator: validator,
-      decoration: InputDecoration(hintText: hint, counterText: maxLength != null ? null : ''),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+      ),
     );
   }
 
@@ -318,24 +337,19 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     required Color color,
     required IconData icon,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
-            Text(label,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          ],
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: Icon(Icons.phone_android, color: color, size: 20),
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextFormField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: label,
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+            ),
           ),
         ),
       ],

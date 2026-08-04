@@ -20,6 +20,7 @@ import 'features/settings/presentation/bloc/locale_bloc.dart';
 import 'features/stock/presentation/bloc/stock_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'features/sync/presentation/bloc/sync_bloc.dart';
+import 'features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'core/services/widget_update_service.dart';
 
 void main() async {
@@ -36,7 +37,6 @@ void main() async {
   await di.init();
   await initializeDateFormatting('fr', null);
   await initializeDateFormatting('en', null);
-  await HiveDatabase.settingsBox.put('has_seen_onboarding', false);
   await HiveDatabase.settingsBox.put('is_pin_verified', false);
   WidgetUpdateService.update(); // sync widget data on startup
   runApp(const MyApp());
@@ -68,6 +68,8 @@ class MyApp extends StatelessWidget {
               ..add(LoadNotificationsEvent())),
         BlocProvider<SyncBloc>(
             create: (context) => di.sl<SyncBloc>()..add(LoadSyncStatusEvent())),
+        BlocProvider<SubscriptionBloc>(
+            create: (context) => di.sl<SubscriptionBloc>()..add(const LoadSubscriptionEvent())),
         // SupabaseAuthService available globally (for SignUpPage etc.)
         RepositoryProvider<SupabaseAuthService>(
             create: (context) => di.sl<SupabaseAuthService>()),

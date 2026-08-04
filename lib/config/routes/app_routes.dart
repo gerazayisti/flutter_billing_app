@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/service_locator.dart';
@@ -39,7 +40,11 @@ import '../../core/data/hive_database.dart';
 import '../../features/settings/presentation/pages/help_page.dart';
 import '../../features/sync/presentation/pages/cloud_setup_page.dart';
 import '../../features/payment/presentation/pages/wallet_page.dart';
-
+import '../../features/reports/presentation/pages/inventory_report_page.dart';
+import '../../features/payment/presentation/bloc/wallet_bloc.dart';
+import '../../features/payment/presentation/bloc/wallet_event.dart';
+import '../../features/payment/presentation/pages/enter_phone_number_page.dart';
+import '../../features/payment/presentation/bloc/mobile_money_bloc.dart';
 final router = GoRouter(
   initialLocation: '/',
   redirect: (context, state) {
@@ -202,10 +207,7 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/subscription',
-      builder: (context, state) => BlocProvider(
-        create: (_) => sl<SubscriptionBloc>()..add(const LoadSubscriptionEvent()),
-        child: const SubscriptionPage(),
-      ),
+      builder: (context, state) => const SubscriptionPage(),
     ),
     GoRoute(
       path: '/boutiques',
@@ -225,7 +227,10 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/wallet',
-      builder: (context, state) => const WalletPage(),
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<WalletBloc>()..add(LoadWalletDataEvent()),
+        child: const WalletPage(),
+      ),
     ),
     GoRoute(
       path: '/credit-score',
@@ -238,6 +243,31 @@ final router = GoRouter(
     GoRoute(
       path: '/pin-setup',
       builder: (context, state) => const PinSetupPage(),
+    ),
+    GoRoute(
+      path: '/inventory-report',
+      builder: (context, state) => BlocProvider(
+        create: (_) => sl<StockBloc>()..add(LoadStockEvent()),
+        child: const InventoryReportPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/payment/momo',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final saleId = extra?['saleId'] as String? ?? 'sale_${DateTime.now().millisecondsSinceEpoch}';
+        final amount = (extra?['amount'] as num?)?.toDouble() ?? 0.0;
+        final onConfirmed = extra?['onConfirmed'] as VoidCallback? ?? () {};
+
+        return BlocProvider(
+          create: (_) => sl<MobileMoneyBloc>(),
+          child: EnterPhoneNumberPage(
+            saleId: saleId,
+            amount: amount,
+            onConfirmed: onConfirmed,
+          ),
+        );
+      },
     ),
   ],
 );

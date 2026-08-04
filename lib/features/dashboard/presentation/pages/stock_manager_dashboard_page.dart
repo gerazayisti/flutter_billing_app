@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/interactive_guide_card.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
+import '../../../subscription/presentation/bloc/subscription_bloc.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Stock Manager Dashboard Page — vue réduite pour le gestionnaire de stock.
@@ -37,6 +39,7 @@ class _StockManagerDashboardPageState
   void initState() {
     super.initState();
     context.read<DashboardBloc>().add(const LoadDashboardEvent());
+    context.read<SubscriptionBloc>().add(const LoadSubscriptionEvent());
   }
 
   @override
@@ -47,6 +50,7 @@ class _StockManagerDashboardPageState
 
     return Scaffold(
       backgroundColor: _bg,
+      drawer: const AppDrawer(),
       body: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           return CustomScrollView(
@@ -119,7 +123,7 @@ class _StockManagerDashboardPageState
       surfaceTintColor: Colors.white,
       leading: IconButton(
         icon: const Icon(Icons.menu_rounded, color: Colors.black87, size: 26),
-        onPressed: () {},
+        onPressed: () => Scaffold.of(context).openDrawer(),
       ),
       title: _GestockLogo(accent: accent),
       centerTitle: true,

@@ -373,5 +373,15 @@
   "putOnHold": "Mettre en attente",
   "paymentTimeoutTitle": "Paiement Mobile Money expiré",
   "paymentTimeoutBody": "Le paiement de {amount} FCFA est resté en attente pendant 15 minutes et a été annulé.",
-  "pendingPayment": "Paiement en cours..."
+  "pendingPayment": "Paiement en cours...",
+  "inventoryReport": "Rapport d'Inventaire",
+  "selectPeriod": "Sélectionner la période",
+  "customPeriod": "Période Personnalisée...",
+  "periodOverview": "Aperçu de la période",
+  "downloadReport": "Télécharger le Rapport",
+  "exportPdf": "Export PDF",
+  "exportExcel": "Export Excel",
+  "movements": "Mouvements",
+  "entries": "Entrées",
+  "exits": "Sorties"
 }

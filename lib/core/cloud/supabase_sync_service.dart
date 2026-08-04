@@ -9,6 +9,7 @@ import 'package:billing_app/features/stock/data/models/supplier_model.dart';
 import 'package:billing_app/features/shop/data/models/shop_model.dart';
 import 'package:billing_app/features/subscription/domain/subscription.dart';
 import 'package:billing_app/core/services/subscription_service.dart';
+import 'supabase_subscription_service.dart';
 import 'cloud_sync_service.dart';
 
 /// Supabase implementation of [CloudSyncService].
@@ -415,33 +416,8 @@ class SupabaseSyncService implements CloudSyncService {
 
   Future<void> _pullSubscription() async {
     try {
-      final row = await _client
-          .from('subscriptions')
-          .select()
-          .eq('shop_id', _shopId)
-          .maybeSingle();
-
-      if (row == null) return;
-
-      final startRaw  = row['start_date']  as String?;
-      final expiryRaw = row['expiry_date'] as String?;
-      if (startRaw == null || expiryRaw == null) return;
-
-      final info = SubscriptionInfo(
-        tier: SubscriptionTier.values.firstWhere(
-          (t) => t.name == (row['tier'] as String),
-          orElse: () => SubscriptionTier.trial,
-        ),
-        cycle: BillingCycle.values.firstWhere(
-          (c) => c.name == (row['billing_cycle'] as String? ?? 'monthly'),
-          orElse: () => BillingCycle.monthly,
-        ),
-        startDate:          DateTime.parse(startRaw),
-        expiryDate:         DateTime.parse(expiryRaw),
-        freemopayReference: row['freemopay_reference'] as String?,
-      );
-
-      await SubscriptionService.save(info);
+      final subService = SupabaseSubscriptionService();
+      await subService.ensureTrialOrSync(_shopId);
     } catch (_) {}
   }
 }

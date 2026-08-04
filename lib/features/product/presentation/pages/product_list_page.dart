@@ -8,6 +8,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/app_drawer.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/domain/entities/user.dart';
+import '../../../../core/data/hive_database.dart';
+import '../../../reports/utils/inventory_exporter.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -61,9 +63,33 @@ class _ProductListPageState extends State<ProductListPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: context.canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => context.pop(),
+              )
+            : null,
         title: Text(l10n.inventory,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              final products = context.read<ProductBloc>().state.products;
+              final shopBox = HiveDatabase.shopBox;
+              final shopName = shopBox.values.isNotEmpty ? shopBox.values.first.name : 'Ma Boutique';
+              if (value == 'pdf') {
+                await InventoryExporter.exportProductsPDF(products, shopName);
+              } else if (value == 'csv') {
+                await InventoryExporter.exportProductsCSV(products, shopName);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'pdf', child: Text('Exporter PDF')),
+              const PopupMenuItem(value: 'csv', child: Text('Exporter Excel (CSV)')),
+            ],
+          ),
+        ],
       ),
       drawer: const AppDrawer(),
       body: Column(

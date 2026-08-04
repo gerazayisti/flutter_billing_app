@@ -1050,4 +1050,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pendingPayment => 'Payment pending...';
+
+  @override
+  String get inventoryReport => 'Inventory Report';
+
+  @override
+  String get selectPeriod => 'Select Period';
+
+  @override
+  String get customPeriod => 'Custom Period...';
+
+  @override
+  String get periodOverview => 'Period Overview';
+
+  @override
+  String get downloadReport => 'Download Report';
+
+  @override
+  String get exportPdf => 'Export PDF';
+
+  @override
+  String get exportExcel => 'Export Excel';
+
+  @override
+  String get movements => 'Movements';
+
+  @override
+  String get entries => 'Entries';
+
+  @override
+  String get exits => 'Exits';
 }

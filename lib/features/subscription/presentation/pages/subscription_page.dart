@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -16,13 +17,42 @@ class SubscriptionPage extends StatefulWidget {
   State<SubscriptionPage> createState() => _SubscriptionPageState();
 }
 
-class _SubscriptionPageState extends State<SubscriptionPage> {
+class _SubscriptionPageState extends State<SubscriptionPage> with WidgetsBindingObserver {
   bool _isYearly = false;
+  Timer? _autoCheckTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     context.read<SubscriptionBloc>().add(const LoadSubscriptionEvent());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _autoCheckTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<SubscriptionBloc>().add(const CheckAutoSubscriptionEvent());
+    }
+  }
+
+  void _startAutoChecking() {
+    _autoCheckTimer?.cancel();
+    int attempts = 0;
+    _autoCheckTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      attempts++;
+      if (!mounted || attempts > 45) {
+        timer.cancel();
+        return;
+      }
+      context.read<SubscriptionBloc>().add(const CheckAutoSubscriptionEvent());
+    });
   }
 
   @override
@@ -32,8 +62,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return BlocConsumer<SubscriptionBloc, SubscriptionState>(
       listener: (context, state) {
         if (state.activated) {
+          _autoCheckTimer?.cancel();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Abonnement activé avec succès !',
+            content: const Text('🎉 Abonnement activé avec succès !',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             backgroundColor: AppTheme.primaryColor,
           ));
@@ -50,14 +81,19 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           backgroundColor: AppTheme.backgroundColor,
           appBar: AppBar(
             title: const Text('Gérer l\'abonnement',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             centerTitle: true,
             backgroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_rounded),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
             ),
           ),
           body: SingleChildScrollView(
@@ -65,7 +101,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Current status banner ─────────────────────────────────
+                // ── Status banner ─────────────────────────────────────────
                 _buildStatusBanner(context, state, accent),
                 const SizedBox(height: 20),
 
@@ -102,18 +138,16 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   Widget _buildStatusBanner(
       BuildContext context, SubscriptionState state, Color accent) {
     if (state.info != null && state.info!.isActive) {
-      final expiry =
-          DateFormat('dd/MM/yyyy').format(state.info!.expiryDate);
+      final expiry = DateFormat('dd/MM/yyyy').format(state.info!.expiryDate);
       return _banner(
         icon: Icons.verified_rounded,
         color: accent,
         title: 'Gestock+ ${_tierLabel(state.info!.tier)}',
-        subtitle: 'Actif jusqu\'au $expiry · ${state.info!.daysRemaining} jours',
+        subtitle: 'Actif jusqu\'au $expiry · ${state.info!.daysRemaining} jours restants',
         trailing: TextButton(
-          onPressed: () {},
-          child: Text('Renouveler',
-              style: TextStyle(
-                  color: accent, fontWeight: FontWeight.bold)),
+          onPressed: () => context.read<SubscriptionBloc>().add(const CheckAutoSubscriptionEvent()),
+          child: Text('Actualiser',
+              style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
         ),
       );
     }
@@ -123,7 +157,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       return _banner(
         icon: Icons.timer_rounded,
         color: AppTheme.primaryColor,
-        title: 'Essai Pro gratuit',
+        title: 'Essai Pro gratuit actif',
         subtitle: 'Accès Pro complet · $days jours restants',
         trailing: null,
       );
@@ -148,13 +182,20 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 28),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -163,11 +204,12 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 Text(title,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: color,
-                        fontSize: 14)),
+                        fontSize: 15,
+                        color: color)),
+                const SizedBox(height: 2),
                 Text(subtitle,
                     style: const TextStyle(
-                        fontSize: 12, color: Colors.black54)),
+                        fontSize: 12, color: AppTheme.textSecondary)),
               ],
             ),
           ),
@@ -219,133 +261,179 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     final payLink = _isYearly ? plan.yearlyPayLink : plan.monthlyPayLink;
     final cycle = _isYearly ? BillingCycle.yearly : BillingCycle.monthly;
 
+    bool showManualCodeInput = false;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) => StatefulBuilder(
-        builder: (sheetCtx, setSheetState) => Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
-            top: 24,
-            left: 24,
-            right: 24,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
+        builder: (sheetCtx, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
+              top: 24,
+              left: 24,
+              right: 24,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.shopping_cart_checkout_rounded,
-                        color: accent),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // Header
+                  Row(
                     children: [
-                      Text('Gestock+ ${_tierLabel(plan.tier)}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
-                      Text(
-                          '${_fmtPrice(price)} FCFA · ${_isYearly ? 'annuel' : 'mensuel'}',
-                          style: TextStyle(
-                              color: accent,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14)),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.shopping_cart_checkout_rounded, color: accent),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Gestock+ ${_tierLabel(plan.tier)}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                          Text(
+                              '${_fmtPrice(price)} FCFA · ${_isYearly ? 'annuel' : 'mensuel'}',
+                              style: TextStyle(
+                                  color: accent,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14)),
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-              // Step 1: open pay-link
-              _StepTile(
-                step: '1',
-                accent: accent,
-                title: 'Effectuer le paiement',
-                subtitle: 'Ouvrir le lien dans votre navigateur et payer par Mobile Money',
-                action: ElevatedButton.icon(
-                  onPressed: () => _openPayLink(payLink),
-                  icon: const Icon(Icons.open_in_browser_rounded,
-                      size: 18),
-                  label: const Text('Ouvrir lien de paiement'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Step 2: enter reference
-              _StepTile(
-                step: '2',
-                accent: accent,
-                title: 'Entrer la référence',
-                subtitle: 'Saisissez la référence reçue par SMS après le paiement',
-                action: TextField(
-                  controller: refCtrl,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(
-                    hintText: 'Ex: FMP-XXXXXXXX',
-                    prefixIcon: Icon(Icons.receipt_long_rounded,
-                        color: accent),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    focusedBorder: OutlineInputBorder(
+                  // Info Bannière Détection Automatique
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEBF3FF),
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: accent, width: 2),
+                      border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_awesome_rounded, color: AppTheme.primaryColor, size: 24),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Validation 100% Automatique',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppTheme.primaryDark,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Dès votre paiement effectué sur FreeMoPay, votre abonnement sera activé automatiquement sans aucune saisie de code !',
+                                style: TextStyle(fontSize: 11, color: AppTheme.textPrimary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
 
-              // Activate button
-              BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                bloc: bloc,
-                builder: (_, s) => s.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ElevatedButton(
-                        onPressed: () {
-                          bloc.add(ActivateSubscriptionEvent(
-                            tier: plan.tier,
-                            cycle: cycle,
-                            reference: refCtrl.text,
-                          ));
-                          Navigator.pop(sheetCtx);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: accent,
-                          foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                  const SizedBox(height: 20),
+
+                  // Action principale : Ouvrir FreeMoPay et lancer la vérification automatique
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _openPayLink(payLink);
+                      _startAutoChecking();
+                    },
+                    icon: const Icon(Icons.open_in_browser_rounded, size: 20, color: Colors.white),
+                    label: const Text('Payer via FreeMoPay',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Optionnel : Activer manuellement avec référence
+                  TextButton.icon(
+                    onPressed: () {
+                      setSheetState(() {
+                        showManualCodeInput = !showManualCodeInput;
+                      });
+                    },
+                    icon: Icon(
+                      showManualCodeInput ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: Colors.grey[600],
+                    ),
+                    label: Text(
+                      showManualCodeInput
+                          ? 'Masquer le code manuel'
+                          : 'Activer manuellement avec une référence (optionnel)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ),
+
+                  if (showManualCodeInput) ...[
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: refCtrl,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        labelText: 'Référence FreeMoPay (ex: FMP-XXXXXXXX)',
+                        prefixIcon: Icon(Icons.receipt_long_rounded, color: accent),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: accent, width: 2),
                         ),
-                        child: const Text('Activer l\'abonnement',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16)),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                      bloc: bloc,
+                      builder: (_, s) => s.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : OutlinedButton(
+                              onPressed: () {
+                                bloc.add(ActivateSubscriptionEvent(
+                                  tier: plan.tier,
+                                  cycle: cycle,
+                                  reference: refCtrl.text,
+                                ));
+                                Navigator.pop(sheetCtx);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: accent),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: Text('Activer manuellement',
+                                  style: TextStyle(color: accent, fontWeight: FontWeight.bold)),
+                            ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -353,7 +441,14 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   Future<void> _openPayLink(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(
+        uri,
+        mode: LaunchMode.inAppWebView,
+        webViewConfiguration: const WebViewConfiguration(
+          enableJavaScript: true,
+          enableDomStorage: true,
+        ),
+      );
     }
   }
 
@@ -362,86 +457,32 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.borderColor),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('À savoir',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 13)),
-          SizedBox(height: 8),
-          _FaqItem(
-              '1 mois gratuit offert à la création du compte pour tous les plans.'),
-          _FaqItem(
-              'Paiement via Orange Money ou MTN MoMo (Cameroun).'),
-          _FaqItem(
-              'Plan Business : fonctionnalités ajustables sur demande.'),
-          _FaqItem(
-              'Support : gestockplus@gmail.com'),
+          Row(
+            children: const [
+              Icon(Icons.info_outline_rounded, size: 18, color: AppTheme.primaryColor),
+              SizedBox(width: 8),
+              Text('Paiement sécurisé Mobile Money',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Les abonnements sont réglés en FCFA via FreeMoPay (MTN MoMo & Orange Money). Le renouvellement n\'est pas automatique, aucun prélèvement surprise. Dès validation de votre règlement, votre formule s\'active immédiatement.',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
+          ),
         ],
       ),
     );
   }
-
-  String _tierLabel(SubscriptionTier tier) => switch (tier) {
-        SubscriptionTier.trial => 'Essai',
-        SubscriptionTier.starter => 'Starter',
-        SubscriptionTier.pro => 'Pro',
-        SubscriptionTier.business => 'Business',
-      };
-
-  String _fmtPrice(int price) =>
-      NumberFormat('#,###', 'fr_FR').format(price).replaceAll(',', ' ');
 }
 
-// ── Widgets ───────────────────────────────────────────────────────────────────
-
-class _ToggleBtn extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color accent;
-  final VoidCallback onTap;
-
-  const _ToggleBtn({
-    required this.label,
-    required this.selected,
-    required this.accent,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 6)
-                ]
-              : [],
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: selected ? accent : Colors.black54,
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ── Plan Card ─────────────────────────────────────────────────────────────────
 
 class _PlanCard extends StatelessWidget {
   final PlanConfig plan;
@@ -460,271 +501,136 @@ class _PlanCard extends StatelessWidget {
     required this.onSubscribe,
   });
 
-  bool get isCurrent =>
-      currentInfo != null &&
-      currentInfo!.isActive &&
-      currentInfo!.tier == plan.tier;
-
-  bool get isPopular => plan.tier == SubscriptionTier.pro;
-
   @override
   Widget build(BuildContext context) {
+    final isCurrentPlan = currentInfo != null &&
+        currentInfo!.isActive &&
+        currentInfo!.tier == plan.tier;
+
+    final isPopular = plan.tier == SubscriptionTier.pro;
     final price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
-    final currency = NumberFormat('#,###', 'fr_FR');
-    final formatted = currency.format(price).replaceAll(',', ' ');
-    final borderColor = isCurrent ? accent : AppTheme.borderColor;
 
     return Container(
       decoration: BoxDecoration(
-        color: isCurrent
-            ? accent.withValues(alpha: 0.04)
-            : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-            color: borderColor, width: isCurrent ? 2 : 1),
+          color: isPopular ? accent : AppTheme.borderColor,
+          width: isPopular ? 2 : 1,
+        ),
+        boxShadow: isPopular
+            ? [
+                BoxShadow(
+                  color: accent.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                )
+              ]
+            : null,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Row(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          _tierLabel(plan.tier),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 20,
-                            color: isCurrent ? accent : Colors.black87,
-                          ),
-                        ),
-                        if (isPopular) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: accent,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text('Populaire',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                        if (isCurrent) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: accent.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text('Actif',
-                                style: TextStyle(
-                                    color: accent,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      _tierLabel(plan.tier),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20),
                     ),
-                    const SizedBox(height: 4),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '$formatted ',
+                    const Spacer(),
+                    if (isPopular)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: accent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text('Recommandé',
                             style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 26,
-                              color: isCurrent ? accent : Colors.black87,
-                            ),
-                          ),
-                          TextSpan(
-                            text:
-                                'FCFA/${isYearly ? 'an' : 'mois'}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      _fmtPrice(price),
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: accent),
+                    ),
+                    const SizedBox(width: 4),
+                    const Text('FCFA',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textSecondary)),
+                    Text(
+                      ' / ${isYearly ? 'an' : 'mois'}',
+                      style: const TextStyle(
+                          fontSize: 13, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+
+                ...plan.features.map((feat) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle_rounded,
+                              color: accent, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _featureLabel(feat),
+                              style: const TextStyle(fontSize: 13),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                _planIcon(plan.tier, accent),
-              ],
-            ),
-          ),
-          const SizedBox(height: 4),
+                    )),
 
-          // Limits summary
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                _chip(
-                    plan.maxBoutiques == -1
-                        ? '∞ boutiques'
-                        : '${plan.maxBoutiques} boutique${plan.maxBoutiques > 1 ? 's' : ''}',
-                    accent),
-                _chip(
-                    plan.maxProducts == -1
-                        ? '∞ produits'
-                        : '${plan.maxProducts} produits',
-                    accent),
-                _chip(
-                    plan.maxEmployees == -1
-                        ? '∞ employés'
-                        : '${plan.maxEmployees} employé${plan.maxEmployees > 1 ? 's' : ''}',
-                    accent),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1),
+                const SizedBox(height: 16),
 
-          // Features list
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-            child: Column(
-              children: _featureRows(plan, accent),
-            ),
-          ),
-          const Divider(height: 1),
-
-          // CTA
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: isCurrent
-                ? OutlinedButton(
-                    onPressed: onSubscribe,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: accent),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('Renouveler',
-                        style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.bold)),
-                  )
-                : ElevatedButton(
-                    onPressed: onSubscribe,
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: isCurrentPlan ? null : onSubscribe,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: accent,
+                      backgroundColor: isPopular ? accent : AppTheme.primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(
-                      'Choisir ${_tierLabel(plan.tier)}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      isCurrentPlan ? 'Formule actuelle' : 'Choisir cette formule',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
                     ),
                   ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-
-  List<Widget> _featureRows(PlanConfig plan, Color accent) {
-    const all = [
-      ('pos', 'Caisse & Ventes'),
-      ('stock', 'Gestion du stock'),
-      ('rapports_daily', 'Rapports journaliers'),
-      ('rapports_pdf', 'Exports PDF'),
-      ('cloud_sync', 'Synchronisation cloud'),
-      ('multi_boutiques', 'Multi-boutiques'),
-      ('momo_api', 'API Mobile Money'),
-      ('support_prioritaire', 'Support prioritaire'),
-      ('custom_features', 'Fonctionnalités sur mesure'),
-    ];
-
-    return all
-        .map((entry) {
-          final has = plan.hasFeature(entry.$1);
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Row(
-              children: [
-                Icon(
-                  has
-                      ? Icons.check_circle_rounded
-                      : Icons.cancel_rounded,
-                  size: 16,
-                  color: has ? accent : Colors.black26,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  entry.$2,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: has ? Colors.black87 : Colors.black38,
-                    fontWeight:
-                        has ? FontWeight.w500 : FontWeight.normal,
-                  ),
-                ),
-              ],
-            ),
-          );
-        })
-        .toList();
-  }
-
-  Widget _chip(String label, Color accent) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: accent.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 11,
-                color: accent,
-                fontWeight: FontWeight.w600)),
-      );
-
-  Widget _planIcon(SubscriptionTier tier, Color accent) {
-    final icon = switch (tier) {
-      SubscriptionTier.starter => Icons.storefront_rounded,
-      SubscriptionTier.pro => Icons.rocket_launch_rounded,
-      SubscriptionTier.business => Icons.business_center_rounded,
-      SubscriptionTier.trial => Icons.hourglass_top_rounded,
-    };
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Icon(icon, color: accent, size: 28),
-    );
-  }
-
-  String _tierLabel(SubscriptionTier tier) => switch (tier) {
-        SubscriptionTier.trial => 'Essai',
-        SubscriptionTier.starter => 'Starter',
-        SubscriptionTier.pro => 'Pro',
-        SubscriptionTier.business => 'Business',
-      };
 }
 
 class _StepTile extends StatelessWidget {
@@ -747,20 +653,12 @@ class _StepTile extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: accent,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(step,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14)),
-          ),
+        CircleAvatar(
+          radius: 14,
+          backgroundColor: accent.withValues(alpha: 0.15),
+          child: Text(step,
+              style: TextStyle(
+                  color: accent, fontWeight: FontWeight.bold, fontSize: 13)),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -770,11 +668,10 @@ class _StepTile extends StatelessWidget {
               Text(title,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 14)),
-              const SizedBox(height: 2),
               Text(subtitle,
                   style: const TextStyle(
-                      fontSize: 12, color: Colors.black54)),
-              const SizedBox(height: 10),
+                      fontSize: 12, color: AppTheme.textSecondary)),
+              const SizedBox(height: 8),
               action,
             ],
           ),
@@ -784,24 +681,72 @@ class _StepTile extends StatelessWidget {
   }
 }
 
-class _FaqItem extends StatelessWidget {
-  final String text;
-  const _FaqItem(this.text);
+class _ToggleBtn extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _ToggleBtn({
+    required this.label,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• ', style: TextStyle(color: Colors.black54)),
-          Expanded(
-              child: Text(text,
-                  style: const TextStyle(
-                      fontSize: 12, color: Colors.black54))),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 4,
+                  )
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              color: selected ? accent : AppTheme.textSecondary,
+              fontSize: 13,
+            ),
+          ),
+        ),
       ),
     );
   }
 }
+
+String _tierLabel(SubscriptionTier tier) => switch (tier) {
+      SubscriptionTier.starter => 'Starter',
+      SubscriptionTier.pro => 'Pro',
+      SubscriptionTier.business => 'Business',
+      SubscriptionTier.trial => 'Essai',
+    };
+
+String _fmtPrice(int amount) =>
+    NumberFormat('#,###', 'fr_FR').format(amount).replaceAll(',', ' ');
+
+String _featureLabel(String feature) => switch (feature) {
+      'pos' => 'Caisse enregistreuse (POS)',
+      'stock' => 'Gestion de stock & produits',
+      'rapports_daily' => 'Rapports de ventes quotidiens',
+      'rapports_pdf' => 'Export PDF & Excel des rapports',
+      'cloud_sync' => 'Synchronisation Cloud automatique',
+      'multi_boutiques' => 'Multi-boutiques & multi-caisses',
+      'momo_api' => 'Encaissements Mobile Money direct',
+      'support_prioritaire' => 'Support client prioritaire 7j/7',
+      'custom_features' => 'Fonctionnalités sur mesure sur demande',
+      _ => feature,
+    };

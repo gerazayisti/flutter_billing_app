@@ -373,5 +373,15 @@
   "putOnHold": "Put on hold",
   "paymentTimeoutTitle": "Mobile Money payment expired",
   "paymentTimeoutBody": "The payment of {amount} XAF was pending for 15 minutes and has been cancelled.",
-  "pendingPayment": "Payment pending..."
+  "pendingPayment": "Payment pending...",
+  "inventoryReport": "Inventory Report",
+  "selectPeriod": "Select Period",
+  "customPeriod": "Custom Period...",
+  "periodOverview": "Period Overview",
+  "downloadReport": "Download Report",
+  "exportPdf": "Export PDF",
+  "exportExcel": "Export Excel",
+  "movements": "Movements",
+  "entries": "Entries",
+  "exits": "Exits"
 }

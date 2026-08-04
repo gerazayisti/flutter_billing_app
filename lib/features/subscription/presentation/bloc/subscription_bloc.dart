@@ -4,7 +4,6 @@ import '../../../../core/services/subscription_service.dart';
 import '../../../../core/cloud/supabase_subscription_service.dart';
 import '../../../../core/data/hive_database.dart';
 
-
 // ── Events ────────────────────────────────────────────────────────────────────
 
 abstract class SubscriptionEvent {
@@ -13,6 +12,10 @@ abstract class SubscriptionEvent {
 
 class LoadSubscriptionEvent extends SubscriptionEvent {
   const LoadSubscriptionEvent();
+}
+
+class CheckAutoSubscriptionEvent extends SubscriptionEvent {
+  const CheckAutoSubscriptionEvent();
 }
 
 class ActivateSubscriptionEvent extends SubscriptionEvent {
@@ -73,14 +76,42 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   SubscriptionBloc({required this.subscriptionService})
       : super(const SubscriptionState()) {
     on<LoadSubscriptionEvent>(_onLoad);
+    on<CheckAutoSubscriptionEvent>(_onCheckAuto);
     on<ActivateSubscriptionEvent>(_onActivate);
   }
 
-  void _onLoad(LoadSubscriptionEvent event, Emitter<SubscriptionState> emit) {
+  Future<void> _onLoad(
+      LoadSubscriptionEvent event, Emitter<SubscriptionState> emit) async {
+    final shopId = HiveDatabase.settingsBox.get('cloud_shop_id', defaultValue: '') as String;
+    if (shopId.isNotEmpty) {
+      await subscriptionService.ensureTrialOrSync(shopId);
+    }
+
     emit(SubscriptionState(
       info: SubscriptionService.current,
       activeTier: SubscriptionService.activeTier,
       trialDaysRemaining: SubscriptionService.trialDaysRemaining,
+    ));
+  }
+
+  Future<void> _onCheckAuto(
+      CheckAutoSubscriptionEvent event, Emitter<SubscriptionState> emit) async {
+    final shopId = HiveDatabase.settingsBox.get('cloud_shop_id', defaultValue: '') as String;
+    if (shopId.isEmpty) return;
+
+    final initialInfo = SubscriptionService.current;
+    await subscriptionService.ensureTrialOrSync(shopId);
+    final newInfo = SubscriptionService.current;
+
+    final isNewlyActivated = newInfo != null &&
+        newInfo.isActive &&
+        (initialInfo == null || initialInfo.tier != newInfo.tier || initialInfo.expiryDate != newInfo.expiryDate);
+
+    emit(state.copyWith(
+      info: newInfo,
+      activeTier: SubscriptionService.activeTier,
+      trialDaysRemaining: SubscriptionService.trialDaysRemaining,
+      activated: isNewlyActivated,
     ));
   }
 
@@ -93,11 +124,8 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
     emit(state.copyWith(isLoading: true, clearError: true));
 
-    final shopId = HiveDatabase.settingsBox
-        .get('cloud_shop_id', defaultValue: '') as String;
+    final shopId = HiveDatabase.settingsBox.get('cloud_shop_id', defaultValue: '') as String;
 
-    // Vérification côté serveur via Edge Function :
-    // appelle l'API FreemoPay, vérifie le montant, puis écrit dans Supabase.
     final error = await subscriptionService.verifyAndActivate(
       shopId:    shopId,
       reference: event.reference.trim(),
@@ -110,7 +138,6 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
       return;
     }
 
-    // verifyAndActivate a déjà sauvegardé dans Hive — on relit pour être cohérent
     emit(state.copyWith(
       isLoading: false,
       info:      SubscriptionService.current,

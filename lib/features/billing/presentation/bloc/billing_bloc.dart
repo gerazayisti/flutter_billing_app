@@ -286,7 +286,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
         paymentMethod: state.paymentMethod.stringValue,
       ));
 
-      emit(state.copyWith(isPrinting: false, printSuccess: true));
+      emit(state.copyWith(cartItems: [], isPrinting: false, printSuccess: true));
     } catch (e) {
       emit(state.copyWith(
           isPrinting: false, error: 'Print failed: $e', clearError: false));
@@ -322,7 +322,7 @@ class BillingBloc extends Bloc<BillingEvent, BillingState> {
       paymentMethod: state.paymentMethod.stringValue,
     ));
 
-    emit(state.copyWith(printSuccess: true));
+    emit(state.copyWith(cartItems: [], printSuccess: true));
   }
 
   Future<void> _autoSyncOrder(OrderModel order) async {

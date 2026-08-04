@@ -7,9 +7,12 @@ import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/notifications/notification_service.dart';
 import 'package:billing_app/core/notifications/notification_item.dart';
 import '../../domain/entities/mobile_money_payment.dart';
+import 'package:go_router/go_router.dart';
+import '../../../billing/presentation/bloc/billing_bloc.dart';
 import '../bloc/mobile_money_bloc.dart';
 import '../bloc/mobile_money_event.dart';
 import '../bloc/mobile_money_state.dart';
+import '../widgets/momo_receipt_dialog.dart';
 
 class WaitingConfirmationPage extends StatelessWidget {
   final VoidCallback onConfirmed;
@@ -74,11 +77,12 @@ class WaitingConfirmationPage extends StatelessWidget {
               );
             }
             if (state is PaymentCompleted) {
-              return const _ResultView(
+              return _ResultView(
                 icon: Icons.check_circle_rounded,
                 color: AppTheme.primaryColor,
                 title: 'Paiement Reçu',
                 canRetry: false,
+                payment: state.payment,
               );
             }
             if (state is PaymentFailed) {
@@ -291,6 +295,7 @@ class _ResultView extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool canRetry;
+  final MobileMoneyPayment? payment;
 
   const _ResultView({
     required this.icon,
@@ -298,6 +303,7 @@ class _ResultView extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.canRetry,
+    this.payment,
   });
 
   @override
@@ -324,7 +330,29 @@ class _ResultView extends StatelessWidget {
                 style: const TextStyle(color: AppTheme.textSecondary),
               ),
             ],
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
+            if (payment != null) ...[
+              ElevatedButton.icon(
+                onPressed: () {
+                  MomoReceiptDialog.show(
+                    context,
+                    depositId: payment!.depositId,
+                    amount: payment!.amount,
+                    phoneNumber: payment!.phoneNumber,
+                    provider: payment!.provider,
+                  );
+                },
+                icon: const Icon(Icons.receipt_long_rounded, color: Colors.white),
+                label: const Text('📸 Voir & Imprimer le Reçu',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  minimumSize: const Size(220, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             if (canRetry)
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -334,11 +362,14 @@ class _ResultView extends StatelessWidget {
                 child: const Text('Réessayer'),
               )
             else
-              ElevatedButton(
-                onPressed: () =>
-                    Navigator.of(context).popUntil((route) => route.isFirst),
-                style: ElevatedButton.styleFrom(
+              OutlinedButton(
+                onPressed: () {
+                  context.read<BillingBloc>().add(ClearCartEvent());
+                  context.go('/home');
+                },
+                style: OutlinedButton.styleFrom(
                   minimumSize: const Size(200, 50),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('Retour à la caisse'),
               ),

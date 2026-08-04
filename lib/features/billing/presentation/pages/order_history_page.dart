@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/data/hive_database.dart';
@@ -25,6 +26,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
+        leading: context.canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => context.pop(),
+              )
+            : null,
         title: Text(l10n.orderHistory, 
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,

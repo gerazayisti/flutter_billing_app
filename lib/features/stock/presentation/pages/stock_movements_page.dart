@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:billing_app/l10n/app_localizations.dart';
 import 'package:billing_app/core/utils/xaf_formatter.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
@@ -43,6 +44,12 @@ class _StockMovementsPageState extends State<StockMovementsPage>
 
     return Scaffold(
       appBar: AppBar(
+        leading: context.canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => context.pop(),
+              )
+            : null,
         title: Text(l10n.stockMovements,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
@@ -67,16 +74,22 @@ class _StockMovementsPageState extends State<StockMovementsPage>
           );
         },
       ),
-      body: BlocBuilder<StockBloc, StockState>(
-        builder: (context, state) {
-          return TabBarView(
-            controller: _tabs,
-            children: [
-              _MovementsTab(movements: state.movements, l10n: l10n),
-              _SuppliersTab(suppliers: state.suppliers, l10n: l10n),
-            ],
-          );
+      body: BlocListener<StockBloc, StockState>(
+        listenWhen: (previous, current) => current.successMessage == 'ok',
+        listener: (context, state) {
+          context.read<ProductBloc>().add(LoadProducts());
         },
+        child: BlocBuilder<StockBloc, StockState>(
+          builder: (context, state) {
+            return TabBarView(
+              controller: _tabs,
+              children: [
+                _MovementsTab(movements: state.movements, l10n: l10n),
+                _SuppliersTab(suppliers: state.suppliers, l10n: l10n),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

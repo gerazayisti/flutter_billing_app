@@ -5,6 +5,7 @@ import 'package:billing_app/l10n/app_localizations.dart';
 
 import '../../../../core/theme/app_color_config.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_drawer.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -33,6 +34,7 @@ class _DashboardPageState extends State<DashboardPage> {
     final accent = AppColorConfig.accentColor;
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),
+      drawer: const AppDrawer(),
       body: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           if (state.isLoading) {
@@ -98,6 +100,10 @@ class _DashboardPageState extends State<DashboardPage> {
       collapsedHeight: 60,
       pinned: true,
       backgroundColor: accent,
+      leading: IconButton(
+        icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
+        onPressed: () => Scaffold.of(context).openDrawer(),
+      ),
       title: Text(
         l10n.dashboard,
         style: const TextStyle(

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:billing_app/core/theme/app_theme.dart';
 import 'package:billing_app/core/data/hive_database.dart';
+import 'package:billing_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 class PinLoginPage extends StatefulWidget {
   const PinLoginPage({super.key});
 
@@ -14,8 +15,10 @@ class PinLoginPage extends StatefulWidget {
 class _PinLoginPageState extends State<PinLoginPage> {
   final List<String> _pin = [];
   String _error = '';
+  bool _isLoading = false;
 
   void _onKeyPress(String val) {
+    if (_isLoading) return;
     setState(() {
       _error = '';
       if (_pin.length < 4) {
@@ -29,6 +32,7 @@ class _PinLoginPageState extends State<PinLoginPage> {
   }
 
   void _onBackspace() {
+    if (_isLoading) return;
     setState(() {
       if (_pin.isNotEmpty) {
         _pin.removeLast();
@@ -36,18 +40,33 @@ class _PinLoginPageState extends State<PinLoginPage> {
     });
   }
 
-  void _verifyPin() {
+  Future<void> _verifyPin() async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+
+    // Petite pause pour afficher le spinner
+    await Future.delayed(const Duration(milliseconds: 300));
+
     final s = HiveDatabase.settingsBox;
+    // Forcer l'utilisation de Hive local pour valider le PIN
     final savedPin = s.get('user_pin', defaultValue: '') as String;
 
     if (_pin.join() == savedPin) {
-      // PIN Correct! Mettre à jour la date d'activité
-      s.put('last_active_time', DateTime.now().toIso8601String());
+      // PIN Correct! Mettre à jour la date d'activité dans Hive
+      await s.put('last_active_time', DateTime.now().toIso8601String());
+      await s.put('is_pin_verified', true);
 
       // Rediriger vers l'accueil ou le dashboard selon le rôle
       final userModel = HiveDatabase.usersBox.values.isNotEmpty
           ? HiveDatabase.usersBox.values.first
           : null;
+
+      if (!mounted) return;
+
+      // Lancer la restauration de la session en arrière-plan
+      context.read<AuthBloc>().add(CheckAuthEvent());
 
       if (userModel != null) {
         if (userModel.role.name.toLowerCase() == 'owner') {
@@ -62,10 +81,13 @@ class _PinLoginPageState extends State<PinLoginPage> {
       }
     } else {
       // Erreur, réinitialiser
-      setState(() {
-        _pin.clear();
-        _error = 'Code PIN incorrect. Réessayez.';
-      });
+      if (mounted) {
+        setState(() {
+          _pin.clear();
+          _error = 'Code PIN incorrect. Réessayez.';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -147,11 +169,22 @@ class _PinLoginPageState extends State<PinLoginPage> {
                 ),
 
                 const SizedBox(height: 20),
-                if (_error.isNotEmpty)
+                if (_isLoading)
+                  const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    ),
+                  )
+                else if (_error.isNotEmpty)
                   Text(
                     _error,
                     style: const TextStyle(color: AppTheme.errorColor, fontSize: 13),
-                  ),
+                  )
+                else
+                  const SizedBox(height: 24),
 
                 const Spacer(),
 
